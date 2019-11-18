@@ -1,0 +1,53 @@
+apply plugin: 'com.android.library'
+
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-allopen'
+
+android {
+    compileSdkVersion ANDROID_BUILD_SDK_VERSION as int
+    buildToolsVersion ANDROID_BUILD_TOOLS_VERSION
+    defaultConfig {
+        minSdkVersion ANDROID_BUILD_MIN_SDK_VERSION
+        targetSdkVersion ANDROID_BUILD_TARGET_SDK_VERSION
+    }
+
+    compileOptions {
+        encoding "UTF-8"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    lintOptions { abortOnError false }
+    sourceSets {
+        main {
+            jni.srcDirs = []
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+}
+dependencies {
+    api fileTree(include: ['*.jar'], dir: 'libs')
+    api "androidx.core:core:${X_SUPPORT_COMPAT}"
+    api "androidx.fragment:fragment-ktx:${X_SUPPORT_FRAGMENT_KTX}"
+    api "androidx.appcompat:appcompat:${X_SUPPORT_COMPAT}"
+
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    api "org.jetbrains.anko:anko-common:$anko_version"
+    //api "org.ccil.cowan.tagsoup:tagsoup:${TAGSOUP}"
+
+    api 'com.jeremyliao:live-event-bus-x:1.5.0'
+
+    api "com.umeng.umsdk:analytics:${UMENG_ANALYTICS}"
+    api "com.umeng.umsdk:common:${UMENG_COMMON}"
+
+    //kapt "androidx.room:room-compiler:${ROOM}"
+    //implementation "androidx.room:room-runtime:${ROOM}"
+}

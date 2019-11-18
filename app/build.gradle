@@ -1,0 +1,94 @@
+apply plugin: 'com.android.application'
+//apply plugin: 'com.antfortune.freeline'
+
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-allopen'
+
+// Create a variable called keystorePropertiesFile, and initialize it to your
+// keystore.properties file, in the rootProject folder.
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+
+// Initialize a new Properties() object called keystoreProperties.
+def keystoreProperties = new Properties()
+
+// Load your keystore.properties file into the keystoreProperties object.
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
+android {
+    signingConfigs {
+        release {
+            v1SigningEnabled true
+            v2SigningEnabled true
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+        }
+    }
+    compileSdkVersion ANDROID_BUILD_SDK_VERSION as int
+    buildToolsVersion ANDROID_BUILD_TOOLS_VERSION
+    defaultConfig {
+        applicationId 'cn.archko.mupdf'
+        minSdkVersion ANDROID_BUILD_MIN_SDK_VERSION
+        targetSdkVersion ANDROID_BUILD_TARGET_SDK_VERSION
+        versionCode VERSION_CODE as int
+        versionName VERSION_NAME
+        signingConfig signingConfigs.release
+        ndk.abiFilters 'armeabi-v7a', 'arm64-v8a'
+        externalNativeBuild {
+            cmake {
+                cppFlags ""
+            }
+        }
+    }
+
+    //dataBinding {
+    //    enabled = true
+    //}
+    compileOptions {
+        encoding "UTF-8"
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.release
+            jniDebuggable true
+        }
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    lintOptions { abortOnError false }
+    sourceSets {
+        main {
+            jni.srcDirs = []
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            //path "src/main/cpp/CMakeLists.txt"
+        }
+    }
+}
+dependencies {
+    api fileTree(include: ['*.jar'], dir: 'libs')
+    api "androidx.multidex:multidex:${X_SUPPORT_MULTIDEX}"
+    api "androidx.vectordrawable:vectordrawable:${X_SUPPORT_VECTOR_DRAWABLE}"
+    api "androidx.swiperefreshlayout:swiperefreshlayout:${X_SUPPORT_SWIPEREFRESHLAYOUT}"
+    api "androidx.constraintlayout:constraintlayout:${X_SUPPORT_CONSTRAINT_LAYOUT}"
+    api "androidx.constraintlayout:constraintlayout-solver:${X_SUPPORT_CONSTRAINT_LAYOUT}"
+    
+    api project(':reader')
+    api project(':viewer')
+}
