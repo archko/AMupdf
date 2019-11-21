@@ -2,6 +2,7 @@ package cn.archko.pdf.common
 
 import cn.archko.pdf.entity.ReflowBean
 import cn.archko.pdf.utils.StreamUtils
+import cn.archko.pdf.common.Logcat
 import java.util.regex.Pattern
 import kotlin.collections.ArrayList
 
@@ -110,7 +111,9 @@ class ParseTextMain private constructor() {
             for (s in lists) {
                 val ss = s.trim { it <= ' ' }
                 if (ss.length > 0) {
-                    //Logcat.longLog("text", ss)
+                    if (Logcat.loggable) {
+                        Logcat.longLog("text", ss)
+                    }
                     if (ss.startsWith(IMAGE_START_MARK)) {
                         isImage = true
                         sb.setLength(0)
@@ -138,10 +141,12 @@ class ParseTextMain private constructor() {
                 }
             }
 
-            /*Logcat.d("text", "length:${lists.size}")
-            for (rb in reflowBeans) {
-                Logcat.longLog("text", rb.toString())
-            }*/
+            if (Logcat.loggable) {
+                Logcat.d("result", "length:${lists.size}")
+                for (rb in reflowBeans) {
+                    Logcat.longLog("result", rb.toString())
+                }
+            }
             return reflowBeans
         }
 
@@ -158,8 +163,6 @@ class ParseTextMain private constructor() {
                 }
             }
 
-            sb.append(ss)
-
             var hasNewLine = false
             val find = START_MARK.matcher(start).find()
             //Logcat.d("find:$find")
@@ -167,6 +170,8 @@ class ParseTextMain private constructor() {
                 hasNewLine = true
                 sb.append("&nbsp;<br>")
             }
+
+            sb.append(ss)
             if (END_MARK.contains(end) || PROGRAM_MARK.contains(end)) {
                 if (!hasNewLine) {
                     sb.append("&nbsp;<br>")
@@ -176,7 +181,7 @@ class ParseTextMain private constructor() {
                     if (isLetterDigitOrChinese(end)) {
                         sb.append("&nbsp;")
                     }
-                    if (ss.substring(0, 1).matches("^[0-9]+$".toRegex())) {
+                    if (hasNewLine && lineLength < LINE_LENGTH && ss.substring(0, 1).matches("^[0-9]+$".toRegex())) {
                         sb.append("<br>")
                     }
                 }
@@ -221,7 +226,7 @@ class ParseTextMain private constructor() {
          * 第1章,第四章.
          * 总结,小结,●,■,（2）,（3）
          */
-        internal val START_MARK = Pattern.compile("(第\\w*[^章]章)|总结|小结|●|■|（\\d）|(\\d)")
+        internal val START_MARK = Pattern.compile("(第\\w*[^章]章)|总结|小结|●|■")
         /**
          * 段落的结束字符可能是以下.
          */
