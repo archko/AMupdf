@@ -109,7 +109,7 @@ public class ImageDecoder extends ImageWorker {
             Point thumbPoint = pageSize.getZoomPoint(pageSize.getScaleZoom() / ratio);
             Bitmap thumb = BitmapPool.getInstance().acquire(thumbPoint.x, thumbPoint.y);
             Matrix ctm = new Matrix(pageSize.getScaleZoom() / ratio);
-            render(page, ctm, thumb, 0, 0, 0);
+            render(page, ctm, thumb, 0, leftBound, topBound);
 
             RectF rectF = getCropRect(thumb);
 
@@ -120,8 +120,7 @@ public class ImageDecoder extends ImageWorker {
             topBound = (int) (rectF.top * ratio * scale);
 
             height = (int) (rectF.height() * ratio * scale);
-            if (height < pageSize.getZoomPoint().y / 2) {
-                height = pageSize.getZoomPoint().y / 2;
+            if (Logcat.loggable) {
                 Logcat.d(String.format("decode t:%s:%s:%s", height, pageSize.getZoomPoint().x, pageSize.getZoomPoint().y));
             }
         }
@@ -170,10 +169,7 @@ public class ImageDecoder extends ImageWorker {
                 }
                 parent.getLayoutParams().height = bitmap.getHeight();
                 parent.getLayoutParams().width = bitmap.getWidth();
-                //parent.requestLayout();
-                //Logcat.d(String.format("decode relayout post imageView->%s, %s:%s view->%s:%s",
-                //        decodeParam.pageSize.index, imageView.getWidth(), imageView.getHeight(),
-                //        ((View) imageView.getParent()).getWidth(), ((View) imageView.getParent()).getHeight()));
+                parent.requestLayout();
             }
         }
     }
