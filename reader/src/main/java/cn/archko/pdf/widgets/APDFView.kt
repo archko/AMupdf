@@ -146,9 +146,9 @@ class APDFView(protected val mContext: Context,
             }
         }
 
-        mDrawTask = getDrawPageTask(autoCrop, aPage!!, xOrigin, height)
-        Utils.execute(true, mDrawTask)
-        //ImageDecoder.getInstance().loadImage(aPage, autoCrop, xOrigin, mEntireView, mCore)
+        //mDrawTask = getDrawPageTask(autoCrop, aPage!!, xOrigin, height)
+        //Utils.execute(true, mDrawTask)
+        ImageDecoder.getInstance().loadImage(aPage, autoCrop, xOrigin, mEntireView, mCore)
     }
 
     @SuppressLint("StaticFieldLeak")
