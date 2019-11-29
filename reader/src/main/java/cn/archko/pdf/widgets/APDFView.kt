@@ -239,7 +239,7 @@ class APDFView(protected val mContext: Context,
                     }
                     layoutParams.height = bitmap.height
                     layoutParams.width = bitmap.width
-                    //requestLayout()
+                    requestLayout()
                 }
             }
         }
