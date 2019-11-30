@@ -12,7 +12,7 @@ import cn.archko.pdf.entity.BitmapBean;
  */
 public class BitmapManager {
 
-    private final int COUNT = 3;
+    private final int COUNT = 4;
     private BitmapBean[] bitmaps = new BitmapBean[COUNT];
     private int mCurrIndex = 0;
     private int hitCount = 0;

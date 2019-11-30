@@ -101,51 +101,56 @@ public class ImageDecoder extends ImageWorker {
 
     @Override
     protected Bitmap processBitmap(DecodeParam decodeParam) {
-        //long start = SystemClock.uptimeMillis();
-        Page page = decodeParam.document.loadPage(decodeParam.pageSize.index);
+        try {
+            //long start = SystemClock.uptimeMillis();
+            Page page = decodeParam.document.loadPage(decodeParam.pageSize.index);
 
-        float scale = 1.0f;
-        int leftBound = 0;
-        int topBound = 0;
-        APage pageSize = decodeParam.pageSize;
-        int height = pageSize.getZoomPoint().y;
-        if (decodeParam.autoCrop) {
-            int ratio = 6;
-            Point thumbPoint = pageSize.getZoomPoint(pageSize.getScaleZoom() / ratio);
-            Bitmap thumb = BitmapPool.getInstance().acquire(thumbPoint.x, thumbPoint.y);
-            Matrix ctm = new Matrix(pageSize.getScaleZoom() / ratio);
-            render(page, ctm, thumb, 0, leftBound, topBound);
+            float scale = 1.0f;
+            int leftBound = 0;
+            int topBound = 0;
+            APage pageSize = decodeParam.pageSize;
+            int height = pageSize.getZoomPoint().y;
+            if (decodeParam.autoCrop) {
+                int ratio = 6;
+                Point thumbPoint = pageSize.getZoomPoint(pageSize.getScaleZoom() / ratio);
+                Bitmap thumb = BitmapPool.getInstance().acquire(thumbPoint.x, thumbPoint.y);
+                Matrix ctm = new Matrix(pageSize.getScaleZoom() / ratio);
+                render(page, ctm, thumb, 0, leftBound, topBound);
 
-            RectF rectF = getCropRect(thumb);
+                RectF rectF = getCropRect(thumb);
 
-            scale = thumb.getWidth() / rectF.width();
-            BitmapPool.getInstance().release(thumb);
+                scale = thumb.getWidth() / rectF.width();
+                BitmapPool.getInstance().release(thumb);
 
-            leftBound = (int) (rectF.left * ratio * scale);
-            topBound = (int) (rectF.top * ratio * scale);
+                leftBound = (int) (rectF.left * ratio * scale);
+                topBound = (int) (rectF.top * ratio * scale);
 
-            height = (int) (rectF.height() * ratio * scale);
-            if (Logcat.loggable) {
-                Logcat.d(TAG, String.format("decode t:%s:%s:%s", height, pageSize.getZoomPoint().x, pageSize.getZoomPoint().y));
+                height = (int) (rectF.height() * ratio * scale);
+                if (Logcat.loggable) {
+                    Logcat.d(TAG, String.format("decode t:%s:%s:%s", height, pageSize.getZoomPoint().x, pageSize.getZoomPoint().y));
+                }
             }
-        }
 
-        int width = pageSize.getZoomPoint().x;
-        if ((pageSize.getTargetWidth() > 0)) {
-            width = pageSize.getTargetWidth();
-        }
-        if (Logcat.loggable) {
-            Logcat.d(TAG, String.format("decode bitmap:width-height: %s-%s,pagesize:%s,%s, bound:%s,%s, page:%s",
-                    width, height, pageSize.getZoomPoint().y, decodeParam.xOrigin, leftBound, topBound, pageSize));
-        }
-        Bitmap bitmap = BitmapPool.getInstance().acquire(width, height);//Bitmap.createBitmap(sizeX, sizeY, Bitmap.Config.ARGB_8888);
+            int width = pageSize.getZoomPoint().x;
+            if ((pageSize.getTargetWidth() > 0)) {
+                width = pageSize.getTargetWidth();
+            }
+            if (Logcat.loggable) {
+                Logcat.d(TAG, String.format("decode bitmap:width-height: %s-%s,pagesize:%s,%s, bound:%s,%s, page:%s",
+                        width, height, pageSize.getZoomPoint().y, decodeParam.xOrigin, leftBound, topBound, pageSize));
+            }
+            Bitmap bitmap = BitmapPool.getInstance().acquire(width, height);//Bitmap.createBitmap(sizeX, sizeY, Bitmap.Config.ARGB_8888);
 
-        Matrix ctm = new Matrix(pageSize.getScaleZoom() * scale);
-        render(page, ctm, bitmap, decodeParam.xOrigin, leftBound, topBound);
+            Matrix ctm = new Matrix(pageSize.getScaleZoom() * scale);
+            render(page, ctm, bitmap, decodeParam.xOrigin, leftBound, topBound);
 
-        page.destroy();
-        //Logcat.d(TAG, "decode:" + (SystemClock.uptimeMillis() - start));
-        return bitmap;
+            page.destroy();
+            //Logcat.d(TAG, "decode:" + (SystemClock.uptimeMillis() - start));
+            return bitmap;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override

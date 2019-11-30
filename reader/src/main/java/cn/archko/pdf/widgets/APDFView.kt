@@ -21,7 +21,7 @@ class APDFView(protected val mContext: Context,
                private val mBitmapManager: BitmapManager?) : RelativeLayout(mContext) {
 
     private var mEntireView: AImageView? = null // Image rendered at minimum zoom
-    private var mBitmap: Bitmap? = null
+    //private var mBitmap: Bitmap? = null
     private var mDrawTask: AsyncTask<Void, Void, Bitmap>? = null
     private var mZoom: Float = 0.toFloat()
 
@@ -86,10 +86,10 @@ class APDFView(protected val mContext: Context,
             mDrawTask = null
         }
 
-        if (null != mBitmap) {
-            //BitmapPool.getInstance().release(mBitmap);
-            mBitmap = null
-        }
+        //if (null != mBitmap) {
+        //    //BitmapPool.getInstance().release(mBitmap);
+        //    mBitmap = null
+        //}
     }
 
     fun setPage(pageSize: APage, newZoom: Float, autoCrop: Boolean) {
@@ -119,9 +119,8 @@ class APDFView(protected val mContext: Context,
         val xOrigin = (zoomSize.x - aPage!!.targetWidth) / 2
         Logcat.d(String.format("xOrigin: %s,changeScale:%s", xOrigin, changeScale));
 
-        if (null == mBitmap) {
-            mBitmap = mBitmapManager?.getBitmap(aPage!!.index)?.bitmap
-        }
+        val mBitmap = mBitmapManager?.getBitmap(aPage!!.index)?.bitmap
+
         if (null != mBitmap) {
             showPaint = false
             mEntireView!!.setImageBitmap(mBitmap)

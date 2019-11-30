@@ -353,6 +353,11 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         updateProgress(resultCode - RESULT_FIRST_USER)
     }
 
+    override fun commitZoom() {
+        bitmapManager?.clear()
+        mRecyclerView.adapter?.notifyItemChanged(getCurrentPos())
+    }
+
     override fun updateProgress(index: Int) {
         if (isDocLoaded && mPageSeekBarControls?.visibility == View.VISIBLE) {
             mPageSeekBarControls?.updatePageProgress(index)
