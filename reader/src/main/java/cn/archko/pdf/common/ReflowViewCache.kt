@@ -5,7 +5,7 @@ import android.widget.ImageView
 import android.widget.TextView
 
 /**
- * @author: wushuyong 2019/11/17 :09:35
+ * @author: archko 2019/11/17 :09:35
  */
 public class ReflowViewCache {
 

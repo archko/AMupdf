@@ -82,6 +82,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         try {
             progressDialog.setMessage("Loading menu")
             bitmapManager = BitmapManager()
+            ImageDecoder.getInstance().setBitmapManager(bitmapManager)
 
             mRecyclerView.adapter = PDFRecyclerAdapter()
             addGesture()
@@ -149,6 +150,8 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
     override fun onDestroy() {
         super.onDestroy()
+        ImageDecoder.getInstance().setBitmapManager(null)
+        bitmapManager?.clear()
     }
 
     @Override

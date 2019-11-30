@@ -2,6 +2,8 @@ package cn.archko.pdf.common;
 
 import android.graphics.Bitmap;
 
+import cn.archko.pdf.entity.BitmapBean;
+
 /**
  * bitmap cache
  * cache bitmap in memory
@@ -11,14 +13,13 @@ import android.graphics.Bitmap;
 public class BitmapManager {
 
     private final int COUNT = 3;
-    private Bitmap[] bitmaps = new Bitmap[COUNT];
-    private int[] index = new int[COUNT];
+    private BitmapBean[] bitmaps = new BitmapBean[COUNT];
     private int mCurrIndex = 0;
     private int hitCount = 0;
 
-    public Bitmap getBitmap(int pageNumber) {
+    public BitmapBean getBitmap(int pageNumber) {
         for (int i = 0; i < COUNT; i++) {
-            if (index[i] == pageNumber) {
+            if (bitmaps[i] != null && bitmaps[i].index == pageNumber) {
                 hitCount++;
                 if (Logcat.loggable) {
                     Logcat.d("hitCount:" + hitCount);
@@ -27,7 +28,7 @@ public class BitmapManager {
             }
         }
         if (Logcat.loggable) {
-            Logcat.d(String.format("miss:%s, %s", pageNumber, index));
+            Logcat.d(String.format("miss:%s", pageNumber));
         }
         return null;
     }
@@ -35,9 +36,9 @@ public class BitmapManager {
     public void setBitmap(int pageNumber, Bitmap bitmap) {
         boolean hasExist = false;
         for (int i = 0; i < COUNT; i++) {
-            if (index[i] == pageNumber) {
+            if (bitmaps[i] != null && bitmaps[i].index == pageNumber) {
                 hasExist = true;
-                bitmaps[i] = bitmap;
+                bitmaps[i].bitmap = bitmap;
                 if (Logcat.loggable) {
                     Logcat.d(String.format("override:%s", i));
                 }
@@ -48,8 +49,7 @@ public class BitmapManager {
             for (int i = 0; i < COUNT; i++) {
                 if (bitmaps[i] == null) {
                     hasExist = true;
-                    bitmaps[i] = bitmap;
-                    index[i] = pageNumber;
+                    bitmaps[i] = new BitmapBean(bitmap, pageNumber);
                     if (Logcat.loggable) {
                         Logcat.d(String.format("add new one:%s", i));
                     }
@@ -57,12 +57,11 @@ public class BitmapManager {
                 }
             }
             if (!hasExist) {
-                bitmaps[mCurrIndex] = bitmap;
-                int oldPageNumber = index[mCurrIndex];
-                index[mCurrIndex] = pageNumber;
+                BitmapBean oldPageNumber = bitmaps[mCurrIndex];
+                bitmaps[mCurrIndex] = new BitmapBean(bitmap, pageNumber);
 
                 if (Logcat.loggable) {
-                    Logcat.d(String.format("is full:old:%s,new:%s, %s", oldPageNumber, pageNumber, mCurrIndex));
+                    Logcat.d(String.format("is full:old:%s,new:%s, %s", oldPageNumber, bitmaps[mCurrIndex], mCurrIndex));
                 }
                 mCurrIndex++;
                 if (mCurrIndex >= COUNT) {
@@ -74,8 +73,8 @@ public class BitmapManager {
 
     public void recycle() {
         for (int i = 0; i < COUNT; i++) {
-            if (bitmaps[i] != null) {
-                bitmaps[i].recycle();
+            if (bitmaps[i] != null && bitmaps[i].bitmap != null) {
+                bitmaps[i].bitmap.recycle();
                 bitmaps[i] = null;
             }
         }
@@ -86,7 +85,6 @@ public class BitmapManager {
             if (bitmaps[i] != null) {
                 bitmaps[i] = null;
             }
-            index[i] = -1;
         }
         mCurrIndex = 0;
     }

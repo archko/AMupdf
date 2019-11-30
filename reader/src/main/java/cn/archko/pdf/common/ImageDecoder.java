@@ -16,6 +16,7 @@ import org.vudroid.core.BitmapPool;
 import androidx.collection.LruCache;
 import cn.archko.pdf.App;
 import cn.archko.pdf.entity.APage;
+import cn.archko.pdf.entity.BitmapBean;
 import cn.archko.pdf.utils.Utils;
 import cn.archko.pdf.widgets.AImageView;
 import cn.archko.pdf.widgets.APDFView;
@@ -25,6 +26,7 @@ import cn.archko.pdf.widgets.APDFView;
  */
 public class ImageDecoder extends ImageWorker {
 
+    public static final String TAG = "ImageDecoder";
     private LruCache<String, Bitmap> mImageCache = new LruCache<>(4);
     private LruCache<String, APage> pageLruCache = new LruCache<>(32);
     private BitmapManager mBitmapManager;
@@ -71,7 +73,10 @@ public class ImageDecoder extends ImageWorker {
         //    return mImageCache.get(key);
         //}
         if (null != mBitmapManager) {
-            return mBitmapManager.getBitmap(Utils.parseInt(key));
+            BitmapBean bb = mBitmapManager.getBitmap(Utils.parseInt(key));
+            if (bb != null) {
+                return bb.bitmap;
+            }
         }
         return null;
     }
@@ -91,7 +96,7 @@ public class ImageDecoder extends ImageWorker {
         if (document == null || aPage == null || getImageCache() == null || imageView == null) {
             return;
         }
-        super.loadImage(new DecodeParam(aPage.toString(), imageView, autoCrop, xOrigin, aPage, document));
+        super.loadImage(new DecodeParam(String.valueOf(aPage.index), imageView, autoCrop, xOrigin, aPage, document));
     }
 
     @Override
@@ -121,7 +126,7 @@ public class ImageDecoder extends ImageWorker {
 
             height = (int) (rectF.height() * ratio * scale);
             if (Logcat.loggable) {
-                Logcat.d(String.format("decode t:%s:%s:%s", height, pageSize.getZoomPoint().x, pageSize.getZoomPoint().y));
+                Logcat.d(TAG, String.format("decode t:%s:%s:%s", height, pageSize.getZoomPoint().x, pageSize.getZoomPoint().y));
             }
         }
 
@@ -130,7 +135,7 @@ public class ImageDecoder extends ImageWorker {
             width = pageSize.getTargetWidth();
         }
         if (Logcat.loggable) {
-            Logcat.d(String.format("decode bitmap:width-height: %s-%s,pagesize:%s,%s, bound:%s,%s, page:%s",
+            Logcat.d(TAG, String.format("decode bitmap:width-height: %s-%s,pagesize:%s,%s, bound:%s,%s, page:%s",
                     width, height, pageSize.getZoomPoint().y, decodeParam.xOrigin, leftBound, topBound, pageSize));
         }
         Bitmap bitmap = BitmapPool.getInstance().acquire(width, height);//Bitmap.createBitmap(sizeX, sizeY, Bitmap.Config.ARGB_8888);
@@ -139,14 +144,14 @@ public class ImageDecoder extends ImageWorker {
         render(page, ctm, bitmap, decodeParam.xOrigin, leftBound, topBound);
 
         page.destroy();
-        //Logcat.d("decode:" + (SystemClock.uptimeMillis() - start));
+        //Logcat.d(TAG, "decode:" + (SystemClock.uptimeMillis() - start));
         return bitmap;
     }
 
     @Override
     protected void postBitmap(BitmapWorkerTask bitmapWorkerTask, Bitmap bitmap, DecodeParam decodeParam) {
         if (bitmapWorkerTask.isCancelled() || bitmap == null) {
-            Logcat.w("decode", "cancel decode.");
+            Logcat.w(TAG, "cancel decode.");
             return;
         }
         final ImageView imageView = bitmapWorkerTask.getAttachedImageView();
@@ -162,7 +167,7 @@ public class ImageDecoder extends ImageWorker {
             View parent = (View) imageView.getParent();
             if (parent.getHeight() != bitmap.getHeight() || parent.getWidth() != bitmap.getWidth()) {
                 if (Logcat.loggable) {
-                    Logcat.d(String.format("decode relayout bitmap:index:%s, %s:%s imageView->%s:%s view->%s:%s",
+                    Logcat.d(TAG, String.format("decode relayout bitmap:index:%s, %s:%s imageView->%s:%s view->%s:%s",
                             decodeParam.pageSize.index, bitmap.getWidth(), bitmap.getHeight(),
                             imageView.getWidth(), imageView.getHeight(),
                             parent.getWidth(), parent.getHeight()));

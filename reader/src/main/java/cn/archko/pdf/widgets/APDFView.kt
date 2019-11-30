@@ -1,6 +1,5 @@
 package cn.archko.pdf.widgets
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.AsyncTask
@@ -9,13 +8,9 @@ import android.widget.ImageView
 import android.widget.RelativeLayout
 import cn.archko.pdf.common.BitmapManager
 import cn.archko.pdf.common.ImageDecoder
-import cn.archko.pdf.common.ImageWorker
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.entity.APage
-import cn.archko.pdf.utils.Utils
 import com.artifex.mupdf.fitz.Document
-import com.artifex.mupdf.fitz.Matrix
-import org.vudroid.core.BitmapPool
 
 /**
  * @author: archko 2018/7/25 :12:43
@@ -116,33 +111,31 @@ class APDFView(protected val mContext: Context,
         //when scale, mBitmap is always null.because after adapter notify,releaseResources() is invoke.
 
         showPaint = true
-        mEntireView!!.setSearchBoxes(emptyArray())
-        mEntireView!!.setLinks(emptyArray())
+        //mEntireView!!.setSearchBoxes(emptyArray())
+        //mEntireView!!.setLinks(emptyArray())
         //mEntireView.setScale(aPage.getScaleZoom());
 
         val zoomSize = aPage!!.zoomPoint
         val xOrigin = (zoomSize.x - aPage!!.targetWidth) / 2
-        Logcat.d(String.format("scale %s,%s", xOrigin, changeScale));
+        Logcat.d(String.format("xOrigin: %s,changeScale:%s", xOrigin, changeScale));
 
         if (null == mBitmap) {
-            mBitmap = mBitmapManager?.getBitmap(aPage!!.index)
+            mBitmap = mBitmapManager?.getBitmap(aPage!!.index)?.bitmap
         }
         if (null != mBitmap) {
-            if (mBitmap?.width != aPage?.targetWidth && !changeScale) {
-
+            showPaint = false
+            mEntireView!!.setImageBitmap(mBitmap)
+            if (Logcat.loggable) {
+                Logcat.d(String.format("changeScale: %s,cache:%s", changeScale, mBitmap.toString()));
+            }
+            if (changeScale) {
+                val matrix = android.graphics.Matrix()
+                matrix.postScale(newZoom, newZoom)
+                matrix.postTranslate((-xOrigin).toFloat(), 0f)
+                mEntireView!!.imageMatrix = matrix
+                requestLayout()
             } else {
-                showPaint = false
-                mEntireView!!.setImageBitmap(mBitmap)
-                //Logcat.d(String.format("scale cache %s,%s", mBitmap.toString(), changeScale));
-                if (changeScale) {
-                    val matrix = android.graphics.Matrix()
-                    matrix.postScale(newZoom, newZoom)
-                    matrix.postTranslate((-xOrigin).toFloat(), 0f)
-                    mEntireView!!.imageMatrix = matrix
-                    requestLayout()
-                } else {
-                    return
-                }
+
             }
         }
 
@@ -151,7 +144,7 @@ class APDFView(protected val mContext: Context,
         ImageDecoder.getInstance().loadImage(aPage, autoCrop, xOrigin, mEntireView, mCore)
     }
 
-    @SuppressLint("StaticFieldLeak")
+    /*@SuppressLint("StaticFieldLeak")
     protected fun getDrawPageTask(autoCrop: Boolean, pageSize: APage,
                                   xOrigin: Int, viewHeight: Int): AsyncTask<Void, Void, Bitmap> {
         return object : AsyncTask<Void, Void, Bitmap>() {
@@ -243,6 +236,6 @@ class APDFView(protected val mContext: Context,
                 }
             }
         }
-    }
+    }*/
 
 }

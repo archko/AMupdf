@@ -19,6 +19,7 @@ import cn.archko.pdf.common.Logcat;
 import cn.archko.pdf.common.ParseTextMain;
 import cn.archko.pdf.common.ReflowViewCache;
 import cn.archko.pdf.common.StyleHelper;
+import cn.archko.pdf.entity.BitmapBean;
 import cn.archko.pdf.entity.ReflowBean;
 import cn.archko.pdf.utils.BitmapUtils;
 
@@ -241,18 +242,6 @@ public class ReflowTextViewHolder extends BaseViewHolder {
                 addView(imageView, lp);
                 imageView.setImageBitmap(bean.bitmap);
             }
-        }
-    }
-
-    private static class BitmapBean {
-        Bitmap bitmap;
-        float width;
-        float height;
-
-        public BitmapBean(Bitmap bitmap, float width, float height) {
-            this.bitmap = bitmap;
-            this.width = width;
-            this.height = height;
         }
     }
 }
