@@ -208,13 +208,13 @@ public class RecentTableManager {
         Cursor cur = null;
 
         try {
-            String selection = ProgressTbl.KEY_NAME + "='" + name + "' and "
+            String selection = ProgressTbl.KEY_NAME + "=? and "
                     + ProgressTbl.KEY_RECORD_IS_IN_RECENT + "='" + inRecent + "'";
             if (inRecent == BookProgress.ALL) {
-                selection = ProgressTbl.KEY_NAME + "='" + name + "'";
+                selection = ProgressTbl.KEY_NAME + "=?";
             }
             cur = db.query(true, ProgressTbl.TABLE_NAME, null,
-                    selection, null,
+                    selection, new String[]{name},
                     null, null, null, "1");
             if (cur != null) {
                 if (cur.moveToFirst()) {
