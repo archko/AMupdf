@@ -76,7 +76,19 @@ public class ReflowTextViewHolder extends BaseViewHolder {
     }
 
     public void bindAsList(List<ReflowBean> text, int screenHeight, int screenWidth, float systemScale, ReflowViewCache reflowViewCache) {
-        if (null != reflowViewCache && reflowViewCache.textViewCount() > 0) {
+        recycleViews(reflowViewCache);
+        pageView.applyStyle();
+        for (ReflowBean reflowBean : text) {
+            if (reflowBean.getType() == ReflowBean.TYPE_STRING) {
+                pageView.addTextView(reflowBean.getData(), reflowViewCache);
+            } else {
+                pageView.addImageView(reflowBean.getData(), systemScale, screenHeight, screenWidth, reflowViewCache);
+            }
+        }
+    }
+
+    public void recycleViews(ReflowViewCache reflowViewCache) {
+        if (null != reflowViewCache) {
             for (int i = 0; i < pageView.getChildCount(); i++) {
                 final View child = pageView.getChildAt(i);
                 if (child instanceof TextView) {
@@ -85,15 +97,7 @@ public class ReflowTextViewHolder extends BaseViewHolder {
                     reflowViewCache.addImageView((ImageView) child);
                 }
             }
-        }
-        pageView.removeAllViews();
-        pageView.applyStyle();
-        for (ReflowBean reflowBean : text) {
-            if (reflowBean.getType() == ReflowBean.TYPE_STRING) {
-                pageView.addTextView(reflowBean.getData(), reflowViewCache);
-            } else {
-                pageView.addImageView(reflowBean.getData(), systemScale, screenHeight, screenWidth, reflowViewCache);
-            }
+            pageView.removeAllViews();
         }
     }
 
