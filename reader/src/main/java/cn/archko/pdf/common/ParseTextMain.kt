@@ -142,12 +142,12 @@ class ParseTextMain private constructor() {
                 }
             }
 
-            //if (Logcat.loggable) {
-            //    Logcat.d("result", "length:${lists.size}")
-            //    for (rb in reflowBeans) {
-            //        Logcat.longLog("result", rb.toString())
-            //    }
-            //}
+            if (Logcat.loggable) {
+                Logcat.d("result", "length:${lists.size}")
+                for (rb in reflowBeans) {
+                    Logcat.longLog("result", rb.toString())
+                }
+            }
             return reflowBeans
         }
 
@@ -173,7 +173,7 @@ class ParseTextMain private constructor() {
             //2.如果尾部没有换行符,则判断尾部的字符.通常是以标点结束的.或者是程序相关的字符结尾.
             if (!tailBreak) {
                 if (END_MARK.contains(end) || PROGRAM_MARK.contains(end)) {
-                    //Logcat.d("step2.break")
+                    Logcat.d("step2.break")
                     tailBreak = true
                 }
             }
@@ -184,10 +184,15 @@ class ParseTextMain private constructor() {
                 lineLength = 6;
             }
             val start = ss.substring(0, lineLength)
-            val find = START_MARK.matcher(start).find()
+            var find = START_MARK.matcher(start).find()
             //Logcat.d("find:$find")
+            if (!find) {
+                if (ss.startsWith("“|\"|'")) {
+                    find = true
+                }
+            }
             if (find) {
-                //Logcat.d("step3.break,length:${ss.length}")
+                Logcat.d("step3.break,length:${ss.length}")
                 headBreak = true
                 //如果是//开头的,一般是注释.需要添加尾部换行符.这里有可能会判断错误.但能保证程序注释会换行.
                 if (ss.length < LINE_LENGTH || ss.startsWith("//")) {
@@ -197,7 +202,7 @@ class ParseTextMain private constructor() {
             //4.如果上一次是有换行符的,而这一行的字符数较小,有可能是标题目录.所以需要加换行符.
             //这是针对一些,不是以"第xx"开头的标题.此时头尾都有可能要加,如果之前没有加的话.
             if ((lastBreak && ss.length < LINE_LENGTH)) {
-                //Logcat.d("step4.break")
+                Logcat.d("step4.break")
                 if (!headBreak) {
                     headBreak = true
                 }
@@ -213,13 +218,13 @@ class ParseTextMain private constructor() {
             }
             sb.append(ss)
             if (isLetterDigitOrChinese(end)) {
-                //Logcat.d("isLetterDigitOrChinese:$end")
+                Logcat.d("isLetterDigitOrChinese:$end")
                 sb.append("&nbsp;")
             }
             if (tailBreak) {
                 sb.append("&nbsp;<br>")
             }
-            //Logcat.d("headBreak:${headBreak},tailBreak:$tailBreak,source:$ss")
+            Logcat.d("headBreak:${headBreak},tailBreak:$tailBreak,source:$ss")
             return tailBreak
         }
 
@@ -262,11 +267,11 @@ class ParseTextMain private constructor() {
          * 总结,小结,●,■,（2）,（3）
          * //|var|val|let|这是程序的注释.需要换行,或者是程序的开头.
          */
-        internal val START_MARK = Pattern.compile("(第\\w*[^章]章)|总结|小结|●|■|//|var|val|let|fun|public|private|static|abstract|protected|import|export|pack|overri|open|class|void|for|while|")
+        internal val START_MARK = Pattern.compile("(第\\w*[^章]章)|总结|小结|●|■|//|var|val|let|fun|public|private|static|abstract|protected|import|export|pack|overri|open|class|void|for|while")
         /**
          * 段落的结束字符可能是以下.
          */
-        internal const val END_MARK = ".!?．！？。！?:：」？” "
+        internal const val END_MARK = ".!?．！？。！?:：」？” ——"
         /**
          * 如果遇到的是代码,通常是以这些结尾
          */
