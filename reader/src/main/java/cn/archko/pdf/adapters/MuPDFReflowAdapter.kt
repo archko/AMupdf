@@ -6,6 +6,7 @@ import android.os.AsyncTask
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import cn.archko.pdf.App
+import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.common.ParseTextMain
 import cn.archko.pdf.common.ReflowViewCache
 import cn.archko.pdf.common.StyleHelper
@@ -73,6 +74,15 @@ class MuPDFReflowAdapter(private val mContext: Context,
         }
 
         Utils.execute(true, task)
+    }
+
+    override fun onViewRecycled(holder: BaseViewHolder<*>) {
+        super.onViewRecycled(holder)
+        val pdfHolder = holder as ReflowTextViewHolder?
+
+        Logcat.d("onViewRecycled:$pdfHolder,exist count:${reflowCache.textViewCount()},${reflowCache.imageViewCount()}")
+        pdfHolder?.recycleViews(reflowCache)
+        Logcat.d("onViewRecycled end,exist count::${reflowCache.textViewCount()},${reflowCache.imageViewCount()}")
     }
 
     fun clearCacheViews() {
