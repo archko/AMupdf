@@ -132,6 +132,7 @@ class APDFView(protected val mContext: Context,
                 matrix.postScale(newZoom, newZoom)
                 matrix.postTranslate((-xOrigin).toFloat(), 0f)
                 mEntireView!!.imageMatrix = matrix
+                invalidate()
                 requestLayout()
             } else {
 
