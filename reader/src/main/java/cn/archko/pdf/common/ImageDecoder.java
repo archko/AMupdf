@@ -73,9 +73,9 @@ public class ImageDecoder extends ImageWorker {
         //    return mImageCache.get(key);
         //}
         if (null != mBitmapManager) {
-            BitmapBean bb = mBitmapManager.getBitmap(Utils.parseInt(key));
+            Bitmap bb = mBitmapManager.getBitmap(Utils.parseInt(key));
             if (bb != null) {
-                return bb.bitmap;
+                return bb;
             }
         }
         return null;
