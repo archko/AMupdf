@@ -18,6 +18,7 @@ import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.utils.DateUtil
 import cn.archko.pdf.utils.FileUtils
 import cn.archko.pdf.utils.Utils
+import com.artifex.mupdf.fitz.Document
 import com.umeng.analytics.MobclickAgent
 import java.math.BigDecimal
 
@@ -138,6 +139,19 @@ class FileInfoFragment : DialogFragment() {
 
     private fun setPage() {
         mPageCount.setText(String.format("%s/%s", bookProgress!!.page, bookProgress!!.pageCount))
+        if (bookProgress?.pageCount == 0) {
+            loadBook()
+        }
+    }
+
+    private fun loadBook() {
+        try {
+            val core: Document? = Document.openDocument(mEntry!!.file.path)
+            bookProgress?.pageCount = core!!.countPages()
+            setPage()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun showProgress(progress: BookProgress) {

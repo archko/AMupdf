@@ -105,27 +105,30 @@ public class ImageDecoder extends ImageWorker {
             //long start = SystemClock.uptimeMillis();
             Page page = decodeParam.document.loadPage(decodeParam.pageSize.index);
 
-            float scale = 1.0f;
             int leftBound = 0;
             int topBound = 0;
             APage pageSize = decodeParam.pageSize;
             int height = pageSize.getZoomPoint().y;
+            Matrix ctm = new Matrix(pageSize.getScaleZoom());
+
             if (decodeParam.autoCrop) {
-                int ratio = 6;
+                float ratio = 6f;
+
                 Point thumbPoint = pageSize.getZoomPoint(pageSize.getScaleZoom() / ratio);
                 Bitmap thumb = BitmapPool.getInstance().acquire(thumbPoint.x, thumbPoint.y);
-                Matrix ctm = new Matrix(pageSize.getScaleZoom() / ratio);
-                render(page, ctm, thumb, 0, leftBound, topBound);
+                Matrix matrix = new Matrix(pageSize.getScaleZoom() / ratio);
+                render(page, matrix, thumb, 0, leftBound, topBound);
 
-                RectF rectF = getCropRect(thumb);
+                RectF rectF = ImageWorker.getCropRect(thumb);
 
-                scale = thumb.getWidth() / rectF.width();
+                float scale = thumb.getWidth() / rectF.width();
                 BitmapPool.getInstance().release(thumb);
 
                 leftBound = (int) (rectF.left * ratio * scale);
                 topBound = (int) (rectF.top * ratio * scale);
 
                 height = (int) (rectF.height() * ratio * scale);
+                ctm.scale(scale, scale);
                 if (Logcat.loggable) {
                     Logcat.d(TAG, String.format("decode t:%s:%s:%s", height, pageSize.getZoomPoint().x, pageSize.getZoomPoint().y));
                 }
@@ -141,7 +144,6 @@ public class ImageDecoder extends ImageWorker {
             }
             Bitmap bitmap = BitmapPool.getInstance().acquire(width, height);//Bitmap.createBitmap(sizeX, sizeY, Bitmap.Config.ARGB_8888);
 
-            Matrix ctm = new Matrix(pageSize.getScaleZoom() * scale);
             render(page, ctm, bitmap, decodeParam.xOrigin, leftBound, topBound);
 
             page.destroy();
