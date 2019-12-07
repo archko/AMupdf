@@ -91,4 +91,5 @@ dependencies {
     
     api project(':reader')
     api project(':viewer')
+    api project(':android-pdf-viewer')
 }
