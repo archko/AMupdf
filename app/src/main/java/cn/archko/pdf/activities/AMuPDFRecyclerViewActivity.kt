@@ -2,6 +2,7 @@ package cn.archko.pdf.activities
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.preference.PreferenceManager
@@ -351,6 +352,12 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         updateProgress(resultCode - RESULT_FIRST_USER)
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        mRecyclerView.stopScroll()
+        mRecyclerView.adapter?.notifyDataSetChanged()
+    }
+
     override fun commitZoom() {
         bitmapManager?.clear()
         mRecyclerView.adapter?.notifyItemChanged(getCurrentPos())
@@ -370,6 +377,12 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         mZoomControls?.hide()
         mStyleControls?.visibility = View.GONE
         mDrawerLayout.closeDrawers()
+
+        mRecyclerView.postDelayed(object : Runnable {
+            override fun run() {
+                mRecyclerView.adapter?.notifyDataSetChanged()
+            }
+        }, 250L)
     }
 
     override fun onPause() {

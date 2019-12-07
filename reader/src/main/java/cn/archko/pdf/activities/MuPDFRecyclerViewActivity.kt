@@ -324,12 +324,6 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
     }
     //--------------------------------------
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        mRecyclerView.stopScroll()
-        mRecyclerView.adapter?.notifyDataSetChanged()
-    }
-
     override fun onResume() {
         super.onResume()
 
@@ -348,12 +342,6 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
             window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
         }
         Logcat.d("onResume ")
-
-        mRecyclerView.postDelayed(object : Runnable {
-            override fun run() {
-                mRecyclerView.adapter?.notifyDataSetChanged()
-            }
-        }, 250L)
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
@@ -375,7 +363,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         sensorHelper?.onPause()
     }
 
-    fun getCurrentPos(): Int {
+    open fun getCurrentPos(): Int {
         var position = (mRecyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
         if (position < 0) {
             position = 0
