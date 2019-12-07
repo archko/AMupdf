@@ -14,8 +14,8 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import cn.archko.mupdf.R
 import cn.archko.pdf.App
+import cn.archko.pdf.R
 import cn.archko.pdf.adapters.BaseRecyclerAdapter
 import cn.archko.pdf.adapters.BaseViewHolder
 import cn.archko.pdf.common.FontHelper
@@ -78,7 +78,7 @@ open class FontsFragment : DialogFragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.list_book_search, container, false)
+        val view = inflater.inflate(R.layout.item_font, container, false)
         view.findViewById<View>(R.id.layout_search).visibility = View.GONE
         val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
         toolbar.setNavigationOnClickListener(View.OnClickListener { dismiss() })

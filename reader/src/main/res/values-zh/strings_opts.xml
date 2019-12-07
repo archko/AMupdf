@@ -76,4 +76,7 @@
     <string name="tab_history">历史</string>
     <string name="tab_browser">浏览器</string>
     <string name="tab_favorite">收藏</string>
+
+    <string name="dialog_title_font">选择字体</string>
+    <string name="no_fonts">请将字体放入 /sdcard/amupdf/fonts 目录</string>
 </resources>

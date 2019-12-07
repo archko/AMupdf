@@ -103,4 +103,7 @@
     <string name="tab_history">History</string>
     <string name="tab_browser">Browser</string>
     <string name="tab_favorite">Fravorite</string>
+
+    <string name="dialog_title_font">Select Font</string>
+    <string name="no_fonts">Put fonts into /sdcard/amupdf/fonts</string>
 </resources>
