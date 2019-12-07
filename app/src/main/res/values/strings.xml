@@ -26,14 +26,4 @@
     <string name="menu_delete">Delete</string>
     <string name="menu_add_to_fav">Add To Favorites</string>
     <string name="menu_remove_from_fav">Remove from Favorites</string>
-
-    <string name="dialog_title_font">Select Font</string>
-    <string name="no_fonts">Put fonts into /sdcard/amupdf/fonts</string>
-
-    <string name="menu_font_size">Font Size</string>
-    <string name="menu_font_face">Font Face</string>
-    <string name="menu_line_space">Line Space</string>
-    <string name="menu_font_color">Font Color</string>
-    <string name="menu_font_bg">Background</string>
-    <string name="menu_font_fg">Forground</string>
 </resources>

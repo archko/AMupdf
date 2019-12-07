@@ -73,9 +73,9 @@ public class ImageDecoder extends ImageWorker {
         //    return mImageCache.get(key);
         //}
         if (null != mBitmapManager) {
-            BitmapBean bb = mBitmapManager.getBitmap(Utils.parseInt(key));
+            Bitmap bb = mBitmapManager.getBitmap(Utils.parseInt(key));
             if (bb != null) {
-                return bb.bitmap;
+                return bb;
             }
         }
         return null;
@@ -168,7 +168,6 @@ public class ImageDecoder extends ImageWorker {
             }
             imageView.setImageBitmap(bitmap);
             imageView.getImageMatrix().reset();
-            imageView.invalidate();
 
             View parent = (View) imageView.getParent();
             if (parent.getHeight() != bitmap.getHeight() || parent.getWidth() != bitmap.getWidth()) {

@@ -119,7 +119,7 @@ class APDFView(protected val mContext: Context,
         val xOrigin = (zoomSize.x - aPage!!.targetWidth) / 2
         Logcat.d(String.format("xOrigin: %s,changeScale:%s", xOrigin, changeScale));
 
-        val mBitmap = mBitmapManager?.getBitmap(aPage!!.index)?.bitmap
+        val mBitmap = mBitmapManager?.getBitmap(aPage!!.index)
 
         if (null != mBitmap) {
             showPaint = false
@@ -132,7 +132,6 @@ class APDFView(protected val mContext: Context,
                 matrix.postScale(newZoom, newZoom)
                 matrix.postTranslate((-xOrigin).toFloat(), 0f)
                 mEntireView!!.imageMatrix = matrix
-                invalidate()
                 requestLayout()
             } else {
 
