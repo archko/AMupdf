@@ -77,7 +77,6 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         autoCrop = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(PdfOptionsActivity.PREF_AUTOCROP, true)
     }
 
-    @Override
     override fun doLoadDoc() {
         try {
             progressDialog.setMessage("Loading menu")
