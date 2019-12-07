@@ -30,6 +30,18 @@ public class PDFBookmarkManager {
         bookmarkToRestore.inRecent = 0;
     }
 
+    public int getBookmark() {
+        if (bookmarkToRestore == null) {
+            return 0;
+        }
+        int currentPage = 0;
+
+        if (0 < bookmarkToRestore.page) {
+            currentPage = bookmarkToRestore.page;
+        }
+        return currentPage;
+    }
+
     public int restoreBookmark(int pageCount) {
         if (bookmarkToRestore == null) {
             return 0;

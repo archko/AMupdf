@@ -466,7 +466,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
                         intent.setClass(activity!!, AMuPDFRecyclerViewActivity::class.java)
                         startActivity(intent)
                     }
-                    mupdfContextMenuItem -> {
+                    bartekscViewContextMenuItem -> {
                         var map = mapOf("type" to "barteksc", "name" to clickedFile.name)
                         MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
 
