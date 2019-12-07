@@ -464,7 +464,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         public const val TYPE_SETTINGS = 5
     }
 
-    open fun loadDoc() {
+    private fun loadDoc() {
         progressDialog.setMessage(mPath)
         progressDialog.show()
         val start = SystemClock.uptimeMillis()
