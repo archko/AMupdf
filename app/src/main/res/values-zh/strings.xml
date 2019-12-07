@@ -27,11 +27,4 @@
     <string name="menu_delete">删除</string>
     <string name="menu_add_to_fav">添加到收藏夹</string>
     <string name="menu_remove_from_fav">取消收藏</string>
-
-    <string name="menu_font_size">字号</string>
-    <string name="menu_font_face">字体</string>
-    <string name="menu_line_space">行间距</string>
-    <string name="menu_font_color">字体颜色</string>
-    <string name="menu_font_bg">背景</string>
-    <string name="menu_font_fg">前景</string>
 </resources>
