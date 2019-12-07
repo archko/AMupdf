@@ -153,7 +153,6 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         bitmapManager?.clear()
     }
 
-    @Override
     override fun initView() {
         super.initView()
         mLeftDrawer = findViewById(R.id.left_drawer)
