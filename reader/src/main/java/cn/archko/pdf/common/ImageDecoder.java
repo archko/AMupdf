@@ -168,7 +168,6 @@ public class ImageDecoder extends ImageWorker {
             }
             imageView.setImageBitmap(bitmap);
             imageView.getImageMatrix().reset();
-            imageView.invalidate();
 
             View parent = (View) imageView.getParent();
             if (parent.getHeight() != bitmap.getHeight() || parent.getWidth() != bitmap.getWidth()) {

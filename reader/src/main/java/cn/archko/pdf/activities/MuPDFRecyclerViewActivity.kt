@@ -373,7 +373,6 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         super.onPause()
 
         sensorHelper?.onPause()
-        bitmapManager?.clear()
     }
 
     fun getCurrentPos(): Int {
