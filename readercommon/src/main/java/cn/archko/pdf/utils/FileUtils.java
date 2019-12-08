@@ -6,14 +6,18 @@ import android.os.Environment;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -382,5 +386,62 @@ public final class FileUtils {
         /* Before Froyo we need to construct the external cache dir ourselves */
         final String dir = "/Android/data/" + context.getPackageName() + "/cache/";
         return new File(Environment.getExternalStorageDirectory().getPath() + dir);
+    }
+
+    //---------------------------
+
+    public static String MD5(String data) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] bytes = md.digest(data.getBytes());
+            return bytesToHexString(bytes);
+        } catch (NoSuchAlgorithmException e) {
+        }
+        return data;
+    }
+
+    /**
+     * 文件MD5值
+     *
+     * @param filepath
+     */
+    String md5File(String filepath) {
+        try {
+            File file = new File(filepath);
+            FileInputStream fis = new FileInputStream(file);
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] buffer = new byte[1024];
+            int length = -1;
+            while (fis.read(buffer, 0, 1024) != -1) {
+                length = fis.read(buffer, 0, 1024);
+                md.update(buffer, 0, length);
+            }
+            BigInteger bigInt = new BigInteger(1, md.digest());
+            return bigInt.toString(16);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    private static String bytesToHexString(byte[] src) {
+        StringBuilder stringBuilder = new StringBuilder("");
+        if (src == null || src.length <= 0) {
+            return null;
+        }
+        for (int i = 0; i < src.length; i++) {
+            int v = src[i] & 0xFF;
+            String hv = Integer.toHexString(v);
+            if (hv.length() < 2) {
+                stringBuilder.append(0);
+            }
+            stringBuilder.append(hv);
+        }
+        return stringBuilder.toString();
     }
 }

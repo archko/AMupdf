@@ -1,7 +1,5 @@
 package cn.archko.pdf.utils;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -10,7 +8,7 @@ import java.util.Date;
  * @description:
  * @author: archko 13-12-16 :上午11:13
  */
-public class DateUtil {
+public class DateUtils {
 
     /**
      * yyyy-MM-dd
@@ -103,33 +101,5 @@ public class DateUtil {
         }*/ else {
             return formatTime(time, format);
         }
-    }
-
-    //---------------------------
-
-    public static String MD5(String data) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] bytes = md.digest(data.getBytes());
-            return bytesToHexString(bytes);
-        } catch (NoSuchAlgorithmException e) {
-        }
-        return data;
-    }
-
-    private static String bytesToHexString(byte[] src) {
-        StringBuilder stringBuilder = new StringBuilder("");
-        if (src == null || src.length <= 0) {
-            return null;
-        }
-        for (int i = 0; i < src.length; i++) {
-            int v = src[i] & 0xFF;
-            String hv = Integer.toHexString(v);
-            if (hv.length() < 2) {
-                stringBuilder.append(0);
-            }
-            stringBuilder.append(hv);
-        }
-        return stringBuilder.toString();
     }
 }

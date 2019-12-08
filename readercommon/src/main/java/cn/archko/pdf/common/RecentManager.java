@@ -15,7 +15,7 @@ import java.util.Arrays;
 import cn.archko.pdf.App;
 import cn.archko.pdf.entity.BookProgress;
 import cn.archko.pdf.listeners.DataListener;
-import cn.archko.pdf.utils.DateUtil;
+import cn.archko.pdf.utils.DateUtils;
 import cn.archko.pdf.utils.FileUtils;
 import cn.archko.pdf.utils.StreamUtils;
 import cn.archko.pdf.utils.Utils;
@@ -172,7 +172,7 @@ public class RecentManager {
     }
 
     public String backupFromDb() {
-        String name = "mupdf_" + DateUtil.formatTime(System.currentTimeMillis(), "yyyy-MM-dd-HH-mm-ss");
+        String name = "mupdf_" + DateUtils.formatTime(System.currentTimeMillis(), "yyyy-MM-dd-HH-mm-ss");
         return backupFromDb(name);
     }
 
