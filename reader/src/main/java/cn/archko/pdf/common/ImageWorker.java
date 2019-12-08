@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -12,19 +11,11 @@ import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.widget.ImageView;
 
-import androidx.collection.LruCache;
-
 import com.artifex.mupdf.fitz.Document;
-import com.artifex.mupdf.fitz.Matrix;
-import com.artifex.mupdf.fitz.Page;
-import com.artifex.mupdf.fitz.android.AndroidDrawDevice;
-
-import org.ebookdroid.core.crop.PageCropper;
 
 import java.lang.ref.WeakReference;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
+import androidx.collection.LruCache;
 import cn.archko.pdf.entity.APage;
 import cn.archko.pdf.utils.Utils;
 
@@ -359,24 +350,6 @@ public abstract class ImageWorker {
      * @return The processed {@link Bitmap}.
      */
     protected abstract Bitmap processBitmap(DecodeParam decodeParam);
-
-    public static void render(Page page, Matrix ctm, Bitmap bitmap, int xOrigin, int leftBound, int topBound) {
-        AndroidDrawDevice dev = new AndroidDrawDevice(bitmap, xOrigin + leftBound, topBound);
-        page.run(dev, ctm, null);
-        dev.close();
-        dev.destroy();
-    }
-
-    public static RectF getCropRect(Bitmap bitmap) {
-        //long start = SystemClock.uptimeMillis();
-        ByteBuffer byteBuffer = PageCropper.create(bitmap.getByteCount()).order(ByteOrder.nativeOrder());
-        bitmap.copyPixelsToBuffer(byteBuffer);
-        //Log.d("test", String.format("%s,%s,%s,%s", bitmap.getWidth(), bitmap.getHeight(), (SystemClock.uptimeMillis() - start), rectF));
-
-        //view: view:Point(1920, 1080) patchX:71 mss:6.260591 mZoomSize:Point(2063, 3066) zoom:1.0749608
-        //test: 2063,3066,261,RectF(85.0, 320.0, 1743.0, 2736.0)
-        return PageCropper.getCropBounds(byteBuffer, bitmap.getWidth(), bitmap.getHeight(), new RectF(0f, 0f, bitmap.getWidth(), bitmap.getHeight()));
-    }
 
     public void recycle() {
     }

@@ -3,6 +3,7 @@ package cn.archko.pdf.pdf;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
+import android.graphics.RectF;
 import android.os.Environment;
 
 import com.artifex.mupdf.fitz.Cookie;
@@ -18,9 +19,16 @@ import com.artifex.mupdf.fitz.RectI;
 import com.artifex.mupdf.fitz.android.AndroidDrawDevice;
 import com.artifex.mupdf.viewer.OutlineActivity;
 
+import org.ebookdroid.core.crop.PageCropper;
+
 import java.io.File;
 import java.io.FileDescriptor;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
+
+import cn.archko.pdf.common.BitmapPool;
+import cn.archko.pdf.common.ImageWorker;
 
 /**
  * @author archko 2019/12/8 :12:43
@@ -248,5 +256,71 @@ public class MupdfDocument {
 
     public boolean authenticatePassword(String password) {
         return document.authenticatePassword(password);
+    }
+
+    public Bitmap nativeRender(int pageNum, boolean autoCrop,
+                               int pageW, int pageH,
+                               int patchX, int patchY) {
+        Page page = document.loadPage(pageNum);
+
+        final float zoom = 2;
+        final Matrix ctm = new Matrix(zoom, zoom);
+        final RectI bbox = new RectI(page.getBounds().transform(ctm));
+        final float xscale = (float) pageW / (float) (bbox.x1 - bbox.x0);
+        final float yscale = (float) pageH / (float) (bbox.y1 - bbox.y0);
+        ctm.scale(xscale, yscale);
+
+        int leftBound = 0;
+        int topBound = 0;
+        int width = pageW;
+        int height = pageH;
+        if (autoCrop) {
+            float ratio = 6f;
+            Bitmap thumb = BitmapPool.getInstance().acquire((int) (pageW / ratio), (int) (pageH / ratio));
+            Matrix matrix = new Matrix(ctm.a / ratio, ctm.d / ratio);
+            render(page, matrix, thumb, 0, leftBound, topBound);
+
+            RectF rectF = getCropRect(thumb);
+
+            float scale = thumb.getWidth() / rectF.width();
+            leftBound = (int) (rectF.left * ratio * scale);
+            topBound = (int) (rectF.top * ratio * scale);
+
+            height = (int) (rectF.height() * ratio * scale);
+            ctm.scale(scale, scale);
+            //if (Logcat.loggable) {
+            //    Logcat.d(String.format("decode t:%s:%s:%s,thumb:%s=%s, rectF:%s", width, height, scale, thumb.getWidth(), thumb.getHeight(), rectF));
+            //}
+        }
+
+        //if (Logcat.loggable) {
+        //    Logcat.d(String.format("decode bitmap:width-height: %s-%s,pagesize:%s,%s, bound:%s,%s,%s",
+        //            width, height, pageW, pageH, leftBound, topBound, ctm));
+        //}
+
+        Bitmap bitmap = BitmapPool.getInstance().acquire(width, height);
+
+        render(page, ctm, bitmap, 0, leftBound, topBound);
+
+        page.destroy();
+        return bitmap;
+    }
+
+    public static void render(Page page, Matrix ctm, Bitmap bitmap, int xOrigin, int leftBound, int topBound) {
+        AndroidDrawDevice dev = new AndroidDrawDevice(bitmap, xOrigin + leftBound, topBound);
+        page.run(dev, ctm, null);
+        dev.close();
+        dev.destroy();
+    }
+
+    public static RectF getCropRect(Bitmap bitmap) {
+        //long start = SystemClock.uptimeMillis();
+        ByteBuffer byteBuffer = PageCropper.create(bitmap.getByteCount()).order(ByteOrder.nativeOrder());
+        bitmap.copyPixelsToBuffer(byteBuffer);
+        //Log.d("test", String.format("%s,%s,%s,%s", bitmap.getWidth(), bitmap.getHeight(), (SystemClock.uptimeMillis() - start), rectF));
+
+        //view: view:Point(1920, 1080) patchX:71 mss:6.260591 mZoomSize:Point(2063, 3066) zoom:1.0749608
+        //test: 2063,3066,261,RectF(85.0, 320.0, 1743.0, 2736.0)
+        return PageCropper.getCropBounds(byteBuffer, bitmap.getWidth(), bitmap.getHeight(), new RectF(0f, 0f, bitmap.getWidth(), bitmap.getHeight()));
     }
 }

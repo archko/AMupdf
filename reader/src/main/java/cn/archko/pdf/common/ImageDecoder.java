@@ -14,6 +14,7 @@ import com.artifex.mupdf.fitz.Page;
 import androidx.collection.LruCache;
 import cn.archko.pdf.App;
 import cn.archko.pdf.entity.APage;
+import cn.archko.pdf.pdf.MupdfDocument;
 import cn.archko.pdf.utils.Utils;
 
 /**
@@ -112,9 +113,9 @@ public class ImageDecoder extends ImageWorker {
                 Point thumbPoint = pageSize.getZoomPoint(pageSize.getScaleZoom() / ratio);
                 Bitmap thumb = BitmapPool.getInstance().acquire(thumbPoint.x, thumbPoint.y);
                 Matrix matrix = new Matrix(pageSize.getScaleZoom() / ratio);
-                render(page, matrix, thumb, 0, leftBound, topBound);
+                MupdfDocument.render(page, matrix, thumb, 0, leftBound, topBound);
 
-                RectF rectF = ImageWorker.getCropRect(thumb);
+                RectF rectF = MupdfDocument.getCropRect(thumb);
 
                 float scale = thumb.getWidth() / rectF.width();
                 BitmapPool.getInstance().release(thumb);
@@ -139,7 +140,7 @@ public class ImageDecoder extends ImageWorker {
             }
             Bitmap bitmap = BitmapPool.getInstance().acquire(width, height);//Bitmap.createBitmap(sizeX, sizeY, Bitmap.Config.ARGB_8888);
 
-            render(page, ctm, bitmap, decodeParam.xOrigin, leftBound, topBound);
+            MupdfDocument.render(page, ctm, bitmap, decodeParam.xOrigin, leftBound, topBound);
 
             page.destroy();
             //Logcat.d(TAG, "decode:" + (SystemClock.uptimeMillis() - start));

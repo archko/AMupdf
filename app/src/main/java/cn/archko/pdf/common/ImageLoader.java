@@ -19,6 +19,7 @@ import java.io.File;
 import cn.archko.mupdf.R;
 import cn.archko.pdf.App;
 import cn.archko.pdf.entity.APage;
+import cn.archko.pdf.pdf.MupdfDocument;
 import cn.archko.pdf.utils.BitmapUtils;
 import cn.archko.pdf.utils.FileUtils;
 
@@ -136,7 +137,7 @@ public class ImageLoader extends ImageWorker {
         int topBound = 0;
         Matrix ctm = new Matrix(aPage.getScaleZoom() * scale);
         Bitmap bm = Bitmap.createBitmap(zoomSize.x, zoomSize.y, Bitmap.Config.ARGB_8888);
-        render(p, ctm, bm, 0, leftBound, topBound);
+        MupdfDocument.render(p, ctm, bm, 0, leftBound, topBound);
         page.destroy();
         return bm;
     }

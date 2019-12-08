@@ -15,7 +15,7 @@ import cn.archko.pdf.common.RecentManager
 import cn.archko.pdf.entity.BookProgress
 import cn.archko.pdf.entity.FileBean
 import cn.archko.pdf.listeners.DataListener
-import cn.archko.pdf.utils.DateUtil
+import cn.archko.pdf.utils.DateUtils
 import cn.archko.pdf.utils.FileUtils
 import cn.archko.pdf.utils.Utils
 import com.artifex.mupdf.fitz.Document
@@ -137,18 +137,15 @@ class FileInfoFragment : DialogFragment() {
         ImageLoader.getInstance().loadImage(path, 0, 1.0f, App.getInstance().screenWidth, mIcon);
     }
 
-    private fun setPage() {
+    private fun updatePageCount() {
         mPageCount.setText(String.format("%s/%s", bookProgress!!.page, bookProgress!!.pageCount))
-        if (bookProgress?.pageCount == 0) {
-            loadBook()
-        }
     }
 
     private fun loadBook() {
         try {
             val core: Document? = Document.openDocument(mEntry!!.file.path)
             bookProgress?.pageCount = core!!.countPages()
-            setPage()
+            updatePageCount()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -158,7 +155,7 @@ class FileInfoFragment : DialogFragment() {
         if (null != bookProgress && bookProgress!!.pageCount > 0) {
             mLastReadLayout.visibility = View.VISIBLE
 
-            var text = DateUtil.formatTime(progress.firstTimestampe, DateUtil.TIME_FORMAT_TWO)
+            var text = DateUtils.formatTime(progress.firstTimestampe, DateUtils.TIME_FORMAT_TWO)
             val percent = progress.page * 100f / progress.pageCount
             val b = BigDecimal(percent.toDouble())
             text += "       " + b.setScale(2, BigDecimal.ROUND_HALF_UP).toFloat() + "%"
@@ -167,11 +164,13 @@ class FileInfoFragment : DialogFragment() {
             mProgressBar.progress = progress.page
 
             mReadCount.text = progress.readTimes.toString()
+            updatePageCount()
         } else {
             mLastReadLayout.visibility = View.GONE
+            if (bookProgress?.pageCount == 0) {
+                loadBook()
+            }
         }
-
-        setPage()
     }
 
     companion object {
