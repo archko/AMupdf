@@ -49,7 +49,7 @@ public class MupdfDocument {
     /* Default to "A Format" pocket book size. */
     private int layoutW = 312;
     private int layoutH = 504;
-    private int layoutEM = 10;
+    private int layoutEM = 8;
 
     public Document getDocument() {
         return document;

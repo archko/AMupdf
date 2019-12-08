@@ -62,7 +62,7 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name"
             android:screenOrientation="sensor"
-            android:theme="@style/AppFullscreen">
+            android:theme="@style/AppFullscreen"><!--
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -88,7 +88,7 @@
                 <data android:pathPattern=".*\\.cbz" />
                 <data android:pathPattern=".*\\.epub" />
                 <data android:pathPattern=".*\\.fb2" />
-            </intent-filter>
+            </intent-filter>-->
         </activity>
 
         <activity
