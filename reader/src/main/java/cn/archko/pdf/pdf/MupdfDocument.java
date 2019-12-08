@@ -1,0 +1,252 @@
+package cn.archko.pdf.pdf;
+
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.PointF;
+import android.os.Environment;
+
+import com.artifex.mupdf.fitz.Cookie;
+import com.artifex.mupdf.fitz.DisplayList;
+import com.artifex.mupdf.fitz.Document;
+import com.artifex.mupdf.fitz.Link;
+import com.artifex.mupdf.fitz.Matrix;
+import com.artifex.mupdf.fitz.Outline;
+import com.artifex.mupdf.fitz.Page;
+import com.artifex.mupdf.fitz.Quad;
+import com.artifex.mupdf.fitz.Rect;
+import com.artifex.mupdf.fitz.RectI;
+import com.artifex.mupdf.fitz.android.AndroidDrawDevice;
+import com.artifex.mupdf.viewer.OutlineActivity;
+
+import java.io.File;
+import java.io.FileDescriptor;
+import java.util.ArrayList;
+
+/**
+ * @author archko 2019/12/8 :12:43
+ */
+public class MupdfDocument {
+
+    private Context context;
+    private int resolution;
+    private Document document;
+    private Outline[] outline;
+    private int pageCount = -1;
+    private int currentPage;
+    private Page page;
+    private float pageWidth;
+    private float pageHeight;
+    private DisplayList displayList;
+
+    /* Default to "A Format" pocket book size. */
+    private int layoutW = 312;
+    private int layoutH = 504;
+    private int layoutEM = 10;
+
+    public Document getDocument() {
+        return document;
+    }
+
+    //File selectedFile = new File(filename);
+    //String documentPath = selectedFile.getAbsolutePath();
+    //String acceleratorPath = getAcceleratorPath(documentPath);
+    //if (acceleratorValid(selectedFile, new File(acceleratorPath))) {
+    //	doc = Document.openDocument(documentPath, acceleratorPath);
+    //} else {
+    //	doc = Document.openDocument(documentPath);
+    //}
+    //doc.saveAccelerator(acceleratorPath);
+    public static String getAcceleratorPath(String documentPath) {
+        String acceleratorPath = documentPath.substring(1);
+        acceleratorPath = acceleratorPath.replace(File.separatorChar, '%');
+        acceleratorPath = acceleratorPath.replace('\\', '%');
+        acceleratorPath = acceleratorPath.replace(':', '%');
+        String tmpdir = Environment.getExternalStorageDirectory().getPath() + "/amupdf";
+        return new StringBuffer(tmpdir).append(File.separatorChar).append(acceleratorPath).append(".accel").toString();
+    }
+
+    public static boolean acceleratorValid(File documentFile, File acceleratorFile) {
+        long documentModified = documentFile.lastModified();
+        long acceleratorModified = acceleratorFile.lastModified();
+        return acceleratorModified != 0 && acceleratorModified > documentModified;
+    }
+
+    public MupdfDocument(Context context) {
+        this.context = context;
+    }
+
+    public Document newDocument(String pfd, String password) {
+        document = Document.openDocument(pfd);
+        initDocument();
+        return document;
+    }
+
+    public Document newDocument(byte[] data, String password) {
+        document = Document.openDocument(data, "magic");
+        initDocument();
+        return document;
+    }
+
+    private void initDocument() {
+        document.layout(layoutW, layoutH, layoutEM);
+        pageCount = document.countPages();
+        resolution = 160;
+        currentPage = -1;
+    }
+
+    public String getTitle() {
+        return document.getMetaData(Document.META_INFO_TITLE);
+    }
+
+    public int countPages() {
+        return pageCount;
+    }
+
+    public boolean isReflowable() {
+        return document.isReflowable();
+    }
+
+    public int layout(int oldPage, int w, int h, int em) {
+        if (w != layoutW || h != layoutH || em != layoutEM) {
+            System.out.println("LAYOUT: " + w + "," + h);
+            layoutW = w;
+            layoutH = h;
+            layoutEM = em;
+            long mark = document.makeBookmark(document.locationFromPageNumber(oldPage));
+            document.layout(layoutW, layoutH, layoutEM);
+            currentPage = -1;
+            pageCount = document.countPages();
+            outline = null;
+            try {
+                outline = document.loadOutline();
+            } catch (Exception ex) {
+                /* ignore error */
+            }
+            return document.pageNumberFromLocation(document.findBookmark(mark));
+        }
+        return oldPage;
+    }
+
+    public void gotoPage(int pageNum) {
+        /* TODO: page cache */
+        if (pageNum > pageCount - 1)
+            pageNum = pageCount - 1;
+        else if (pageNum < 0)
+            pageNum = 0;
+        if (pageNum != currentPage) {
+            currentPage = pageNum;
+            if (page != null)
+                page.destroy();
+            page = null;
+            if (displayList != null)
+                displayList.destroy();
+            displayList = null;
+            page = document.loadPage(pageNum);
+            Rect b = page.getBounds();
+            pageWidth = b.x1 - b.x0;
+            pageHeight = b.y1 - b.y0;
+        }
+    }
+
+    public PointF getPageSize(int pageNum) {
+        gotoPage(pageNum);
+        return new PointF(pageWidth, pageHeight);
+    }
+
+    public void onDestroy() {
+        if (displayList != null)
+            displayList.destroy();
+        displayList = null;
+        if (page != null)
+            page.destroy();
+        page = null;
+        if (document != null)
+            document.destroy();
+        document = null;
+    }
+
+    /**
+     * 渲染页面,传入一个Bitmap对象.使用硬件加速,虽然速度影响不大.
+     *
+     * @param bm     需要渲染的位图,配置为ARGB8888
+     * @param page   当前渲染页面页码
+     * @param pageW  页面的宽,由缩放级别计算得到的最后宽,由于这个宽诸页面的裁剪大小,如果不正确,得到的Tile页面是不正确的
+     * @param pageH  页面的宽,由缩放级别计算得到的最后宽,由于这个宽诸页面的裁剪大小,如果不正确,得到的Tile页面是不正确的
+     * @param patchX 裁剪的页面的左顶点
+     * @param patchY 裁剪的页面的上顶点
+     * @param patchW 页面的宽,具体渲染的页面实际大小.显示出来的大小.
+     * @param patchH 页面的高,具体渲染的页面实际大小.显示出来的大小.
+     */
+    public void drawPage(Bitmap bm, int pageNum,
+                         int pageW, int pageH,
+                         int patchX, int patchY,
+                         Cookie cookie) {
+        gotoPage(pageNum);
+
+        if (displayList == null)
+            displayList = page.toDisplayList(false);
+
+        float zoom = resolution / 72;
+        Matrix ctm = new Matrix(zoom, zoom);
+        RectI bbox = new RectI(page.getBounds().transform(ctm));
+        float xscale = (float) pageW / (float) (bbox.x1 - bbox.x0);
+        float yscale = (float) pageH / (float) (bbox.y1 - bbox.y0);
+        ctm.scale(xscale, yscale);
+
+        AndroidDrawDevice dev = new AndroidDrawDevice(bm, patchX, patchY);
+        displayList.run(dev, ctm, cookie);
+        dev.close();
+        dev.destroy();
+    }
+
+
+    public Link[] getPageLinks(int pageNum) {
+        gotoPage(pageNum);
+        return page.getLinks();
+    }
+
+    public int resolveLink(Link link) {
+        return document.pageNumberFromLocation(document.resolveLink(link));
+    }
+
+    public Quad[] searchPage(int pageNum, String text) {
+        gotoPage(pageNum);
+        return page.search(text);
+    }
+
+    public boolean hasOutline() {
+        if (outline == null) {
+            try {
+                outline = document.loadOutline();
+            } catch (Exception ex) {
+                /* ignore error */
+            }
+        }
+        return outline != null;
+    }
+
+    private void flattenOutlineNodes(ArrayList<OutlineActivity.Item> result, Outline list[], String indent) {
+        for (Outline node : list) {
+            if (node.title != null) {
+                int page = document.pageNumberFromLocation(document.resolveLink(node));
+                result.add(new OutlineActivity.Item(indent + node.title, page));
+            }
+            if (node.down != null)
+                flattenOutlineNodes(result, node.down, indent + "    ");
+        }
+    }
+
+    public ArrayList<OutlineActivity.Item> getOutline() {
+        ArrayList<OutlineActivity.Item> result = new ArrayList<OutlineActivity.Item>();
+        flattenOutlineNodes(result, outline, "");
+        return result;
+    }
+
+    public boolean needsPassword() {
+        return document.needsPassword();
+    }
+
+    public boolean authenticatePassword(String password) {
+        return document.authenticatePassword(password);
+    }
+}
