@@ -24,6 +24,7 @@ import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.entity.FileBean
 import cn.archko.pdf.listeners.OnItemClickListener
+import com.github.barteksc.pdfviewer.PDFViewActivity
 import com.google.android.material.appbar.MaterialToolbar
 import com.umeng.analytics.MobclickAgent
 import java.io.File
@@ -200,7 +201,7 @@ open class SearchFragment : DialogFragment() {
         dismiss()
         val intent = Intent()
         intent.setDataAndType(Uri.fromFile(f), "application/pdf")
-        intent.setClass(activity!!, AMuPDFRecyclerViewActivity::class.java)
+        intent.setClass(activity!!, PDFViewActivity::class.java)
         intent.action = "android.intent.action.VIEW"
         activity?.startActivity(intent)
     }
