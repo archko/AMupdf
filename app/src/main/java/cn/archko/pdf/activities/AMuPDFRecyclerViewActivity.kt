@@ -27,10 +27,10 @@ import cn.archko.pdf.fragments.FontsFragment
 import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.listeners.MenuListener
 import cn.archko.pdf.listeners.OutlineListener
+import cn.archko.pdf.presenter.PageViewPresenter
+import cn.archko.pdf.widgets.APageSeekBarControls
 import cn.archko.pdf.widgets.ViewerDividerItemDecoration
-import org.vudroid.core.events.PageViewPresenter
 import org.vudroid.core.models.ZoomModel
-import org.vudroid.core.views.APageSeekBarControls
 import org.vudroid.core.views.PageViewZoomControls
 
 /**

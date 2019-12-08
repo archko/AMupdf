@@ -1,4 +1,4 @@
-package org.vudroid.core;
+package cn.archko.pdf.common;
 
 import android.graphics.Bitmap;
 

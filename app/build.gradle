@@ -88,7 +88,7 @@ dependencies {
     api "androidx.swiperefreshlayout:swiperefreshlayout:${X_SUPPORT_SWIPEREFRESHLAYOUT}"
     api "androidx.constraintlayout:constraintlayout:${X_SUPPORT_CONSTRAINT_LAYOUT}"
     api "androidx.constraintlayout:constraintlayout-solver:${X_SUPPORT_CONSTRAINT_LAYOUT}"
-    
+
     api project(':reader')
     api project(':viewer')
     api project(':android-pdf-viewer')

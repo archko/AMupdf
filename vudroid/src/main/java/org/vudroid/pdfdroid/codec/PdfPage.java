@@ -10,7 +10,7 @@ import com.artifex.mupdf.fitz.Document;
 import com.artifex.mupdf.fitz.Page;
 import com.artifex.mupdf.fitz.android.AndroidDrawDevice;
 
-import org.vudroid.core.BitmapPool;
+import cn.archko.pdf.common.BitmapPool;
 import org.vudroid.core.codec.CodecPage;
 
 public class PdfPage implements CodecPage {

@@ -1,4 +1,4 @@
-package org.vudroid.core.views;
+package cn.archko.pdf.widgets;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -10,11 +10,8 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import org.vudroid.core.events.PageViewPresenter;
-
-import java.io.File;
-
 import cn.archko.pdf.R;
+import cn.archko.pdf.presenter.PageViewPresenter;
 import cn.archko.pdf.utils.FileUtils;
 
 /**

@@ -10,6 +10,8 @@ import android.graphics.RectF;
 import java.lang.ref.SoftReference;
 import java.util.Arrays;
 
+import cn.archko.pdf.common.BitmapPool;
+
 class PageTreeNode {
     private static final int SLICE_SIZE =256*256*8;
     private Bitmap bitmap;

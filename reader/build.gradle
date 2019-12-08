@@ -62,4 +62,5 @@ dependencies {
 
     api project(":readercommon")
     api project(":viewer")
+    api project(":vudroid")
 }

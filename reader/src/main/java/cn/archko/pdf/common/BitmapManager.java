@@ -2,8 +2,6 @@ package cn.archko.pdf.common;
 
 import android.graphics.Bitmap;
 
-import org.vudroid.core.BitmapPool;
-
 import java.lang.ref.SoftReference;
 
 import cn.archko.pdf.entity.BitmapBean;

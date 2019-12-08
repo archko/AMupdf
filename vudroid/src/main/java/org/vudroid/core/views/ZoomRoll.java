@@ -12,9 +12,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Scroller;
 
+import org.vudroid.R;
 import org.vudroid.core.models.ZoomModel;
-
-import cn.archko.pdf.R;
 
 public class ZoomRoll extends View {
     private final Bitmap left;

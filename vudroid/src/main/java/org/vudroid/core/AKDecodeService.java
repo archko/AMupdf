@@ -27,6 +27,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import cn.archko.pdf.common.BitmapPool;
+
 public class AKDecodeService implements DecodeService {
     private static final int PAGE_POOL_SIZE = 8;
     private static final int MSG_DECODE_START = 0;

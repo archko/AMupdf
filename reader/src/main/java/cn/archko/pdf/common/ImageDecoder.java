@@ -11,15 +11,10 @@ import com.artifex.mupdf.fitz.Document;
 import com.artifex.mupdf.fitz.Matrix;
 import com.artifex.mupdf.fitz.Page;
 
-import org.vudroid.core.BitmapPool;
-
 import androidx.collection.LruCache;
 import cn.archko.pdf.App;
 import cn.archko.pdf.entity.APage;
-import cn.archko.pdf.entity.BitmapBean;
 import cn.archko.pdf.utils.Utils;
-import cn.archko.pdf.widgets.AImageView;
-import cn.archko.pdf.widgets.APDFView;
 
 /**
  * @author: archko 2019/8/30 :16:17

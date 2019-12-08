@@ -1,5 +1,8 @@
 include ':app'
-include ':viewer'
 include ':reader'
 include ':readercommon'
+include ':vudroid'
+
+// git clone
+include ':viewer'
 include ':android-pdf-viewer'

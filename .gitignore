@@ -38,3 +38,5 @@
 /freeline*.zip
 local.properties
 
+/vudroid/build
+
