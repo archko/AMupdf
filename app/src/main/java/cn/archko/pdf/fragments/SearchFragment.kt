@@ -201,7 +201,7 @@ open class SearchFragment : DialogFragment() {
         dismiss()
         val intent = Intent()
         intent.setDataAndType(Uri.fromFile(f), "application/pdf")
-        intent.setClass(activity!!, PDFViewActivity::class.java)
+        intent.setClass(activity!!, AMuPDFRecyclerViewActivity::class.java)
         intent.action = "android.intent.action.VIEW"
         activity?.startActivity(intent)
     }

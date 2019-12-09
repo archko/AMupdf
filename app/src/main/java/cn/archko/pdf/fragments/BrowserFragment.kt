@@ -293,7 +293,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         }
         val intent = Intent()
         intent.setDataAndType(Uri.fromFile(f), "application/pdf")
-        intent.setClass(activity!!, PDFViewActivity::class.java)
+        intent.setClass(activity!!, AMuPDFRecyclerViewActivity::class.java)
         intent.action = "android.intent.action.VIEW"
         activity?.startActivity(intent)
     }
@@ -389,9 +389,9 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         }
 
         //menuBuilder.menu.add(0, vudroidContextMenuItem, 0, getString(R.string.menu_vudroid))
+        menuBuilder.menu.add(0, mupdfContextMenuItem, 0, getString(R.string.menu_mupdf))
         menuBuilder.menu.add(0, bartekscViewContextMenuItem, 0, "barteksc Viewer")
         menuBuilder.menu.add(0, documentContextMenuItem, 0, "Mupdf new Viewer")
-        menuBuilder.menu.add(0, mupdfContextMenuItem, 0, getString(R.string.menu_mupdf))
         menuBuilder.menu.add(0, otherContextMenuItem, 0, getString(R.string.menu_other))
         menuBuilder.menu.add(0, infoContextMenuItem, 0, getString(R.string.menu_info))
 
