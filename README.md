@@ -5,16 +5,12 @@ cd to AMupdf dir:
 
 ```
 git clone https://github.com/archko/viewer.git
-git clone https://github.com/archko/PdfViewer.git android-pdf-viewer
 ```
 import AMupdf into android studio.
 > only support ndk.abiFilters 'armeabi-v7a', 'arm64-v8a',you can modify reader/build.gradle
 
 the viewer is modified for textreflow with image.
 the git patch is archko.patch
-
-### vudroid module has memory leak:
-since mupdf_14 vudroid has memory leak,but i cant't fix it. so i add android-pdf-viewer. 
 
 ### features:
 * textreflow
