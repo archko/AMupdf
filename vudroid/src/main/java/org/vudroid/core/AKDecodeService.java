@@ -2,6 +2,7 @@ package org.vudroid.core;
 
 import android.content.ContentResolver;
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Handler;
@@ -30,7 +31,7 @@ import java.util.concurrent.Future;
 import cn.archko.pdf.common.BitmapPool;
 
 public class AKDecodeService implements DecodeService {
-    private static final int PAGE_POOL_SIZE = 8;
+    private static final int PAGE_POOL_SIZE = 4;
     private static final int MSG_DECODE_START = 0;
     private static final int MSG_DECODE_FINISH = 4;
     private final CodecContext codecContext;
@@ -110,32 +111,6 @@ public class AKDecodeService implements DecodeService {
 
     public void decodePage(Object decodeKey, int pageNum, final DecodeCallback decodeCallback, float zoom, RectF pageSliceBounds) {
         final DecodeTask decodeTask = new DecodeTask(pageNum, decodeCallback, zoom, decodeKey, pageSliceBounds);
-        /*synchronized (decodingFutures)
-        {
-            if (isRecycled) {
-                return;
-            }
-            final Future<?> future = executorService.submit(new Runnable()
-            {
-                public void run()
-                {
-                    try
-                    {
-                        Thread.currentThread().setPriority(Thread.NORM_PRIORITY-1);
-                        performDecode(decodeTask);
-                    }
-                    catch (IOException e)
-                    {
-                        Log.e(DECODE_SERVICE, "Decode fail", e);
-                    }
-                }
-            });
-            final Future<?> removed = decodingFutures.put(decodeKey, future);
-            if (removed != null)
-            {
-                removed.cancel(false);
-            }
-        }*/
         Message message = Message.obtain();
         message.obj = decodeTask;
         message.what = MSG_DECODE_START;
@@ -166,14 +141,22 @@ public class AKDecodeService implements DecodeService {
         //Log.d(DECODE_SERVICE, "Start converting map to bitmap");
         float scale = calculateScale(vuPage) * currentDecodeTask.zoom;
         //Log.d(DECODE_SERVICE, "scale:"+scale+" vuPage.getWidth():"+vuPage.getWidth());
-        final Bitmap bitmap = ((PdfPage) vuPage).renderBitmap(getScaledWidth(currentDecodeTask, vuPage, scale),
-                getScaledHeight(currentDecodeTask, vuPage, scale), currentDecodeTask.pageSliceBounds, scale);
+        Rect rect=getScaledSize(currentDecodeTask,vuPage, scale);
+        final Bitmap bitmap = ((PdfPage) vuPage).renderBitmap(rect.width(),rect.height(), currentDecodeTask.pageSliceBounds, scale);
         //Log.d(DECODE_SERVICE, "Converting map to bitmap finished");
         if (isTaskDead(currentDecodeTask)) {
             //bitmap.recycle();
             return;
         }
         finishDecoding(currentDecodeTask, bitmap);
+    }
+
+    Rect getScaledSize(final DecodeTask task, final CodecPage vuPage, float scale) {
+        Rect rect = new Rect();
+        rect.right = getScaledWidth(task, vuPage, scale);
+        rect.bottom = getScaledHeight(task, vuPage, scale);
+
+        return rect;
     }
 
     private int getScaledHeight(DecodeTask currentDecodeTask, CodecPage vuPage, float scale) {

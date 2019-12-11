@@ -16,13 +16,11 @@ import org.vudroid.core.codec.CodecPage;
 public class PdfPage implements CodecPage {
 
     private long pageHandle;
-    Document core;
     Page page;
     int pdfPageWidth;
     int pdfPageHeight;
 
     public PdfPage(Document core, long pageHandle) {
-        this.core = core;
         this.pageHandle = pageHandle;
     }
 
@@ -140,9 +138,6 @@ public class PdfPage implements CodecPage {
     }
 
     public byte[] asHtml(int pageno) {
-        if (page == null) {
-            page = core.loadPage(pageno);
-        }
         return page.textAsHtml();
     }
 }
