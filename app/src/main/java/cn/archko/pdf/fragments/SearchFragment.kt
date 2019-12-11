@@ -1,5 +1,6 @@
 package cn.archko.pdf.fragments
 
+//import com.github.barteksc.pdfviewer.PDFViewActivity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -18,13 +19,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import cn.archko.mupdf.R
 import cn.archko.pdf.activities.AMuPDFRecyclerViewActivity
-import cn.archko.pdf.adapters.BookAdapter
 import cn.archko.pdf.activities.ChooseFileFragmentActivity
+import cn.archko.pdf.adapters.BookAdapter
 import cn.archko.pdf.common.Logcat
-import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.entity.FileBean
+import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.listeners.OnItemClickListener
-import com.github.barteksc.pdfviewer.PDFViewActivity
 import com.google.android.material.appbar.MaterialToolbar
 import com.umeng.analytics.MobclickAgent
 import java.io.File
