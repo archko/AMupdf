@@ -28,7 +28,6 @@ import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.listeners.OnItemClickListener
 import cn.archko.pdf.utils.FileUtils
 import com.artifex.mupdf.viewer.DocumentActivity
-import com.github.barteksc.pdfviewer.PDFViewActivity
 import com.jeremyliao.liveeventbus.LiveEventBus
 import com.umeng.analytics.MobclickAgent
 import org.jetbrains.anko.doAsync
@@ -389,7 +388,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         }
 
         menuBuilder.menu.add(0, mupdfContextMenuItem, 0, getString(R.string.menu_mupdf))
-        menuBuilder.menu.add(0, bartekscViewContextMenuItem, 0, "barteksc Viewer")
+        //menuBuilder.menu.add(0, bartekscViewContextMenuItem, 0, "barteksc Viewer")
         menuBuilder.menu.add(0, vudroidContextMenuItem, 0, getString(R.string.menu_vudroid))
         menuBuilder.menu.add(0, documentContextMenuItem, 0, "Mupdf new Viewer")
         menuBuilder.menu.add(0, otherContextMenuItem, 0, getString(R.string.menu_other))
@@ -466,13 +465,12 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
                         intent.setClass(activity!!, AMuPDFRecyclerViewActivity::class.java)
                         startActivity(intent)
                     }
-                    bartekscViewContextMenuItem -> {
-                        var map = mapOf("type" to "barteksc", "name" to clickedFile.name)
-                        MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
-
-                        intent.setClass(activity!!, PDFViewActivity::class.java)
-                        startActivity(intent)
-                    }
+                    //bartekscViewContextMenuItem -> {
+                    //    var map = mapOf("type" to "barteksc", "name" to clickedFile.name)
+                    //    MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
+                    //    intent.setClass(activity!!, PDFViewActivity::class.java)
+                    //    startActivity(intent)
+                    //}
                     documentContextMenuItem -> {
                         var map = mapOf("type" to "Document", "name" to clickedFile.name)
                         MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
@@ -609,6 +607,6 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         protected const val documentContextMenuItem = Menu.FIRST + 115
         protected const val addToFavoriteContextMenuItem = Menu.FIRST + 116
         protected const val removeFromFavoriteContextMenuItem = Menu.FIRST + 117
-        protected const val bartekscViewContextMenuItem = Menu.FIRST + 118
+        //protected const val bartekscViewContextMenuItem = Menu.FIRST + 118
     }
 }

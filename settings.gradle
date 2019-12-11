@@ -5,4 +5,4 @@ include ':vudroid'
 
 // git clone
 include ':viewer'
-include ':android-pdf-viewer'
+//include ':android-pdf-viewer'
