@@ -53,6 +53,10 @@ public class APage {
         return 1.0f * targetWidth / mPageSize.x;
     }
 
+    private float calculateScale(int tw) {
+        return 1.0f * tw / mPageSize.x;
+    }
+
     public int getEffectivePagesWidth() {
         return getScaledWidth(mPageSize, scale);
     }

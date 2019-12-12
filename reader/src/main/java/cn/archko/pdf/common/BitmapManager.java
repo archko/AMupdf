@@ -25,15 +25,15 @@ public class BitmapManager {
                     && bitmaps[i].get() != null
                     && bitmaps[i].get().index == pageNumber) {
                 hitCount++;
-                if (Logcat.loggable) {
-                    Logcat.d("hitCount:" + hitCount);
-                }
+                //if (Logcat.loggable) {
+                //    Logcat.d("hitCount:" + hitCount);
+                //}
                 return bitmaps[i].get().bitmap;
             }
         }
-        if (Logcat.loggable) {
-            Logcat.d(String.format("miss:%s", pageNumber));
-        }
+        //if (Logcat.loggable) {
+        //    Logcat.d(String.format("miss:%s", pageNumber));
+        //}
         return null;
     }
 
@@ -56,9 +56,9 @@ public class BitmapManager {
                 if (bitmaps[i] == null) {
                     hasExist = true;
                     bitmaps[i] = new SoftReference<>(new BitmapBean(bitmap, pageNumber));
-                    if (Logcat.loggable) {
-                        Logcat.d(String.format("add new one:%s", i));
-                    }
+                    //if (Logcat.loggable) {
+                    //    Logcat.d(String.format("add new one:%s", i));
+                    //}
                     return;
                 }
             }
@@ -69,9 +69,9 @@ public class BitmapManager {
                 }
                 bitmaps[mCurrIndex] = new SoftReference<>(new BitmapBean(bitmap, pageNumber));
 
-                if (Logcat.loggable) {
-                    Logcat.d(String.format("is full:old:%s,new:%s, %s", oldPageNumber, bitmaps[mCurrIndex], mCurrIndex));
-                }
+                //if (Logcat.loggable) {
+                //    Logcat.d(String.format("is full:old:%s,new:%s, %s", oldPageNumber, bitmaps[mCurrIndex], mCurrIndex));
+                //}
                 mCurrIndex++;
                 if (mCurrIndex >= COUNT) {
                     mCurrIndex = 0;

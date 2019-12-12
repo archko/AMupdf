@@ -11,6 +11,8 @@ import com.artifex.mupdf.fitz.Document;
 import com.artifex.mupdf.fitz.Matrix;
 import com.artifex.mupdf.fitz.Page;
 
+import org.vudroid.core.DecodeService;
+
 import androidx.collection.LruCache;
 import cn.archko.pdf.App;
 import cn.archko.pdf.entity.APage;
@@ -88,11 +90,11 @@ public class ImageDecoder extends ImageWorker {
     }
 
     public void loadImage(APage aPage, boolean autoCrop, int xOrigin,
-                          ImageView imageView, Document document) {
+                          ImageView imageView, Document document, DecodeService.DecodeCallback callback) {
         if (document == null || aPage == null || getImageCache() == null || imageView == null) {
             return;
         }
-        super.loadImage(new DecodeParam(String.valueOf(aPage.index), imageView, autoCrop, xOrigin, aPage, document));
+        super.loadImage(new DecodeParam(String.valueOf(aPage.index), imageView, autoCrop, xOrigin, aPage, document, callback));
     }
 
     @Override
@@ -157,7 +159,10 @@ public class ImageDecoder extends ImageWorker {
             Logcat.w(TAG, "cancel decode.");
             return;
         }
-        final ImageView imageView = bitmapWorkerTask.getAttachedImageView();
+        if (null!=decodeParam.decodeCallback) {
+            decodeParam.decodeCallback.decodeComplete(bitmap);
+        }
+        /*final ImageView imageView = bitmapWorkerTask.getAttachedImageView();
         if (imageView != null) {
             //((APDFView) imageView.getParent()).setDrawText("");
             //((APDFView) imageView.getParent()).setShowPaint(false);
@@ -179,7 +184,7 @@ public class ImageDecoder extends ImageWorker {
                 parent.getLayoutParams().width = bitmap.getWidth();
                 parent.requestLayout();
             }
-        }
+        }*/
     }
 
     @Override

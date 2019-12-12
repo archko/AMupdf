@@ -2,10 +2,8 @@ package cn.archko.pdf.widgets
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.os.AsyncTask
 import android.view.View
 import android.widget.ImageView
-import android.widget.RelativeLayout
 import cn.archko.pdf.common.BitmapManager
 import cn.archko.pdf.common.ImageDecoder
 import cn.archko.pdf.common.Logcat
@@ -18,86 +16,26 @@ import com.artifex.mupdf.fitz.Document
 class APDFView(protected val mContext: Context,
                private val mCore: Document?,
                private var aPage: APage?,
-               private val mBitmapManager: BitmapManager?) : RelativeLayout(mContext) {
+               private val mBitmapManager: BitmapManager?) : ImageView(mContext) {
 
-    private var mEntireView: AImageView? = null // Image rendered at minimum zoom
-    //private var mBitmap: Bitmap? = null
-    private var mDrawTask: AsyncTask<Void, Void, Bitmap>? = null
     private var mZoom: Float = 0.toFloat()
-
-    //page number
-    private var showPaint = false
-    private var drawText = ""
-    //lateinit var mTextPaint: Paint
-    //lateinit var mRectPaint: Paint
-    //private var textWidth: Float = 100f
-    //private var textHeight: Float = 40f
-
-    //fun setShowPaint(showPaint: Boolean) {
-    //    this.showPaint = showPaint
-    //}
-
-    //fun setDrawText(drawText: String) {
-    //    this.drawText = drawText
-    //}
 
     init {
         mZoom = aPage!!.getZoom()
-        //mTextPaint = Paint()
-        //mTextPaint.isAntiAlias = true
-        //mTextPaint.color = resources.getColor(R.color.seek_thumb)
-        //mTextPaint.textSize = Utils.sp2px(60f).toFloat()
-        //mTextPaint.typeface = Typeface.DEFAULT_BOLD
-        //textWidth = mTextPaint.measureText("100")
-        //textHeight = mTextPaint.measureText("0")
-        //mRectPaint = Paint()
-        //mRectPaint.isAntiAlias = true
-        //mRectPaint.color = resources.getColor(R.color.seek_thumb)
-        //mRectPaint.strokeWidth = Utils.dipToPixel(2f).toFloat()
-        //mRectPaint.style = Paint.Style.STROKE
 
         updateView()
     }
 
-    //override fun dispatchDraw(canvas: Canvas?) {
-    //    super.dispatchDraw(canvas)
-    //    if (!TextUtils.isEmpty(drawText) && showPaint && height > 0) {
-    //        val centerX: Float = ((getWidth() - 2 * width) / 2).toFloat()
-    //        val centerY: Float = ((getHeight() - height) / 2).toFloat()
-    //        canvas?.drawText(drawText, centerX, centerY, mTextPaint)
-    //        val rect = RectF(centerX - width / 2, centerY - height, centerX + width * 1.5f, centerY + height / 2)
-    //        canvas?.drawRect(rect, mRectPaint)
-    //    }
-    //}
-
     fun updateView() {
-        mEntireView = AImageView(mContext)
-        mEntireView!!.scaleType = ImageView.ScaleType.MATRIX
-        mEntireView!!.setLayerType(View.LAYER_TYPE_HARDWARE, null)
-        val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-        lp.addRule(CENTER_IN_PARENT)
-        addView(mEntireView, lp)
-        drawText = (aPage!!.index.toString())
+        scaleType = ImageView.ScaleType.MATRIX
+        setLayerType(View.LAYER_TYPE_HARDWARE, null)
     }
 
     fun recycle() {
-        if (mDrawTask != null) {
-            mDrawTask!!.cancel(true)
-            mDrawTask = null
-        }
-
-        //if (null != mBitmap) {
-        //    //BitmapPool.getInstance().release(mBitmap);
-        //    mBitmap = null
-        //}
+        setImageBitmap(null)
     }
 
     fun setPage(pageSize: APage, newZoom: Float, autoCrop: Boolean) {
-        if (mDrawTask != null) {
-            mDrawTask!!.cancel(true)
-            mDrawTask = null
-        }
-
         var changeScale = false
         if (mZoom != newZoom) {
             changeScale = true
@@ -109,38 +47,51 @@ class APDFView(protected val mContext: Context,
         aPage!!.zoom = newZoom
 
         //when scale, mBitmap is always null.because after adapter notify,releaseResources() is invoke.
-
-        showPaint = true
-        //mEntireView!!.setSearchBoxes(emptyArray())
-        //mEntireView!!.setLinks(emptyArray())
-        //mEntireView.setScale(aPage.getScaleZoom());
-
         val zoomSize = aPage!!.zoomPoint
         val xOrigin = (zoomSize.x - aPage!!.targetWidth) / 2
-        Logcat.d(String.format("xOrigin: %s,changeScale:%s", xOrigin, changeScale));
+        Logcat.d(String.format("xOrigin: %s,changeScale:%s, aPage:%s", xOrigin, changeScale, aPage));
 
         val mBitmap = mBitmapManager?.getBitmap(aPage!!.index)
 
         if (null != mBitmap) {
-            showPaint = false
-            mEntireView!!.setImageBitmap(mBitmap)
-            if (Logcat.loggable) {
-                Logcat.d(String.format("changeScale: %s,cache:%s", changeScale, mBitmap.toString()));
+            setImageBitmap(mBitmap)
+            relayout(mBitmap, aPage!!)
+            /*if (Logcat.loggable) {
+                Logcat.d(String.format("changeScale: %s,cache:%s, aPage:%s", changeScale, mBitmap.toString(), aPage));
             }
             if (changeScale) {
                 val matrix = android.graphics.Matrix()
                 matrix.postScale(newZoom, newZoom)
                 matrix.postTranslate((-xOrigin).toFloat(), 0f)
-                mEntireView!!.imageMatrix = matrix
+                imageMatrix = matrix
                 requestLayout()
             } else {
 
-            }
+            }*/
         }
 
         //mDrawTask = getDrawPageTask(autoCrop, aPage!!, xOrigin, height)
         //Utils.execute(true, mDrawTask)
-        ImageDecoder.getInstance().loadImage(aPage, autoCrop, xOrigin, mEntireView, mCore)
+        ImageDecoder.getInstance().loadImage(aPage, autoCrop, xOrigin, this, mCore) { bitmap ->
+            mBitmapManager?.setBitmap(aPage!!.index, bitmap)
+            setImageBitmap(bitmap)
+            imageMatrix.reset()
+
+            relayout(bitmap, pageSize)
+        }
+    }
+
+    private fun relayout(bitmap: Bitmap, pageSize: APage) {
+        if (height != bitmap.height || width != bitmap.width) {
+            //if (Logcat.loggable) {
+            //    Logcat.d(String.format("decode relayout bitmap:index:%s, %s:%s imageView->%s:%s",
+            //            pageSize.index, bitmap.width, bitmap.height,
+            //            getWidth(), getHeight()))
+            //}
+            layoutParams.height = bitmap.height
+            layoutParams.width = bitmap.width
+            requestLayout()
+        }
     }
 
     /*@SuppressLint("StaticFieldLeak")
