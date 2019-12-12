@@ -2,9 +2,6 @@ package cn.archko.pdf.common;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Point;
-import android.graphics.RectF;
-import android.view.View;
 import android.widget.ImageView;
 
 import com.artifex.mupdf.fitz.Document;
@@ -106,41 +103,25 @@ public class ImageDecoder extends ImageWorker {
             int leftBound = 0;
             int topBound = 0;
             APage pageSize = decodeParam.pageSize;
-            int height = pageSize.getZoomPoint().y;
+            int pageW = pageSize.getZoomPoint().x;
+            int pageH = pageSize.getZoomPoint().y;
             Matrix ctm = new Matrix(pageSize.getScaleZoom());
 
             if (decodeParam.autoCrop) {
-                float ratio = 6f;
-
-                Point thumbPoint = pageSize.getZoomPoint(pageSize.getScaleZoom() / ratio);
-                Bitmap thumb = BitmapPool.getInstance().acquire(thumbPoint.x, thumbPoint.y);
-                Matrix matrix = new Matrix(pageSize.getScaleZoom() / ratio);
-                MupdfDocument.render(page, matrix, thumb, 0, leftBound, topBound);
-
-                RectF rectF = MupdfDocument.getCropRect(thumb);
-
-                float scale = thumb.getWidth() / rectF.width();
-                BitmapPool.getInstance().release(thumb);
-
-                leftBound = (int) (rectF.left * ratio * scale);
-                topBound = (int) (rectF.top * ratio * scale);
-
-                height = (int) (rectF.height() * ratio * scale);
-                ctm.scale(scale, scale);
-                if (Logcat.loggable) {
-                    Logcat.d(TAG, String.format("decode t:%s:%s:%s", height, pageSize.getZoomPoint().x, pageSize.getZoomPoint().y));
-                }
+                int[] arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound);
+                leftBound = arr[0];
+                topBound = arr[1];
+                pageH = arr[2];
             }
 
-            int width = pageSize.getZoomPoint().x;
             if ((pageSize.getTargetWidth() > 0)) {
-                width = pageSize.getTargetWidth();
+                pageW = pageSize.getTargetWidth();
             }
             if (Logcat.loggable) {
                 Logcat.d(TAG, String.format("decode bitmap:width-height: %s-%s,pagesize:%s,%s, bound:%s,%s, page:%s",
-                        width, height, pageSize.getZoomPoint().y, decodeParam.xOrigin, leftBound, topBound, pageSize));
+                        pageW, pageH, pageSize.getZoomPoint().y, decodeParam.xOrigin, leftBound, topBound, pageSize));
             }
-            Bitmap bitmap = BitmapPool.getInstance().acquire(width, height);//Bitmap.createBitmap(sizeX, sizeY, Bitmap.Config.ARGB_8888);
+            Bitmap bitmap = BitmapPool.getInstance().acquire(pageW, pageH);//Bitmap.createBitmap(sizeX, sizeY, Bitmap.Config.ARGB_8888);
 
             MupdfDocument.render(page, ctm, bitmap, decodeParam.xOrigin, leftBound, topBound);
 
@@ -159,16 +140,16 @@ public class ImageDecoder extends ImageWorker {
             Logcat.w(TAG, "cancel decode.");
             return;
         }
-        if (null!=decodeParam.decodeCallback) {
+        if (null != mBitmapManager) {
+            mBitmapManager.setBitmap(decodeParam.pageSize.index, bitmap);
+        }
+        if (null != decodeParam.decodeCallback) {
             decodeParam.decodeCallback.decodeComplete(bitmap);
         }
         /*final ImageView imageView = bitmapWorkerTask.getAttachedImageView();
         if (imageView != null) {
             //((APDFView) imageView.getParent()).setDrawText("");
             //((APDFView) imageView.getParent()).setShowPaint(false);
-            if (null != mBitmapManager) {
-                mBitmapManager.setBitmap(decodeParam.pageSize.index, bitmap);
-            }
             imageView.setImageBitmap(bitmap);
             imageView.getImageMatrix().reset();
 

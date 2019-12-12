@@ -22,19 +22,19 @@ import com.artifex.mupdf.viewer.OutlineActivity;
 import org.ebookdroid.core.crop.PageCropper;
 
 import java.io.File;
-import java.io.FileDescriptor;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 
 import cn.archko.pdf.common.BitmapPool;
-import cn.archko.pdf.common.ImageWorker;
+import cn.archko.pdf.common.Logcat;
 
 /**
  * @author archko 2019/12/8 :12:43
  */
 public class MupdfDocument {
 
+    private static final String TAG = "Mupdf";
     private Context context;
     private int resolution;
     private Document document;
@@ -275,22 +275,10 @@ public class MupdfDocument {
         int width = pageW;
         int height = pageH;
         if (autoCrop) {
-            float ratio = 6f;
-            Bitmap thumb = BitmapPool.getInstance().acquire((int) (pageW / ratio), (int) (pageH / ratio));
-            Matrix matrix = new Matrix(ctm.a / ratio, ctm.d / ratio);
-            render(page, matrix, thumb, 0, leftBound, topBound);
-
-            RectF rectF = getCropRect(thumb);
-
-            float scale = thumb.getWidth() / rectF.width();
-            leftBound = (int) (rectF.left * ratio * scale);
-            topBound = (int) (rectF.top * ratio * scale);
-
-            height = (int) (rectF.height() * ratio * scale);
-            ctm.scale(scale, scale);
-            //if (Logcat.loggable) {
-            //    Logcat.d(String.format("decode t:%s:%s:%s,thumb:%s=%s, rectF:%s", width, height, scale, thumb.getWidth(), thumb.getHeight(), rectF));
-            //}
+            int[] arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound);
+            leftBound = arr[0];
+            topBound = arr[1];
+            height = arr[2];
         }
 
         //if (Logcat.loggable) {
@@ -304,6 +292,27 @@ public class MupdfDocument {
 
         page.destroy();
         return bitmap;
+    }
+
+    public static int[] getArrByCrop(Page page, Matrix ctm, int pageW, int pageH, int leftBound, int topBound) {
+        float ratio = 6f;
+        Bitmap thumb = BitmapPool.getInstance().acquire((int) (pageW / ratio), (int) (pageH / ratio));
+        Matrix matrix = new Matrix(ctm.a / ratio, ctm.d / ratio);
+        render(page, matrix, thumb, 0, leftBound, topBound);
+
+        RectF rectF = getCropRect(thumb);
+
+        float scale = thumb.getWidth() / rectF.width();
+        leftBound = (int) (rectF.left * ratio * scale);
+        topBound = (int) (rectF.top * ratio * scale);
+
+        int height = (int) (rectF.height() * ratio * scale);
+        ctm.scale(scale, scale);
+        if (Logcat.loggable) {
+            Logcat.d(TAG, String.format("decode height:%s page:%s:%s,crop rect:%s, ctm:%s", height, pageW, pageH, rectF, ctm));
+        }
+        int[] arr = {leftBound, topBound, height};
+        return arr;
     }
 
     public static void render(Page page, Matrix ctm, Bitmap bitmap, int xOrigin, int leftBound, int topBound) {

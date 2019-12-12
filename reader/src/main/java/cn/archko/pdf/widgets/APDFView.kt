@@ -55,7 +55,7 @@ class APDFView(protected val mContext: Context,
 
         if (null != mBitmap) {
             setImageBitmap(mBitmap)
-            relayout(mBitmap, aPage!!)
+            relayoutIfNeeded(mBitmap, aPage!!)
             /*if (Logcat.loggable) {
                 Logcat.d(String.format("changeScale: %s,cache:%s, aPage:%s", changeScale, mBitmap.toString(), aPage));
             }
@@ -73,15 +73,14 @@ class APDFView(protected val mContext: Context,
         //mDrawTask = getDrawPageTask(autoCrop, aPage!!, xOrigin, height)
         //Utils.execute(true, mDrawTask)
         ImageDecoder.getInstance().loadImage(aPage, autoCrop, xOrigin, this, mCore) { bitmap ->
-            mBitmapManager?.setBitmap(aPage!!.index, bitmap)
             setImageBitmap(bitmap)
             imageMatrix.reset()
 
-            relayout(bitmap, pageSize)
+            relayoutIfNeeded(bitmap, pageSize)
         }
     }
 
-    private fun relayout(bitmap: Bitmap, pageSize: APage) {
+    private fun relayoutIfNeeded(bitmap: Bitmap, pageSize: APage) {
         if (height != bitmap.height || width != bitmap.width) {
             //if (Logcat.loggable) {
             //    Logcat.d(String.format("decode relayout bitmap:index:%s, %s:%s imageView->%s:%s",
