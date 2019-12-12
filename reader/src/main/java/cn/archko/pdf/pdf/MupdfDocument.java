@@ -29,6 +29,7 @@ import java.util.ArrayList;
 
 import cn.archko.pdf.common.BitmapPool;
 import cn.archko.pdf.common.ImageWorker;
+import cn.archko.pdf.common.Logcat;
 
 /**
  * @author archko 2019/12/8 :12:43
@@ -258,9 +259,38 @@ public class MupdfDocument {
         return document.authenticatePassword(password);
     }
 
+    public Bitmap renderBitmap(Bitmap bitmap, int pageNum, boolean autoCrop, RectF tb, android.graphics.Rect bounds) {
+        Page page = document.loadPage(pageNum);
+
+        final float zoom = 2;
+        final Matrix ctm = new Matrix(zoom, zoom);
+        final RectI bbox = new RectI(page.getBounds().transform(ctm));
+        final float xscale = (float) bounds.width() / (float) (bbox.x1 - bbox.x0);
+        final float yscale = (float) bounds.height() / (float) (bbox.y1 - bbox.y0);
+        ctm.scale(xscale, yscale);
+
+        int patchX;
+        int patchY;
+        patchX = (int) (tb.left * bounds.width());
+        patchY = (int) (tb.top * bounds.height());
+
+        AndroidDrawDevice dev = new AndroidDrawDevice(bitmap, patchX, patchY, 0,0,bitmap.getWidth(),bitmap.getHeight());
+        page.run(dev, ctm, (Cookie) null);
+        dev.close();
+        dev.destroy();
+
+        return bitmap;
+    }
+
     public Bitmap nativeRender(int pageNum, boolean autoCrop,
                                int pageW, int pageH,
                                int patchX, int patchY) {
+
+        /*pdfiumCore.renderPageBitmap(pdfDocument, bitmap, docPage,
+                bounds.left, bounds.top, bounds.width(), bounds.height(), annotationRendering);
+
+        nativeRenderPageBitmap(doc.mNativePagesPtr.get(pageIndex), bitmap, mCurrentDpi,
+                startX, startY, drawSizeX, drawSizeY, renderAnnot);*/
         Page page = document.loadPage(pageNum);
 
         final float zoom = 2;
