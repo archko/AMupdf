@@ -109,12 +109,10 @@ public class ImageDecoder extends ImageWorker {
             Matrix ctm = new Matrix(pageSize.getScaleZoom());
 
             if (decodeParam.autoCrop) {
-                Object[] arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound);
-                leftBound = (int) arr[0];
-                topBound = (int) arr[1];
-                pageH = (int) arr[2];
-                RectF rectF = (RectF) arr[3];
-                pageSize.setCropBounds(rectF);
+                int[] arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound);
+                leftBound = arr[0];
+                topBound = arr[1];
+                pageH = arr[2];
             }
 
             if ((pageSize.getTargetWidth() > 0)) {
