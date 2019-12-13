@@ -2,6 +2,7 @@ package cn.archko.pdf.common;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.RectF;
 import android.widget.ImageView;
 
 import com.artifex.mupdf.fitz.Document;
@@ -108,10 +109,12 @@ public class ImageDecoder extends ImageWorker {
             Matrix ctm = new Matrix(pageSize.getScaleZoom());
 
             if (decodeParam.autoCrop) {
-                int[] arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound);
-                leftBound = arr[0];
-                topBound = arr[1];
-                pageH = arr[2];
+                Object[] arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound);
+                leftBound = (int) arr[0];
+                topBound = (int) arr[1];
+                pageH = (int) arr[2];
+                RectF rectF = (RectF) arr[3];
+                pageSize.setCropBounds(rectF);
             }
 
             if ((pageSize.getTargetWidth() > 0)) {

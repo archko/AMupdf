@@ -275,10 +275,11 @@ public class MupdfDocument {
         int width = pageW;
         int height = pageH;
         if (autoCrop) {
-            int[] arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound);
-            leftBound = arr[0];
-            topBound = arr[1];
-            height = arr[2];
+            Object[] arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound);
+            leftBound = (int) arr[0];
+            topBound = (int) arr[1];
+            height = (int) arr[2];
+            RectF rectF = (RectF) arr[3];
         }
 
         //if (Logcat.loggable) {
@@ -294,7 +295,7 @@ public class MupdfDocument {
         return bitmap;
     }
 
-    public static int[] getArrByCrop(Page page, Matrix ctm, int pageW, int pageH, int leftBound, int topBound) {
+    public static Object[] getArrByCrop(Page page, Matrix ctm, int pageW, int pageH, int leftBound, int topBound) {
         float ratio = 6f;
         Bitmap thumb = BitmapPool.getInstance().acquire((int) (pageW / ratio), (int) (pageH / ratio));
         Matrix matrix = new Matrix(ctm.a / ratio, ctm.d / ratio);
@@ -303,15 +304,19 @@ public class MupdfDocument {
         RectF rectF = getCropRect(thumb);
 
         float scale = thumb.getWidth() / rectF.width();
-        leftBound = (int) (rectF.left * ratio * scale);
-        topBound = (int) (rectF.top * ratio * scale);
+        rectF.left = rectF.left * ratio * scale;
+        rectF.top = rectF.top * ratio * scale;
+        rectF.right = rectF.right * ratio * scale;
+        rectF.bottom = rectF.bottom * ratio * scale;
+        leftBound = (int) (rectF.left);
+        topBound = (int) (rectF.top);
 
         int height = (int) (rectF.height() * ratio * scale);
         ctm.scale(scale, scale);
         if (Logcat.loggable) {
             Logcat.d(TAG, String.format("decode height:%s page:%s:%s,crop rect:%s, ctm:%s", height, pageW, pageH, rectF, ctm));
         }
-        int[] arr = {leftBound, topBound, height};
+        Object[] arr = {leftBound, topBound, height, rectF};
         return arr;
     }
 

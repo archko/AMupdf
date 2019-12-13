@@ -2,6 +2,7 @@ package cn.archko.pdf.entity;
 
 import android.graphics.Point;
 import android.graphics.PointF;
+import android.graphics.RectF;
 
 /**
  * 有两个对象,一个是com.artifex.mupdf.fitz.Page,包含了这个页的原始信息.
@@ -30,6 +31,8 @@ public class APage {
     private float mZoom;
     private int targetWidth;
     private float scale = 1f;
+
+    private RectF cropBounds;
 
     public APage(int pageNumber, PointF pageSize, float zoom, int targetWidth) {
         index = pageNumber;
@@ -109,6 +112,14 @@ public class APage {
 
     public Point getZoomPoint(float scaleZoom) {
         return new Point((int) (scaleZoom * mPageSize.x), (int) (scaleZoom * mPageSize.y));
+    }
+
+    public RectF getCropBounds() {
+        return cropBounds;
+    }
+
+    public void setCropBounds(RectF cropBounds) {
+        this.cropBounds = cropBounds;
     }
 
     @Override
