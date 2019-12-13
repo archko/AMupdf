@@ -25,12 +25,53 @@ import android.graphics.RectF;
  */
 public class APage {
 
+    /**
+     * pageindex
+     */
     public final int index;
+    /**
+     * width/height
+     */
     private float aspectRatio;
     private PointF mPageSize;    // pagesize of real page
+    /**
+     * view zoom
+     */
     private float mZoom;
     private int targetWidth;
+    /**
+     * viewwidth/pagewidth
+     */
     private float scale = 1f;
+
+    //===================== render a bitmap from mupdf,no crop=======================
+    //val ctm = Matrix(pageSize.scale*zoom)
+    //var width = pageSize.zoomPoint.x=scale*zoom*mPageSize.x
+    //var height = pageSize.zoomPoint.y=scale*zoom*mPageSize.y
+    //val bitmap = BitmapPool.getInstance().acquire(width, height)
+    //MupdfDocument.render(page, ctm, bitmap, xOrigin, leftBound, topBound);
+
+    //===================== render a bitmap from mupdf,crop white bounds =======================
+    //1.get origin page:
+    // val ctm = Matrix(pageSize.scale*zoom)
+    // var width = pageSize.zoomPoint.x=scale*zoom*mPageSize.x
+    // var height = pageSize.zoomPoint.y=scale*zoom*mPageSize.y
+    //2.render as a thumb to get rectf.
+    // var ratio=6;
+    // val thumb = BitmapPool.getInstance().acquire(width / ratio, height / ratio)
+    // Matrix m=ctm.scale(1/ratio)
+    // MupdfDocument.render(page, m, thumb, 0, 0, 0)
+    //3.caculate new width, height,and ctm. new width = viewwidth
+    // val rectF = MupdfDocument.getCropRect(thumb)
+    // var sscale = thumb.width / rectF.width()
+    // val ctm = Matrix(pageSize.scaleZoom * sscale)
+    //4.restore to a full bitmap,get bound,scale
+    // leftBound = (rectF.left * sscale * ratio)
+    // topBound = (rectF.top * sscale * ratio)
+    // height = (rectF.height() * sscale * ratio)
+    //5.render a crop page
+    //val bitmap = BitmapPool.getInstance().acquire(width, height)
+    // MupdfDocument.render(page, ctm, bitmap, xOrigin, leftBound, topBound)
 
     private RectF cropBounds;
 
@@ -48,12 +89,8 @@ public class APage {
     public void setTargetWidth(int targetWidth) {
         this.targetWidth = targetWidth;
         if (targetWidth > 0) {
-            scale = calculateScale();
+            scale = calculateScale(targetWidth);
         }
-    }
-
-    private float calculateScale() {
-        return 1.0f * targetWidth / mPageSize.x;
     }
 
     private float calculateScale(int tw) {
