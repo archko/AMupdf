@@ -110,7 +110,7 @@ class ParseTextMain private constructor() {
             var reflowBean: ReflowBean? = null
             var lastBreak = true;
             for (s in lists) {
-                val ss = s.trim { it <= ' ' }
+                val ss = s.trim()
                 if (ss.length > 0) {
                     //if (Logcat.loggable) {
                     //    Logcat.longLog("text", ss)
@@ -201,13 +201,22 @@ class ParseTextMain private constructor() {
             }
             //4.如果上一次是有换行符的,而这一行的字符数较小,有可能是标题目录.所以需要加换行符.
             //这是针对一些,不是以"第xx"开头的标题.此时头尾都有可能要加,如果之前没有加的话.
-            if ((lastBreak && ss.length < LINE_LENGTH)) {
-                Logcat.d("step4.break")
-                if (!headBreak) {
-                    headBreak = true
-                }
-                if (!tailBreak) {
-                    tailBreak = true
+            if (ss.length < LINE_LENGTH) {
+                if (lastBreak) {
+                    Logcat.d("step4.break")
+                    if (!headBreak) {
+                        headBreak = true
+                    }
+                    if (!tailBreak) {
+                        tailBreak = true
+                    }
+                } else {
+                    //如果上一行没有断句,有可能是没有标点的结束,这时,如果是"2."这样开头的,有可能是要前后都要换行.
+                    if (START_MARK2.matcher(start).find()) {
+                        Logcat.d("step4.1.break")
+                        headBreak = true
+                        tailBreak = true
+                    }
                 }
                 //if(ss.substring(0, 1).matches("^[0-9]+$".toRegex())) {
                 //    sb.append("<br>")
@@ -268,6 +277,7 @@ class ParseTextMain private constructor() {
          * //|var|val|let|这是程序的注释.需要换行,或者是程序的开头.
          */
         internal val START_MARK = Pattern.compile("(第\\w*[^章]章)|总结|小结|●|■|//|var|val|let|fun|public|private|static|abstract|protected|import|export|pack|overri|open|class|void|for|while")
+        internal val START_MARK2 = Pattern.compile("\\d+\\.")
         /**
          * 段落的结束字符可能是以下.
          */
