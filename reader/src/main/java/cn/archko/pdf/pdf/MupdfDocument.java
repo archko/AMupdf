@@ -45,6 +45,7 @@ public class MupdfDocument {
     private float pageWidth;
     private float pageHeight;
     private DisplayList displayList;
+    public static float ZOOM = 160f / 72;
 
     /* Default to "A Format" pocket book size. */
     private int layoutW = 312;
@@ -194,8 +195,7 @@ public class MupdfDocument {
         if (displayList == null)
             displayList = page.toDisplayList(false);
 
-        float zoom = resolution / 72;
-        Matrix ctm = new Matrix(zoom, zoom);
+        Matrix ctm = new Matrix(ZOOM, ZOOM);
         RectI bbox = new RectI(page.getBounds().transform(ctm));
         float xscale = (float) pageW / (float) (bbox.x1 - bbox.x0);
         float yscale = (float) pageH / (float) (bbox.y1 - bbox.y0);
@@ -294,7 +294,7 @@ public class MupdfDocument {
         return bitmap;
     }
 
-    public static int[] getArrByCrop(Page page, Matrix ctm, int pageW, int pageH, int leftBound, int topBound) {
+    public static int[] getArrByCrop(final Page page, final Matrix ctm, final int pageW, final int pageH, int leftBound, int topBound) {
         float ratio = 6f;
         Bitmap thumb = BitmapPool.getInstance().acquire((int) (pageW / ratio), (int) (pageH / ratio));
         Matrix matrix = new Matrix(ctm.a / ratio, ctm.d / ratio);
@@ -302,14 +302,22 @@ public class MupdfDocument {
 
         RectF rectF = getCropRect(thumb);
 
-        float scale = thumb.getWidth() / rectF.width();
-        leftBound = (int) (rectF.left * ratio * scale);
-        topBound = (int) (rectF.top * ratio * scale);
+        float xscale = thumb.getWidth() / rectF.width();
+        leftBound = (int) (rectF.left * ratio * xscale);
+        topBound = (int) (rectF.top * ratio * xscale);
 
-        int height = (int) (rectF.height() * ratio * scale);
-        ctm.scale(scale, scale);
+        int height = (int) (rectF.height() * ratio * xscale);
+        ctm.scale(xscale, xscale);
         if (Logcat.loggable) {
-            Logcat.d(TAG, String.format("decode height:%s page:%s:%s,crop rect:%s, ctm:%s", height, pageW, pageH, rectF, ctm));
+            float tw = (thumb.getWidth() * ratio);
+            float th = (thumb.getHeight() * ratio);
+            float sw = (xscale * pageW);
+            float sh = (xscale * pageH);
+            Logcat.d(TAG, String.format("bitmap tw:%s, th:%s, sw:%s, sh:%s,xscale:%s, rect:%s-%s",
+                    tw, th, sw, sh, xscale, rectF.width() * ratio, rectF.height() * ratio));
+
+            //Logcat.d(TAG, String.format("bitmap:%s-%s,height:%s,thumb:%s-%s, crop rect:%s, xscale:%s,yscale:%s",
+            //        pageW, pageH, height, thumb.getWidth(), thumb.getHeight(), rectF, xscale, yscale));
         }
         int[] arr = {leftBound, topBound, height};
         return arr;

@@ -366,6 +366,7 @@ public abstract class ImageWorker {
         public int xOrigin;
         public APage pageSize;
         public Document document;
+        public int targetWidth;
         DecodeService.DecodeCallback decodeCallback;
 
         public DecodeParam(String key, int pageNum, float zoom, int screenWidth, ImageView imageView) {

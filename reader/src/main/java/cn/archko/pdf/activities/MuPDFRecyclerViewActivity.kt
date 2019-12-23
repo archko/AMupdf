@@ -393,7 +393,8 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
                 width = it.effectivePagesWidth
                 height = it.effectivePagesHeight
             }
-            //Logcat.d("create width:" + width + "==>" + mRecyclerView.measuredWidth + "==>" + pageSize!!.targetWidth);
+            //Logcat.d("ImageDecoder", String.format("create width:%s,height:%s,target:%s,pos:%s",
+            //        width, height, pageSize!!.targetWidth, pos));
             if (null == lp) {
                 lp = RecyclerView.LayoutParams(width, height)
                 view.layoutParams = lp
@@ -459,10 +460,10 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         doAsync {
             var result = false
             try {
-                //var start = SystemClock.uptimeMillis();
+                var start = SystemClock.uptimeMillis();
                 mDocument = Document.openDocument(mPath)
                 val cp = mDocument!!.countPages();
-                //Logcat.d(TAG, "open:" + (SystemClock.uptimeMillis() - start))
+                Logcat.d(TAG, "open:" + (SystemClock.uptimeMillis() - start))
 
                 //val loc = mDocument!!.layout(mLayoutW, mLayoutH, mLayoutEM)
 

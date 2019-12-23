@@ -45,9 +45,9 @@ public class BitmapManager {
                     && bitmaps[i].get().index == pageNumber) {
                 hasExist = true;
                 bitmaps[i].get().bitmap = bitmap;
-                if (Logcat.loggable) {
-                    Logcat.d(String.format("override:%s", i));
-                }
+                //if (Logcat.loggable) {
+                //    Logcat.d(String.format("override:%s", i));
+                //}
                 break;
             }
         }

@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import com.artifex.mupdf.fitz.Document;
 import com.artifex.mupdf.fitz.Matrix;
 import com.artifex.mupdf.fitz.Page;
+import com.artifex.mupdf.fitz.RectI;
 
 import org.vudroid.core.DecodeService;
 
@@ -106,7 +107,16 @@ public class ImageDecoder extends ImageWorker {
             APage pageSize = decodeParam.pageSize;
             int pageW = pageSize.getZoomPoint().x;
             int pageH = pageSize.getZoomPoint().y;
-            Matrix ctm = new Matrix(pageSize.getScaleZoom());
+
+            if ((pageSize.getTargetWidth() > 0)) {
+                pageW = pageSize.getTargetWidth();
+            }
+
+            Matrix ctm = new Matrix(MupdfDocument.ZOOM);
+            RectI bbox = new RectI(page.getBounds().transform(ctm));
+            float xscale = (float) pageW / (float) (bbox.x1 - bbox.x0);
+            float yscale = (float) pageH / (float) (bbox.y1 - bbox.y0);
+            ctm.scale(xscale, yscale);
 
             if (decodeParam.autoCrop) {
                 int[] arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound);
@@ -114,13 +124,10 @@ public class ImageDecoder extends ImageWorker {
                 topBound = arr[1];
                 pageH = arr[2];
             }
-
-            if ((pageSize.getTargetWidth() > 0)) {
-                pageW = pageSize.getTargetWidth();
-            }
             if (Logcat.loggable) {
-                Logcat.d(TAG, String.format("decode bitmap:width-height: %s-%s,pagesize:%s,%s, bound:%s,%s, page:%s",
-                        pageW, pageH, pageSize.getZoomPoint().y, decodeParam.xOrigin, leftBound, topBound, pageSize));
+                Logcat.d(TAG, String.format("decode bitmap: %s-%s,page:%s-%s,xOrigin:%s, bound(left-top):%s-%s, page:%s",
+                        pageW, pageH, pageSize.getZoomPoint().x, pageSize.getZoomPoint().y,
+                        decodeParam.xOrigin, leftBound, topBound, pageSize));
             }
             Bitmap bitmap = BitmapPool.getInstance().acquire(pageW, pageH);//Bitmap.createBitmap(sizeX, sizeY, Bitmap.Config.ARGB_8888);
 
