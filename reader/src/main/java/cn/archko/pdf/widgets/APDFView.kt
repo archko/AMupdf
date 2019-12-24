@@ -42,7 +42,7 @@ class APDFView(protected val mContext: Context,
         x = aPage!!.effectivePagesWidth
         y = aPage!!.effectivePagesHeight
         val d = drawable;
-        if (d != null) {
+        if (d != null && (d.intrinsicWidth > 0 && d.intrinsicHeight > 0)) {
             x = d.intrinsicWidth
             y = d.intrinsicHeight
         }
