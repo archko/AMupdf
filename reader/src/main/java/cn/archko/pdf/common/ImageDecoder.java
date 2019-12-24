@@ -131,6 +131,8 @@ public class ImageDecoder extends ImageWorker {
             }
             Bitmap bitmap = BitmapPool.getInstance().acquire(pageW, pageH);//Bitmap.createBitmap(sizeX, sizeY, Bitmap.Config.ARGB_8888);
 
+            pageSize.setCropWidth(pageW);
+            pageSize.setCropHeight(pageH);
             MupdfDocument.render(page, ctm, bitmap, decodeParam.xOrigin, leftBound, topBound);
 
             page.destroy();

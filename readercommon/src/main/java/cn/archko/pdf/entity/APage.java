@@ -75,6 +75,9 @@ public class APage {
 
     private RectF cropBounds;
 
+    private int cropWidth = 0;
+    private int cropHeight = 0;
+
     public APage(int pageNumber, PointF pageSize, float zoom, int targetWidth) {
         index = pageNumber;
         this.mPageSize = pageSize;
@@ -123,10 +126,6 @@ public class APage {
         setAspectRatio(width * 1.0f / height);
     }
 
-    public void update(float zoom) {
-        mZoom = zoom;
-    }
-
     public int getIndex() {
         return index;
     }
@@ -157,6 +156,36 @@ public class APage {
 
     public void setCropBounds(RectF cropBounds) {
         this.cropBounds = cropBounds;
+    }
+
+    public int getCropWidth() {
+        return cropWidth;
+    }
+
+    public int getCropHeight() {
+        return cropHeight;
+    }
+
+    public int getRealCropWidth() {
+        if (cropWidth == 0) {
+            cropWidth = getEffectivePagesWidth();
+        }
+        return cropWidth;
+    }
+
+    public void setCropWidth(int cropWidth) {
+        this.cropWidth = cropWidth;
+    }
+
+    public int getRealCropHeight() {
+        if (cropHeight == 0) {
+            cropHeight = getEffectivePagesHeight();
+        }
+        return cropHeight;
+    }
+
+    public void setCropHeight(int cropHeight) {
+        this.cropHeight = cropHeight;
     }
 
     @Override

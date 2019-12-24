@@ -1,7 +1,7 @@
 package cn.archko.pdf.widgets
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Bitmap
 import android.view.View
 import android.widget.ImageView
 import cn.archko.pdf.common.BitmapManager
@@ -13,6 +13,7 @@ import com.artifex.mupdf.fitz.Document
 /**
  * @author: archko 2018/7/25 :12:43
  */
+@SuppressLint("AppCompatCustomView")
 class APDFView(protected val mContext: Context,
                private val mCore: Document?,
                private var aPage: APage?,
@@ -39,8 +40,8 @@ class APDFView(protected val mContext: Context,
         //super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         var x: Int
         var y: Int
-        x = aPage!!.effectivePagesWidth
-        y = aPage!!.effectivePagesHeight
+        x = aPage!!.realCropWidth
+        y = aPage!!.realCropHeight
         val d = drawable;
         if (d != null && (d.intrinsicWidth > 0 && d.intrinsicHeight > 0)) {
             x = d.intrinsicWidth
@@ -101,19 +102,6 @@ class APDFView(protected val mContext: Context,
             }
             setImageBitmap(bitmap)
             //imageMatrix.reset()
-        }
-    }
-
-    private fun relayoutIfNeeded(bitmap: Bitmap, pageSize: APage) {
-        if (height != bitmap.height || width != bitmap.width) {
-            if (Logcat.loggable) {
-                Logcat.d(String.format("decode relayout bitmap:index:%s, %s:%s imageView->%s:%s",
-                        pageSize.index, bitmap.width, bitmap.height,
-                        getWidth(), getHeight()))
-            }
-            layoutParams.height = bitmap.height
-            layoutParams.width = bitmap.width
-            requestLayout()
         }
     }
 
