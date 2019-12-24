@@ -173,7 +173,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
             descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
             isNestedScrollingEnabled = false
             layoutManager = LinearLayoutManager(this@MuPDFRecyclerViewActivity, LinearLayoutManager.VERTICAL, false)
-            setItemViewCacheSize(0)
+            setHasFixedSize(false)
 
             addItemDecoration(ViewerDividerItemDecoration(this@MuPDFRecyclerViewActivity, LinearLayoutManager.VERTICAL))
             addOnScrollListener(object : RecyclerView.OnScrollListener() {

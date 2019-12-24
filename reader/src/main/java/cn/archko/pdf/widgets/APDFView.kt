@@ -35,6 +35,23 @@ class APDFView(protected val mContext: Context,
         setImageBitmap(null)
     }
 
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        //super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        var x: Int
+        var y: Int
+        x = aPage!!.effectivePagesWidth
+        y = aPage!!.effectivePagesHeight
+        val d = drawable;
+        if (d != null) {
+            x = d.intrinsicWidth
+            y = d.intrinsicHeight
+        }
+
+        setMeasuredDimension(x, y)
+        //Logcat.d(String.format("onMeasure,width:%s,height:%s, page:%s-%s, mZoom: %s, aPage:%s",
+        //        x, y, aPage!!.effectivePagesWidth, aPage!!.effectivePagesHeight, mZoom, aPage));
+    }
+
     fun setPage(pageSize: APage, newZoom: Float, autoCrop: Boolean) {
         var changeScale = false
         if (mZoom != newZoom) {
@@ -49,13 +66,17 @@ class APDFView(protected val mContext: Context,
         //when scale, mBitmap is always null.because after adapter notify,releaseResources() is invoke.
         val zoomSize = aPage!!.zoomPoint
         val xOrigin = (zoomSize.x - aPage!!.targetWidth) / 2
-        Logcat.d(String.format("xOrigin: %s,changeScale:%s, aPage:%s", xOrigin, changeScale, aPage));
+        //Logcat.d(String.format("xOrigin: %s,changeScale:%s, aPage:%s", xOrigin, changeScale, aPage));
 
         val mBitmap = mBitmapManager?.getBitmap(aPage!!.index)
 
         if (null != mBitmap) {
+            //if (Logcat.loggable) {
+            //    Logcat.d(String.format("decode relayout bitmap:index:%s, %s:%s imageView->%s:%s",
+            //            pageSize.index, mBitmap.width, mBitmap.height,
+            //            getWidth(), getHeight()))
+            //}
             setImageBitmap(mBitmap)
-            relayoutIfNeeded(mBitmap, aPage!!)
             /*if (Logcat.loggable) {
                 Logcat.d(String.format("changeScale: %s,cache:%s, aPage:%s", changeScale, mBitmap.toString(), aPage));
             }
@@ -73,20 +94,23 @@ class APDFView(protected val mContext: Context,
         //mDrawTask = getDrawPageTask(autoCrop, aPage!!, xOrigin, height)
         //Utils.execute(true, mDrawTask)
         ImageDecoder.getInstance().loadImage(aPage, autoCrop, xOrigin, this, mCore) { bitmap ->
+            if (Logcat.loggable) {
+                Logcat.d(String.format("decode2 relayout bitmap:index:%s, %s:%s imageView->%s:%s",
+                        pageSize.index, bitmap.width, bitmap.height,
+                        getWidth(), getHeight()))
+            }
             setImageBitmap(bitmap)
-            imageMatrix.reset()
-
-            relayoutIfNeeded(bitmap, pageSize)
+            //imageMatrix.reset()
         }
     }
 
     private fun relayoutIfNeeded(bitmap: Bitmap, pageSize: APage) {
         if (height != bitmap.height || width != bitmap.width) {
-            //if (Logcat.loggable) {
-            //    Logcat.d(String.format("decode relayout bitmap:index:%s, %s:%s imageView->%s:%s",
-            //            pageSize.index, bitmap.width, bitmap.height,
-            //            getWidth(), getHeight()))
-            //}
+            if (Logcat.loggable) {
+                Logcat.d(String.format("decode relayout bitmap:index:%s, %s:%s imageView->%s:%s",
+                        pageSize.index, bitmap.width, bitmap.height,
+                        getWidth(), getHeight()))
+            }
             layoutParams.height = bitmap.height
             layoutParams.width = bitmap.width
             requestLayout()
