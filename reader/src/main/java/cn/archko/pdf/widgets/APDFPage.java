@@ -3,23 +3,27 @@ package cn.archko.pdf.widgets;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.text.TextPaint;
 import android.view.View;
 
 import com.artifex.mupdf.fitz.Document;
 
+import java.util.Arrays;
+
 import cn.archko.pdf.entity.APage;
 
 class APDFPage {
     APage aPage;
     RectF bounds;
-    private final TextPaint textPaint = textPaint();
     private final Paint fillPaint = fillPaint();
     private final Paint strokePaint = strokePaint();
     private PageTreeNode[] children;
     View documentView;
     Document mDocument;
+    Rect cropBounds;
+    boolean crop = false;
 
     APDFPage(View documentView, APage aPage, Document document) {
         this.aPage = aPage;
@@ -53,12 +57,6 @@ class APDFPage {
         if (null == children) {
             initChildren();
         }
-    }
-
-    private float aspectRatio;
-
-    float getPageHeight(int mainWidth, float zoom) {
-        return mainWidth / getAspectRatio() * zoom;
     }
 
     public int getTop() {
@@ -109,24 +107,9 @@ class APDFPage {
         return paint;
     }
 
-    public float getAspectRatio() {
-        return aspectRatio;
-    }
-
-    public void setAspectRatio(float aspectRatio) {
-        if (this.aspectRatio != aspectRatio) {
-            this.aspectRatio = aspectRatio;
-            //documentView.invalidatePageSizes();
-        }
-    }
-
     public boolean isVisible() {
         //return RectF.intersects(documentView.getViewRect(), bounds);
         return true;
-    }
-
-    public void setAspectRatio(int width, int height) {
-        setAspectRatio(width * 1.0f / height);
     }
 
     void setBounds(RectF pageBounds) {
@@ -138,7 +121,11 @@ class APDFPage {
         }
     }
 
-    public void updateVisibility() {
+    public void updateVisibility(boolean crop, int xOrigin) {
+        if (this.crop != crop) {
+            recycleChildren();
+        }
+        this.crop = crop;
         if (children != null) {
             for (PageTreeNode child : children) {
                 child.updateVisibility();
@@ -150,6 +137,35 @@ class APDFPage {
     public void recycle() {
         recycleChildren();
         //aPage = null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        APDFPage apdfPage = (APDFPage) o;
+
+        if (crop != apdfPage.crop) return false;
+        if (aPage != null ? !aPage.equals(apdfPage.aPage) : apdfPage.aPage != null) return false;
+        if (bounds != null ? !bounds.equals(apdfPage.bounds) : apdfPage.bounds != null)
+            return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        if (!Arrays.equals(children, apdfPage.children)) return false;
+        if (documentView != null ? !documentView.equals(apdfPage.documentView) : apdfPage.documentView != null)
+            return false;
+        return cropBounds != null ? cropBounds.equals(apdfPage.cropBounds) : apdfPage.cropBounds == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = aPage != null ? aPage.hashCode() : 0;
+        result = 31 * result + (bounds != null ? bounds.hashCode() : 0);
+        result = 31 * result + Arrays.hashCode(children);
+        result = 31 * result + (documentView != null ? documentView.hashCode() : 0);
+        result = 31 * result + (cropBounds != null ? cropBounds.hashCode() : 0);
+        result = 31 * result + (crop ? 1 : 0);
+        return result;
     }
 
     private void recycleChildren() {
@@ -169,7 +185,6 @@ class APDFPage {
                 "index=" + aPage +
                 ", bounds=" + bounds +
                 ", children=" + children +
-                ", aspectRatio=" + aspectRatio +
                 '}';
     }
 }

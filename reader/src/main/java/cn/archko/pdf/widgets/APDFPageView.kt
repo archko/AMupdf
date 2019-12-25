@@ -66,7 +66,7 @@ class APDFPageView(protected val mContext: Context,
         pdfPage.draw(canvas)
     }
 
-    fun setPage(pageSize: APage, newZoom: Float, autoCrop: Boolean) {
+    fun udpatePage(pageSize: APage, newZoom: Float, crop: Boolean) {
         var isNew = false
         if (this.pageSize != pageSize) {
             this.pageSize = pageSize
@@ -83,6 +83,6 @@ class APDFPageView(protected val mContext: Context,
         Logcat.d(String.format("setPage:isNew:%s,width-height:%s-%s, mZoom: %s, aPage:%s",
                 isNew, pageSize.effectivePagesWidth, pageSize.effectivePagesHeight, mZoom, pageSize));
         pdfPage.checkChildren()
-        pdfPage.updateVisibility()
+        pdfPage.updateVisibility(crop, xOrigin)
     }
 }

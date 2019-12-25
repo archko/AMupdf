@@ -3,11 +3,6 @@ package cn.archko.pdf.entity;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.RectF;
-import android.os.Build;
-
-import java.util.Objects;
-
-import androidx.annotation.RequiresApi;
 
 /**
  * 有两个对象,一个是com.artifex.mupdf.fitz.Page,包含了这个页的原始信息.
@@ -37,7 +32,6 @@ public class APage {
     /**
      * width/height
      */
-    private float aspectRatio;
     private PointF mPageSize;    // pagesize of real page
     /**
      * view zoom
@@ -78,6 +72,7 @@ public class APage {
     //val bitmap = BitmapPool.getInstance().acquire(width, height)
     // MupdfDocument.render(page, ctm, bitmap, xOrigin, leftBound, topBound)
 
+    private RectF sourceBounds;
     private RectF cropBounds;
 
     private int cropWidth = 0;
@@ -88,6 +83,13 @@ public class APage {
         this.mPageSize = pageSize;
         this.mZoom = zoom;
         setTargetWidth(targetWidth);
+        initSourceBounds(1.0f);
+    }
+
+    private void initSourceBounds(float scale) {
+        sourceBounds = new RectF();
+        sourceBounds.right = getEffectivePagesWidth() * scale;
+        sourceBounds.bottom = getEffectivePagesHeight() * scale;
     }
 
     public int getTargetWidth() {
@@ -121,16 +123,6 @@ public class APage {
         return (int) (scale * page.x);
     }
 
-    public void setAspectRatio(float aspectRatio) {
-        if (this.aspectRatio != aspectRatio) {
-            this.aspectRatio = aspectRatio;
-        }
-    }
-
-    public void setAspectRatio(int width, int height) {
-        setAspectRatio(width * 1.0f / height);
-    }
-
     public int getIndex() {
         return index;
     }
@@ -159,8 +151,9 @@ public class APage {
         return cropBounds;
     }
 
-    public void setCropBounds(RectF cropBounds) {
+    public void setCropBounds(RectF cropBounds, float cropScale) {
         this.cropBounds = cropBounds;
+        initSourceBounds(cropScale);
     }
 
     public int getCropWidth() {
@@ -171,15 +164,19 @@ public class APage {
         return cropHeight;
     }
 
+    public void setCropWidth(int cropWidth) {
+        this.cropWidth = cropWidth;
+    }
+
+    public void setCropHeight(int cropHeight) {
+        this.cropHeight = cropHeight;
+    }
+
     public int getRealCropWidth() {
         if (cropWidth == 0) {
             cropWidth = getEffectivePagesWidth();
         }
         return cropWidth;
-    }
-
-    public void setCropWidth(int cropWidth) {
-        this.cropWidth = cropWidth;
     }
 
     public int getRealCropHeight() {
@@ -189,38 +186,42 @@ public class APage {
         return cropHeight;
     }
 
-    public void setCropHeight(int cropHeight) {
-        this.cropHeight = cropHeight;
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         APage aPage = (APage) o;
-        return index == aPage.index &&
-                Float.compare(aPage.aspectRatio, aspectRatio) == 0 &&
-                Float.compare(aPage.mZoom, mZoom) == 0 &&
-                targetWidth == aPage.targetWidth &&
-                Float.compare(aPage.scale, scale) == 0 &&
-                Objects.equals(mPageSize, aPage.mPageSize);
+
+        if (index != aPage.index) return false;
+        if (Float.compare(aPage.mZoom, mZoom) != 0) return false;
+        if (targetWidth != aPage.targetWidth) return false;
+        if (Float.compare(aPage.scale, scale) != 0) return false;
+        return mPageSize != null ? mPageSize.equals(aPage.mPageSize) : aPage.mPageSize == null;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public int hashCode() {
-        return Objects.hash(index, aspectRatio, mPageSize, mZoom, targetWidth, scale);
+        int result = index;
+        result = 31 * result + (mPageSize != null ? mPageSize.hashCode() : 0);
+        result = 31 * result + (mZoom != +0.0f ? Float.floatToIntBits(mZoom) : 0);
+        result = 31 * result + targetWidth;
+        result = 31 * result + (scale != +0.0f ? Float.floatToIntBits(scale) : 0);
+        return result;
     }
 
     @Override
     public String toString() {
         return "APage{" +
                 "index=" + index +
-                ", targetWidth=" + targetWidth +
-                ", scale=" + scale +
                 ", mPageSize=" + mPageSize +
                 ", mZoom=" + mZoom +
+                ", targetWidth=" + targetWidth +
+                ", scale=" + scale +
+                ", sourceBounds=" + sourceBounds +
+                ", cropBounds=" + cropBounds +
+                ", cropWidth=" + cropWidth +
+                ", cropHeight=" + cropHeight +
                 '}';
     }
 }

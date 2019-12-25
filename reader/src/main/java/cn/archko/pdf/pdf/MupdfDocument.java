@@ -275,10 +275,10 @@ public class MupdfDocument {
         int width = pageW;
         int height = pageH;
         if (autoCrop) {
-            int[] arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound);
-            leftBound = arr[0];
-            topBound = arr[1];
-            height = arr[2];
+            float[] arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound);
+            leftBound = (int) arr[0];
+            topBound = (int) arr[1];
+            height = (int) arr[2];
         }
 
         //if (Logcat.loggable) {
@@ -294,7 +294,7 @@ public class MupdfDocument {
         return bitmap;
     }
 
-    public static int[] getArrByCrop(final Page page, final Matrix ctm, final int pageW, final int pageH, int leftBound, int topBound) {
+    public static float[] getArrByCrop(final Page page, final Matrix ctm, final int pageW, final int pageH, int leftBound, int topBound) {
         float ratio = 6f;
         Bitmap thumb = BitmapPool.getInstance().acquire((int) (pageW / ratio), (int) (pageH / ratio));
         Matrix matrix = new Matrix(ctm.a / ratio, ctm.d / ratio);
@@ -319,7 +319,7 @@ public class MupdfDocument {
             //Logcat.d(TAG, String.format("bitmap:%s-%s,height:%s,thumb:%s-%s, crop rect:%s, xscale:%s,yscale:%s",
             //        pageW, pageH, height, thumb.getWidth(), thumb.getHeight(), rectF, xscale, yscale));
         }
-        int[] arr = {leftBound, topBound, height};
+        float[] arr = {leftBound, topBound, height, xscale};
         return arr;
     }
 
