@@ -20,7 +20,10 @@ import androidx.recyclerview.widget.RecyclerView
 import cn.archko.mupdf.R
 import cn.archko.pdf.adapters.MuPDFReflowAdapter
 import cn.archko.pdf.colorpicker.ColorPickerDialog
-import cn.archko.pdf.common.*
+import cn.archko.pdf.common.MenuHelper
+import cn.archko.pdf.common.OutlineHelper
+import cn.archko.pdf.common.PDFBookmarkManager
+import cn.archko.pdf.common.StyleHelper
 import cn.archko.pdf.entity.FontBean
 import cn.archko.pdf.entity.MenuBean
 import cn.archko.pdf.fragments.FontsFragment
@@ -81,8 +84,6 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     override fun doLoadDoc() {
         try {
             progressDialog.setMessage("Loading menu")
-            bitmapManager = BitmapManager()
-            ImageDecoder.getInstance().setBitmapManager(bitmapManager)
 
             mRecyclerView.adapter = PDFRecyclerAdapter()
             addGesture()
@@ -146,12 +147,6 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         } finally {
             progressDialog.dismiss()
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        ImageDecoder.getInstance().setBitmapManager(null)
-        bitmapManager?.clear()
     }
 
     override fun initView() {
@@ -359,7 +354,6 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     }
 
     override fun commitZoom() {
-        bitmapManager?.clear()
         mRecyclerView.adapter?.notifyItemChanged(getCurrentPos())
     }
 

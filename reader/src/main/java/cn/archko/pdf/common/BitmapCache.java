@@ -23,6 +23,10 @@ public class BitmapCache {
 
     private LruCache<Object, Bitmap> cacheKt = new LruCache(16);
 
+    public LruCache<Object, Bitmap> getCache() {
+        return cacheKt;
+    }
+
     public void addBitmap(Object key, Bitmap val) {
         cacheKt.put(key, val);
     }

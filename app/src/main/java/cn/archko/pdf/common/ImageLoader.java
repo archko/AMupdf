@@ -28,7 +28,7 @@ import cn.archko.pdf.utils.FileUtils;
  */
 public class ImageLoader extends ImageWorker {
 
-    private LruCache<String, Bitmap> mImageCache = new LruCache<>(32);
+    private LruCache<Object, Bitmap> mImageCache = new LruCache<>(32);
     private LruCache<String, APage> pageLruCache = new LruCache<>(64);
 
     public static ImageLoader getInstance() {
@@ -69,7 +69,7 @@ public class ImageLoader extends ImageWorker {
     }
 
     @Override
-    public LruCache<String, Bitmap> getImageCache() {
+    public LruCache<Object, Bitmap> getImageCache() {
         return mImageCache;
     }
 

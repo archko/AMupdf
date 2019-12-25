@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
 import android.widget.ImageView
-import cn.archko.pdf.common.BitmapManager
+import cn.archko.pdf.common.BitmapCache
 import cn.archko.pdf.common.ImageDecoder
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.entity.APage
@@ -17,7 +17,7 @@ import com.artifex.mupdf.fitz.Document
 class APDFView(protected val mContext: Context,
                private val mCore: Document?,
                private var aPage: APage?,
-               private val mBitmapManager: BitmapManager?) : ImageView(mContext) {
+               crop: Boolean) : ImageView(mContext) {
 
     private var mZoom: Float = 0.toFloat()
 
@@ -53,7 +53,7 @@ class APDFView(protected val mContext: Context,
         //        x, y, aPage!!.effectivePagesWidth, aPage!!.effectivePagesHeight, mZoom, aPage));
     }
 
-    fun setPage(pageSize: APage, newZoom: Float, autoCrop: Boolean) {
+    fun updatePage(pageSize: APage, newZoom: Float, autoCrop: Boolean) {
         var changeScale = false
         if (mZoom != newZoom) {
             changeScale = true
@@ -69,7 +69,7 @@ class APDFView(protected val mContext: Context,
         val xOrigin = (zoomSize.x - aPage!!.targetWidth) / 2
         //Logcat.d(String.format("xOrigin: %s,changeScale:%s, aPage:%s", xOrigin, changeScale, aPage));
 
-        val mBitmap = mBitmapManager?.getBitmap(aPage!!.index)
+        val mBitmap = BitmapCache.getInstance().getBitmap(aPage!!.index)
 
         if (null != mBitmap) {
             //if (Logcat.loggable) {

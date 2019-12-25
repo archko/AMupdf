@@ -3,7 +3,6 @@ package cn.archko.pdf.widgets;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.text.TextPaint;
 import android.view.View;

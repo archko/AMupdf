@@ -13,12 +13,11 @@ import android.widget.ImageView;
 
 import com.artifex.mupdf.fitz.Document;
 
-import org.vudroid.core.DecodeService;
-
 import java.lang.ref.WeakReference;
 
 import androidx.collection.LruCache;
 import cn.archko.pdf.entity.APage;
+import cn.archko.pdf.listeners.DecodeCallback;
 import cn.archko.pdf.utils.Utils;
 
 /**
@@ -109,7 +108,7 @@ public abstract class ImageWorker {
 
     public abstract Bitmap getBitmapFromCache(final String key);
 
-    public abstract LruCache<String, Bitmap> getImageCache();
+    public abstract LruCache<Object, Bitmap> getImageCache();
 
     public abstract LruCache<String, APage> getPageLruCache();
 
@@ -367,7 +366,7 @@ public abstract class ImageWorker {
         public APage pageSize;
         public Document document;
         public int targetWidth;
-        DecodeService.DecodeCallback decodeCallback;
+        DecodeCallback decodeCallback;
 
         public DecodeParam(String key, int pageNum, float zoom, int screenWidth, ImageView imageView) {
             this.key = key;
@@ -378,7 +377,7 @@ public abstract class ImageWorker {
         }
 
         public DecodeParam(String key, ImageView imageView, boolean autoCrop, int xOrigin,
-                           APage pageSize, Document document, DecodeService.DecodeCallback callback) {
+                           APage pageSize, Document document, DecodeCallback callback) {
             this.key = key;
             if (TextUtils.isEmpty(key)) {
                 this.key = String.format("%s,%s,%s,%s", imageView, autoCrop, xOrigin, pageSize);

@@ -10,13 +10,11 @@ import com.artifex.mupdf.fitz.Matrix;
 import com.artifex.mupdf.fitz.Page;
 import com.artifex.mupdf.fitz.RectI;
 
-import org.vudroid.core.DecodeService;
-
 import androidx.collection.LruCache;
 import cn.archko.pdf.App;
 import cn.archko.pdf.entity.APage;
+import cn.archko.pdf.listeners.DecodeCallback;
 import cn.archko.pdf.pdf.MupdfDocument;
-import cn.archko.pdf.utils.Utils;
 
 /**
  * @author: archko 2019/8/30 :16:17
@@ -24,9 +22,8 @@ import cn.archko.pdf.utils.Utils;
 public class ImageDecoder extends ImageWorker {
 
     public static final String TAG = "ImageDecoder";
-    private LruCache<String, Bitmap> mImageCache = new LruCache<>(4);
+    private LruCache<Object, Bitmap> mImageCache = BitmapCache.getInstance().getCache();
     private LruCache<String, APage> pageLruCache = new LruCache<>(32);
-    private BitmapManager mBitmapManager;
 
     public static ImageDecoder getInstance() {
         return Factory.instance;
@@ -42,10 +39,6 @@ public class ImageDecoder extends ImageWorker {
         mResources = mContext.getResources();
     }
 
-    public void setBitmapManager(BitmapManager bitmapManager) {
-        this.mBitmapManager = bitmapManager;
-    }
-
     @Override
     public boolean isScrolling() {
         if (mImageCache != null) {
@@ -56,30 +49,21 @@ public class ImageDecoder extends ImageWorker {
 
     @Override
     public void addBitmapToCache(final String key, final Bitmap bitmap) {
-        //if (mImageCache != null) {
-        //    mImageCache.put(key, bitmap);
-        //}
-        if (null != mBitmapManager) {
-            mBitmapManager.setBitmap(Utils.parseInt(key), bitmap);
+        if (mImageCache != null) {
+            mImageCache.put(key, bitmap);
         }
     }
 
     @Override
     public Bitmap getBitmapFromCache(final String key) {
-        //if (mImageCache != null) {
-        //    return mImageCache.get(key);
-        //}
-        if (null != mBitmapManager) {
-            Bitmap bb = mBitmapManager.getBitmap(Utils.parseInt(key));
-            if (bb != null) {
-                return bb;
-            }
+        if (mImageCache != null) {
+            return mImageCache.get(key);
         }
         return null;
     }
 
     @Override
-    public LruCache<String, Bitmap> getImageCache() {
+    public LruCache<Object, Bitmap> getImageCache() {
         return mImageCache;
     }
 
@@ -89,7 +73,7 @@ public class ImageDecoder extends ImageWorker {
     }
 
     public void loadImage(APage aPage, boolean autoCrop, int xOrigin,
-                          ImageView imageView, Document document, DecodeService.DecodeCallback callback) {
+                          ImageView imageView, Document document, DecodeCallback callback) {
         if (document == null || aPage == null || getImageCache() == null || imageView == null) {
             return;
         }
@@ -154,9 +138,8 @@ public class ImageDecoder extends ImageWorker {
             Logcat.w(TAG, "cancel decode.");
             return;
         }
-        if (null != mBitmapManager) {
-            mBitmapManager.setBitmap(decodeParam.pageSize.index, bitmap);
-        }
+        addBitmapToCache(String.valueOf(decodeParam.pageSize.index), bitmap);
+
         if (null != decodeParam.decodeCallback) {
             decodeParam.decodeCallback.decodeComplete(bitmap);
         }
@@ -186,6 +169,5 @@ public class ImageDecoder extends ImageWorker {
     public void recycle() {
         mImageCache.evictAll();
         pageLruCache.evictAll();
-        mBitmapManager = null;
     }
 }
