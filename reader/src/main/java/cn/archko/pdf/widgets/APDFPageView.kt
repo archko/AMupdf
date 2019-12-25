@@ -5,8 +5,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.RectF
 import android.view.View
-import android.widget.ImageView
-import cn.archko.pdf.common.BitmapManager
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.entity.APage
 import com.artifex.mupdf.fitz.Document
@@ -17,8 +15,7 @@ import com.artifex.mupdf.fitz.Document
 @SuppressLint("AppCompatCustomView")
 class APDFPageView(protected val mContext: Context,
                    private val mCore: Document?,
-                   private var pageSize: APage,
-                   private val mBitmapManager: BitmapManager?) : ImageView(mContext) {
+                   private var pageSize: APage) : View(mContext) {
 
     private var mZoom: Float = 0.toFloat()
     private lateinit var pdfPage: APDFPage;
@@ -39,20 +36,29 @@ class APDFPageView(protected val mContext: Context,
     }
 
     fun recycle() {
-        setImageBitmap(null)
         pdfPage.recycle()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         //super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        var x: Int
-        var y: Int
-        x = pageSize.realCropWidth
-        y = pageSize.realCropHeight
+        var width: Int
+        var height: Int
+        val wmode = MeasureSpec.getMode(widthMeasureSpec)
+        val hmode = MeasureSpec.getMode(heightMeasureSpec)
+        if (wmode == MeasureSpec.UNSPECIFIED) {
+            width = pageSize.realCropWidth
+        } else {
+            width = MeasureSpec.getSize(widthMeasureSpec)
+        }
+        if (hmode == MeasureSpec.UNSPECIFIED) {
+            height = pageSize.realCropHeight
+        } else {
+            height = MeasureSpec.getSize(heightMeasureSpec)
+        }
 
-        setMeasuredDimension(x, y)
-        //Logcat.d(String.format("onMeasure,width:%s,height:%s, page:%s-%s, mZoom: %s, aPage:%s",
-        //        x, y, aPage.effectivePagesWidth, aPage.effectivePagesHeight, mZoom, aPage));
+        setMeasuredDimension(width, height)
+        Logcat.d(String.format("onMeasure,width:%s,height:%s, page:%s-%s, mZoom: %s, aPage:%s",
+                width, height, pageSize.effectivePagesWidth, pageSize.effectivePagesHeight, mZoom, pageSize));
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -76,6 +82,7 @@ class APDFPageView(protected val mContext: Context,
 
         Logcat.d(String.format("setPage:isNew:%s,width-height:%s-%s, mZoom: %s, aPage:%s",
                 isNew, pageSize.effectivePagesWidth, pageSize.effectivePagesHeight, mZoom, pageSize));
+        pdfPage.checkChildren()
         pdfPage.updateVisibility()
     }
 }

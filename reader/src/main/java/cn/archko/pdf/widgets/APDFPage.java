@@ -5,7 +5,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.text.TextPaint;
-import android.widget.ImageView;
+import android.view.View;
 
 import com.artifex.mupdf.fitz.Document;
 
@@ -18,10 +18,10 @@ class APDFPage {
     private final Paint fillPaint = fillPaint();
     private final Paint strokePaint = strokePaint();
     private PageTreeNode[] children;
-    ImageView documentView;
+    View documentView;
     Document mDocument;
 
-    APDFPage(ImageView documentView, APage aPage, Document document) {
+    APDFPage(View documentView, APage aPage, Document document) {
         this.aPage = aPage;
         this.mDocument = document;
         update(documentView, aPage);
@@ -36,7 +36,7 @@ class APDFPage {
         };
     }
 
-    void update(ImageView documentView, APage aPage) {
+    void update(View documentView, APage aPage) {
         if (this.aPage != aPage || this.documentView != documentView) {
             if (children != null) {
                 for (PageTreeNode node : children) {
@@ -47,6 +47,12 @@ class APDFPage {
         }
         this.aPage = aPage;
         this.documentView = documentView;
+    }
+
+    void checkChildren() {
+        if (null == children) {
+            initChildren();
+        }
     }
 
     private float aspectRatio;
