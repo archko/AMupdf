@@ -3,6 +3,11 @@ package cn.archko.pdf.entity;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.os.Build;
+
+import java.util.Objects;
+
+import androidx.annotation.RequiresApi;
 
 /**
  * 有两个对象,一个是com.artifex.mupdf.fitz.Page,包含了这个页的原始信息.
@@ -186,6 +191,26 @@ public class APage {
 
     public void setCropHeight(int cropHeight) {
         this.cropHeight = cropHeight;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        APage aPage = (APage) o;
+        return index == aPage.index &&
+                Float.compare(aPage.aspectRatio, aspectRatio) == 0 &&
+                Float.compare(aPage.mZoom, mZoom) == 0 &&
+                targetWidth == aPage.targetWidth &&
+                Float.compare(aPage.scale, scale) == 0 &&
+                Objects.equals(mPageSize, aPage.mPageSize);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    @Override
+    public int hashCode() {
+        return Objects.hash(index, aspectRatio, mPageSize, mZoom, targetWidth, scale);
     }
 
     @Override
