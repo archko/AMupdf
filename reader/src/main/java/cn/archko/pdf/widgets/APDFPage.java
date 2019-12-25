@@ -16,18 +16,20 @@ import cn.archko.pdf.entity.APage;
 
 class APDFPage {
     APage aPage;
-    RectF bounds;
+    private RectF bounds;
     private final Paint fillPaint = fillPaint();
     private final Paint strokePaint = strokePaint();
     private PageTreeNode[] children;
     View documentView;
     Document mDocument;
-    Rect cropBounds;
+    RectF cropBounds;
     boolean crop = false;
+    boolean isDecodingCrop = false;
 
-    APDFPage(View documentView, APage aPage, Document document) {
+    APDFPage(View documentView, APage aPage, Document document, boolean crop) {
         this.aPage = aPage;
         this.mDocument = document;
+        this.crop = crop;
         update(documentView, aPage);
     }
 
@@ -121,10 +123,31 @@ class APDFPage {
         }
     }
 
+    public void setCropBounds(RectF cropBounds) {
+        isDecodingCrop = false;
+        if (this.cropBounds != cropBounds) {
+            this.cropBounds = cropBounds;
+            if (children != null) {
+                for (PageTreeNode child : children) {
+                    child.updateVisibility();
+                    child.invalidateNodeBounds();
+                }
+            }
+        }
+    }
+
+    RectF getBounds() {
+        if (crop && cropBounds != null) {
+            return cropBounds;
+        }
+        return bounds;
+    }
+
     public void updateVisibility(boolean crop, int xOrigin) {
         if (this.crop != crop) {
             recycleChildren();
         }
+        checkChildren();
         this.crop = crop;
         if (children != null) {
             for (PageTreeNode child : children) {

@@ -180,6 +180,9 @@ public class APage {
     }
 
     public int getRealCropHeight() {
+        if (cropBounds != null) {
+            return (int) cropBounds.width();
+        }
         if (cropHeight == 0) {
             cropHeight = getEffectivePagesHeight();
         }

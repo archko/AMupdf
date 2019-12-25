@@ -10,6 +10,8 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.os.AsyncTask;
 
+import com.artifex.mupdf.fitz.RectI;
+
 import cn.archko.pdf.common.BitmapCache;
 import cn.archko.pdf.common.BitmapPool;
 import cn.archko.pdf.common.Logcat;
@@ -57,7 +59,7 @@ class PageTreeNode {
     void draw(Canvas canvas) {
         Bitmap bitmap = getBitmap();
         if (bitmap != null) {
-            Logcat.d(String.format("bitmap:%s,w-h:%s-%s,rect:%s", bitmap, bitmap.getWidth(), bitmap.getHeight(), getTargetRect()));
+            //Logcat.d(String.format("bitmap:%s,w-h:%s-%s,rect:%s", bitmap, bitmap.getWidth(), bitmap.getHeight(), getTargetRect()));
             canvas.drawBitmap(bitmap, new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight()), getTargetRect(), bitmapPaint);
             canvas.drawRect(getTargetRect(), strokePaint);
         }
@@ -117,8 +119,8 @@ class PageTreeNode {
     private Rect getTargetRect() {
         if (targetRect == null) {
             matrix.reset();
-            matrix.postScale(apdfPage.bounds.width(), apdfPage.bounds.height());
-            matrix.postTranslate(apdfPage.bounds.left, apdfPage.bounds.top);
+            matrix.postScale(apdfPage.getBounds().width(), apdfPage.getBounds().height());
+            matrix.postTranslate(apdfPage.getBounds().left, apdfPage.getBounds().top);
             RectF targetRectF = new RectF();
             matrix.mapRect(targetRectF, pageSliceBounds);
             targetRect = new Rect((int) targetRectF.left, (int) targetRectF.top, (int) targetRectF.right, (int) targetRectF.bottom);
@@ -178,6 +180,14 @@ class PageTreeNode {
         if (isRecycle) {
             return;
         }
+        if (apdfPage.isDecodingCrop) {
+            return;
+        }
+        if (apdfPage.crop && apdfPage.cropBounds == null) {
+            apdfPage.isDecodingCrop = true;
+            decodeCropBounds(pageSize);
+            return;
+        }
         bitmapAsyncTask = new AsyncTask<String, String, Bitmap>() {
             @Override
             protected Bitmap doInBackground(String... params) {
@@ -189,13 +199,11 @@ class PageTreeNode {
 
             private Bitmap renderBitmap() {
                 Rect rect = getTargetRect();
-                int width = pageSize.getZoomPoint().x / 2;
-                int height = pageSize.getZoomPoint().y / 2;
                 int leftBound = 0;
                 int topBound = 0;
 
-                width = rect.width();
-                height = rect.height();
+                int width = rect.width();
+                int height = rect.height();
                 leftBound = rect.left;
                 topBound = rect.top;
 
@@ -221,5 +229,50 @@ class PageTreeNode {
             }
         };
         Utils.execute(true, bitmapAsyncTask);
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private void decodeCropBounds(APage pageSize) {
+        Utils.execute(true, new AsyncTask<String, String, RectF>() {
+            @Override
+            protected RectF doInBackground(String... params) {
+                if (isCancelled()) {
+                    return null;
+                }
+                return renderBitmap();
+            }
+
+            private RectF renderBitmap() {
+                int leftBound = 0;
+                int topBound = 0;
+                int pageW = pageSize.getZoomPoint().x;
+                int pageH = pageSize.getZoomPoint().y;
+                com.artifex.mupdf.fitz.Page page = apdfPage.mDocument.loadPage(pageSize.index);
+                com.artifex.mupdf.fitz.Matrix ctm = new com.artifex.mupdf.fitz.Matrix(MupdfDocument.ZOOM);
+                RectI bbox = new RectI(page.getBounds().transform(ctm));
+                float xscale = (float) pageW / (float) (bbox.x1 - bbox.x0);
+                float yscale = (float) pageH / (float) (bbox.y1 - bbox.y0);
+                ctm.scale(xscale, yscale);
+
+                float[] arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound);
+                leftBound = (int) arr[0];
+                topBound = (int) arr[1];
+                pageH = (int) arr[2];
+                float cropScale = arr[3];
+
+                //pageSize.setCropWidth(pageW);
+                //pageSize.setCropHeight(pageH);
+                RectF cropRectf = new RectF(leftBound, topBound, pageW, pageH);
+                pageSize.setCropBounds(cropRectf, cropScale);
+                return cropRectf;
+            }
+
+            @Override
+            protected void onPostExecute(RectF rectF) {
+                if (null != rectF) {
+                    apdfPage.setCropBounds(rectF);
+                }
+            }
+        });
     }
 }
