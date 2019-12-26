@@ -34,10 +34,10 @@ class APDFPage {
 
     private void initChildren() {
         children = new PageTreeNode[]{
-                new PageTreeNode(new RectF(0, 0, 0.5f, 0.5f), this),
-                new PageTreeNode(new RectF(0.5f, 0, 1.0f, 0.5f), this),
-                new PageTreeNode(new RectF(0, 0.5f, 0.5f, 1.0f), this),
-                new PageTreeNode(new RectF(0.5f, 0.5f, 1.0f, 1.0f), this)
+                new PageTreeNode(new RectF(0, 0, 0.5f, 0.5f), this, PageTreeNode.PAGE_TYPE_LEFT_TOP),
+                new PageTreeNode(new RectF(0.5f, 0, 1.0f, 0.5f), this, PageTreeNode.PAGE_TYPE_RIGHT_TOP),
+                new PageTreeNode(new RectF(0, 0.5f, 0.5f, 1.0f), this, PageTreeNode.PAGE_TYPE_LEFT_BOTTOM),
+                new PageTreeNode(new RectF(0.5f, 0.5f, 1.0f, 1.0f), this, PageTreeNode.PAGE_TYPE_RIGHT_BOTTOM)
         };
     }
 
@@ -52,6 +52,9 @@ class APDFPage {
         }
         this.aPage = aPage;
         this.documentView = documentView;
+        if (null != aPage.getCropBounds() && cropBounds != aPage.getCropBounds()) {
+            this.cropBounds = cropBounds;
+        }
     }
 
     void checkChildren() {
@@ -115,6 +118,7 @@ class APDFPage {
 
     void setBounds(RectF pageBounds) {
         bounds = pageBounds;
+        cropBounds = null;
         if (children != null) {
             for (PageTreeNode child : children) {
                 child.invalidateNodeBounds();

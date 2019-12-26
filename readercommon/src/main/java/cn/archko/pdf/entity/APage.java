@@ -72,6 +72,7 @@ public class APage {
     //val bitmap = BitmapPool.getInstance().acquire(width, height)
     // MupdfDocument.render(page, ctm, bitmap, xOrigin, leftBound, topBound)
 
+    private float cropScale = 1.0f;
     private RectF sourceBounds;
     private RectF cropBounds;
 
@@ -153,9 +154,18 @@ public class APage {
 
     public void setCropBounds(RectF cropBounds, float cropScale) {
         this.cropBounds = cropBounds;
+        this.cropScale = cropScale;
         initSourceBounds(cropScale);
         setCropWidth((int) cropBounds.right);
         setCropHeight((int) cropBounds.bottom);
+    }
+
+    public RectF getSourceBounds() {
+        return sourceBounds;
+    }
+
+    public float getCropScale() {
+        return cropScale;
     }
 
     public int getCropWidth() {
@@ -223,6 +233,7 @@ public class APage {
                 ", mZoom=" + mZoom +
                 ", targetWidth=" + targetWidth +
                 ", scale=" + scale +
+                ", cropScale=" + cropScale +
                 ", sourceBounds=" + sourceBounds +
                 ", cropBounds=" + cropBounds +
                 ", cropWidth=" + cropWidth +

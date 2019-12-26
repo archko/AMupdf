@@ -20,19 +20,27 @@ import cn.archko.pdf.pdf.MupdfDocument;
 import cn.archko.pdf.utils.Utils;
 
 class PageTreeNode {
+    static final int PAGE_TYPE_LEFT_TOP = 0;
+    static final int PAGE_TYPE_RIGHT_TOP = 1;
+    static final int PAGE_TYPE_LEFT_BOTTOM = 2;
+    static final int PAGE_TYPE_RIGHT_BOTTOM = 3;
+    int pageType = PAGE_TYPE_LEFT_TOP;
     private final RectF pageSliceBounds;
     private final APDFPage apdfPage;
     private Matrix matrix = new Matrix();
+    private Matrix cropMatrix = new Matrix();
     private final Paint bitmapPaint = new Paint();
     private final Paint strokePaint = strokePaint();
+    private final Paint strokePaint2 = strokePaint2();
     private Rect targetRect;
     private Rect cropTargetRect;
     private AsyncTask<String, String, Bitmap> bitmapAsyncTask;
     private boolean isRecycle = false;
 
-    PageTreeNode(RectF localPageSliceBounds, APDFPage page) {
+    PageTreeNode(RectF localPageSliceBounds, APDFPage page, int pageType) {
         this.pageSliceBounds = evaluatePageSliceBounds(localPageSliceBounds, null);
         this.apdfPage = page;
+        this.pageType = pageType;
     }
 
     void updateVisibility() {
@@ -53,6 +61,14 @@ class PageTreeNode {
         final Paint strokePaint = new Paint();
         strokePaint.setColor(Color.GREEN);
         strokePaint.setStyle(Paint.Style.STROKE);
+        strokePaint.setStrokeWidth(4);
+        return strokePaint;
+    }
+
+    private Paint strokePaint2() {
+        final Paint strokePaint = new Paint();
+        strokePaint.setColor(Color.RED);
+        strokePaint.setStyle(Paint.Style.STROKE);
         strokePaint.setStrokeWidth(2);
         return strokePaint;
     }
@@ -63,6 +79,7 @@ class PageTreeNode {
             //Logcat.d(String.format("bitmap:%s,w-h:%s-%s,rect:%s", bitmap, bitmap.getWidth(), bitmap.getHeight(), getTargetRect()));
             canvas.drawBitmap(bitmap, new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight()), getTargetRect(), bitmapPaint);
             canvas.drawRect(getTargetRect(), strokePaint);
+            canvas.drawRect(getCropTargetRect(), strokePaint2);
         }
     }
 
@@ -131,12 +148,34 @@ class PageTreeNode {
 
     private Rect getCropTargetRect() {
         if (cropTargetRect == null) {
-            matrix.reset();
-            matrix.postScale(apdfPage.getCropBounds().width(), apdfPage.getCropBounds().height());
-            matrix.postTranslate(apdfPage.getCropBounds().left, apdfPage.getCropBounds().top);
+            cropMatrix.reset();
+            cropMatrix.postScale(apdfPage.getBounds().width(), apdfPage.getBounds().height());
+            //cropMatrix.postScale(apdfPage.aPage.getCropScale(), apdfPage.aPage.getCropScale());
+            cropMatrix.postTranslate(apdfPage.getBounds().left, apdfPage.getBounds().top);
+            RectF cropBounds = apdfPage.aPage.getCropBounds();
+            float right = 0, bottom = 0;
+            if (cropBounds != null) {
+                switch (pageType) {
+                    case PAGE_TYPE_LEFT_TOP:
+                        cropMatrix.postTranslate(cropBounds.left, cropBounds.top);
+                        break;
+                    case PAGE_TYPE_RIGHT_TOP:
+                        cropMatrix.postTranslate(0, cropBounds.top);
+                        right = cropBounds.left;
+                        break;
+                    case PAGE_TYPE_LEFT_BOTTOM:
+                        cropMatrix.postTranslate(cropBounds.left, 0);
+                        bottom = cropBounds.top;
+                        break;
+                    case PAGE_TYPE_RIGHT_BOTTOM:
+                        right = cropBounds.left;
+                        bottom = cropBounds.top;
+                        break;
+                }
+            }
             RectF targetRectF = new RectF();
-            matrix.mapRect(targetRectF, pageSliceBounds);
-            cropTargetRect = new Rect((int) targetRectF.left, (int) targetRectF.top, (int) targetRectF.right, (int) targetRectF.bottom);
+            cropMatrix.mapRect(targetRectF, pageSliceBounds);
+            cropTargetRect = new Rect((int) targetRectF.left, (int) targetRectF.top, (int) (targetRectF.right - right), (int) (targetRectF.bottom - bottom));
         }
         return cropTargetRect;
     }
@@ -211,7 +250,8 @@ class PageTreeNode {
             }
 
             private Bitmap renderBitmap() {
-                Rect rect = getCropTargetRect();
+                Rect rect = getTargetRect();
+
                 int leftBound = 0;
                 int topBound = 0;
 
@@ -273,8 +313,8 @@ class PageTreeNode {
                 pageH = (int) arr[2];
                 float cropScale = arr[3];
 
-                //pageSize.setCropWidth(pageW);
-                //pageSize.setCropHeight(pageH);
+                pageSize.setCropWidth(pageW);
+                pageSize.setCropHeight(pageH);
                 RectF cropRectf = new RectF(leftBound, topBound, pageW, pageH);
                 pageSize.setCropBounds(cropRectf, cropScale);
                 return cropRectf;
