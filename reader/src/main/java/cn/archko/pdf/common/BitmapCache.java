@@ -27,6 +27,10 @@ public class BitmapCache {
         return cacheKt;
     }
 
+    public void clear() {
+        cacheKt.evictAll();
+    }
+
     public void addBitmap(Object key, Bitmap val) {
         cacheKt.put(key, val);
     }

@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView
 import cn.archko.mupdf.R
 import cn.archko.pdf.adapters.MuPDFReflowAdapter
 import cn.archko.pdf.colorpicker.ColorPickerDialog
+import cn.archko.pdf.common.BitmapCache
 import cn.archko.pdf.common.MenuHelper
 import cn.archko.pdf.common.OutlineHelper
 import cn.archko.pdf.common.PDFBookmarkManager
@@ -83,6 +84,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
     override fun doLoadDoc() {
         try {
+            BitmapCache.getInstance().clear()
             progressDialog.setMessage("Loading menu")
 
             mRecyclerView.adapter = PDFRecyclerAdapter()
