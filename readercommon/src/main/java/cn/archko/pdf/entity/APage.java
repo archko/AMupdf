@@ -154,6 +154,8 @@ public class APage {
     public void setCropBounds(RectF cropBounds, float cropScale) {
         this.cropBounds = cropBounds;
         initSourceBounds(cropScale);
+        setCropWidth((int) cropBounds.right);
+        setCropHeight((int) cropBounds.bottom);
     }
 
     public int getCropWidth() {

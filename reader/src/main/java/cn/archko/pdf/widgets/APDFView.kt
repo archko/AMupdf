@@ -95,11 +95,11 @@ class APDFView(protected val mContext: Context,
         //mDrawTask = getDrawPageTask(autoCrop, aPage!!, xOrigin, height)
         //Utils.execute(true, mDrawTask)
         ImageDecoder.getInstance().loadImage(aPage, autoCrop, xOrigin, this, mCore) { bitmap ->
-            if (Logcat.loggable) {
-                Logcat.d(String.format("decode2 relayout bitmap:index:%s, %s:%s imageView->%s:%s",
-                        pageSize.index, bitmap.width, bitmap.height,
-                        getWidth(), getHeight()))
-            }
+            //if (Logcat.loggable) {
+            //    Logcat.d(String.format("decode2 relayout bitmap:index:%s, %s:%s imageView->%s:%s",
+            //            pageSize.index, bitmap.width, bitmap.height,
+            //            getWidth(), getHeight()))
+            //}
             setImageBitmap(bitmap)
             //imageMatrix.reset()
         }

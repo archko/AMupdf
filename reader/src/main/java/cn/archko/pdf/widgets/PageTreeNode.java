@@ -26,6 +26,7 @@ class PageTreeNode {
     private final Paint bitmapPaint = new Paint();
     private final Paint strokePaint = strokePaint();
     private Rect targetRect;
+    private Rect cropTargetRect;
     private AsyncTask<String, String, Bitmap> bitmapAsyncTask;
     private boolean isRecycle = false;
 
@@ -128,6 +129,18 @@ class PageTreeNode {
         return targetRect;
     }
 
+    private Rect getCropTargetRect() {
+        if (cropTargetRect == null) {
+            matrix.reset();
+            matrix.postScale(apdfPage.getCropBounds().width(), apdfPage.getCropBounds().height());
+            matrix.postTranslate(apdfPage.getCropBounds().left, apdfPage.getCropBounds().top);
+            RectF targetRectF = new RectF();
+            matrix.mapRect(targetRectF, pageSliceBounds);
+            cropTargetRect = new Rect((int) targetRectF.left, (int) targetRectF.top, (int) targetRectF.right, (int) targetRectF.bottom);
+        }
+        return cropTargetRect;
+    }
+
     public void recycle() {
         isRecycle = true;
         if (null != bitmapAsyncTask) {
@@ -198,7 +211,7 @@ class PageTreeNode {
             }
 
             private Bitmap renderBitmap() {
-                Rect rect = getTargetRect();
+                Rect rect = getCropTargetRect();
                 int leftBound = 0;
                 int topBound = 0;
 
@@ -215,8 +228,8 @@ class PageTreeNode {
                 MupdfDocument.render(mPage, ctm, bitmap, xOrigin, leftBound, topBound);
 
                 if (Logcat.loggable) {
-                    Logcat.d(String.format("decode bitmap:rect:%s, width-height:%s-%s,xOrigin:%s, bound:%s-%s, page:%s",
-                            getTargetRect(),
+                    Logcat.d(String.format("decode bitmap:rect:%s-%s, width-height:%s-%s,xOrigin:%s, bound:%s-%s, page:%s",
+                            getTargetRect(), getCropTargetRect(),
                             width, height, xOrigin, leftBound, topBound, pageSize));
                 }
                 mPage.destroy();

@@ -136,6 +136,10 @@ class APDFPage {
     }
 
     RectF getBounds() {
+        return bounds;
+    }
+
+    RectF getCropBounds() {
         if (crop && cropBounds != null) {
             return cropBounds;
         }
@@ -199,7 +203,6 @@ class APDFPage {
         }
         children = null;
     }
-
 
     @Override
     public String toString() {
