@@ -32,6 +32,7 @@ class PageTreeNode {
     private final Paint bitmapPaint = new Paint();
     private final Paint strokePaint = strokePaint();
     private final Paint strokePaint2 = strokePaint2();
+    private final Paint fillPaint = fillPaint();
     private Rect targetRect;
     private Rect cropTargetRect;
     private AsyncTask<String, String, Bitmap> bitmapAsyncTask;
@@ -73,12 +74,20 @@ class PageTreeNode {
         return strokePaint;
     }
 
+    private Paint fillPaint() {
+        final Paint fillPaint = new Paint();
+        fillPaint.setColor(Color.GRAY);
+        fillPaint.setStyle(Paint.Style.FILL);
+        return fillPaint;
+    }
+
     void draw(Canvas canvas) {
         Bitmap bitmap = getBitmap();
         if (bitmap != null) {
-            //Logcat.d(String.format("bitmap:%s,w-h:%s-%s,rect:%s", bitmap, bitmap.getWidth(), bitmap.getHeight(), getTargetRect()));
-            canvas.drawBitmap(bitmap, new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight()), getTargetRect(), bitmapPaint);
-            canvas.drawRect(getTargetRect(), strokePaint);
+            Rect tRect = getTargetRect();
+            Logcat.d(String.format("draw:%s-%s,w-h:%s-%s,rect:%s", tRect.width(), tRect.height(), bitmap.getWidth(), bitmap.getHeight(), tRect));
+            canvas.drawBitmap(bitmap, new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight()), tRect, bitmapPaint);
+            canvas.drawRect(tRect, strokePaint);
             canvas.drawRect(getCropTargetRect(), strokePaint2);
         }
     }
@@ -149,33 +158,13 @@ class PageTreeNode {
     private Rect getCropTargetRect() {
         if (cropTargetRect == null) {
             cropMatrix.reset();
-            cropMatrix.postScale(apdfPage.getBounds().width(), apdfPage.getBounds().height());
-            //cropMatrix.postScale(apdfPage.aPage.getCropScale(), apdfPage.aPage.getCropScale());
-            cropMatrix.postTranslate(apdfPage.getBounds().left, apdfPage.getBounds().top);
             RectF cropBounds = apdfPage.aPage.getCropBounds();
-            float right = 0, bottom = 0;
-            if (cropBounds != null) {
-                switch (pageType) {
-                    case PAGE_TYPE_LEFT_TOP:
-                        cropMatrix.postTranslate(cropBounds.left, cropBounds.top);
-                        break;
-                    case PAGE_TYPE_RIGHT_TOP:
-                        cropMatrix.postTranslate(0, cropBounds.top);
-                        right = cropBounds.left;
-                        break;
-                    case PAGE_TYPE_LEFT_BOTTOM:
-                        cropMatrix.postTranslate(cropBounds.left, 0);
-                        bottom = cropBounds.top;
-                        break;
-                    case PAGE_TYPE_RIGHT_BOTTOM:
-                        right = cropBounds.left;
-                        bottom = cropBounds.top;
-                        break;
-                }
-            }
-            RectF targetRectF = new RectF();
-            cropMatrix.mapRect(targetRectF, pageSliceBounds);
-            cropTargetRect = new Rect((int) targetRectF.left, (int) targetRectF.top, (int) (targetRectF.right - right), (int) (targetRectF.bottom - bottom));
+            cropMatrix.postScale(cropBounds.width(), cropBounds.height());
+            //cropMatrix.postScale(apdfPage.aPage.getCropScale(), apdfPage.aPage.getCropScale());
+            cropMatrix.postTranslate(cropBounds.left, cropBounds.top);
+            RectF rectF = new RectF();
+            cropMatrix.mapRect(rectF, pageSliceBounds);
+            cropTargetRect = new Rect((int) rectF.left, (int) rectF.top, (int) rectF.right, (int) rectF.bottom);
         }
         return cropTargetRect;
     }
@@ -251,6 +240,9 @@ class PageTreeNode {
 
             private Bitmap renderBitmap() {
                 Rect rect = getTargetRect();
+                if (apdfPage.crop && apdfPage.cropBounds != null) {
+                    rect = getCropTargetRect();
+                }
 
                 int leftBound = 0;
                 int topBound = 0;
@@ -269,7 +261,7 @@ class PageTreeNode {
 
                 if (Logcat.loggable) {
                     Logcat.d(String.format("decode bitmap:rect:%s-%s, width-height:%s-%s,xOrigin:%s, bound:%s-%s, page:%s",
-                            getTargetRect(), getCropTargetRect(),
+                            getTargetRect(), rect,
                             width, height, xOrigin, leftBound, topBound, pageSize));
                 }
                 mPage.destroy();

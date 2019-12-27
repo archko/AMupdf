@@ -185,6 +185,9 @@ public class APage {
     }
 
     public int getRealCropWidth() {
+        if (cropBounds != null) {
+            return (int) cropBounds.height();
+        }
         if (cropWidth == 0) {
             cropWidth = getEffectivePagesWidth();
         }

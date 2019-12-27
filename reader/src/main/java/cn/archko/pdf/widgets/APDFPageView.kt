@@ -46,16 +46,16 @@ class APDFPageView(protected val mContext: Context,
         var height: Int
         val wmode = MeasureSpec.getMode(widthMeasureSpec)
         val hmode = MeasureSpec.getMode(heightMeasureSpec)
-        if (wmode == MeasureSpec.UNSPECIFIED) {
-            width = pageSize.realCropWidth
-        } else {
-            width = MeasureSpec.getSize(widthMeasureSpec)
-        }
-        if (hmode == MeasureSpec.UNSPECIFIED) {
-            height = pageSize.realCropHeight
-        } else {
-            height = MeasureSpec.getSize(heightMeasureSpec)
-        }
+        width = pageSize.realCropWidth
+        height = pageSize.realCropHeight
+        //if (wmode == MeasureSpec.UNSPECIFIED) {
+        //} else {
+        //    width = MeasureSpec.getSize(widthMeasureSpec)
+        //}
+        //if (hmode == MeasureSpec.UNSPECIFIED) {
+        //} else {
+        //    height = MeasureSpec.getSize(heightMeasureSpec)
+        //}
 
         setMeasuredDimension(width, height)
         Logcat.d(String.format("onMeasure,width:%s,height:%s, page:%s-%s, mZoom: %s, aPage:%s",
