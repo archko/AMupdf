@@ -21,7 +21,7 @@ public class BitmapCache {
     private BitmapCache() {
     }
 
-    private LruCache<Object, Bitmap> cacheKt = new LruCache(16);
+    private LruCache<Object, Bitmap> cacheKt = new LruCache(8);
 
     public LruCache<Object, Bitmap> getCache() {
         return cacheKt;
