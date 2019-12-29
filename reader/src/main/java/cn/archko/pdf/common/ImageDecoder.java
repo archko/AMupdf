@@ -77,7 +77,8 @@ public class ImageDecoder extends ImageWorker {
         if (document == null || aPage == null || getImageCache() == null || imageView == null) {
             return;
         }
-        super.loadImage(new DecodeParam(String.valueOf(aPage.index), imageView, autoCrop, xOrigin, aPage, document, callback));
+        super.loadImage(new DecodeParam(String.format("%s-%s", aPage.index, aPage.getZoom()),
+                imageView, autoCrop, xOrigin, aPage, document, callback));
     }
 
     @Override
@@ -92,10 +93,6 @@ public class ImageDecoder extends ImageWorker {
             int pageW = pageSize.getZoomPoint().x;
             int pageH = pageSize.getZoomPoint().y;
 
-            if ((pageSize.getTargetWidth() > 0)) {
-                pageW = pageSize.getTargetWidth();
-            }
-
             Matrix ctm = new Matrix(MupdfDocument.ZOOM);
             RectI bbox = new RectI(page.getBounds().transform(ctm));
             float xscale = (float) pageW / (float) (bbox.x1 - bbox.x0);
@@ -109,7 +106,6 @@ public class ImageDecoder extends ImageWorker {
                 pageH = (int) arr[2];
                 float cropScale = arr[3];
 
-                pageSize.setCropWidth(pageW);
                 pageSize.setCropHeight(pageH);
                 RectF cropRectf = new RectF(leftBound, topBound, pageW, pageH);
                 pageSize.setCropBounds(cropRectf, cropScale);
@@ -119,6 +115,12 @@ public class ImageDecoder extends ImageWorker {
                         pageW, pageH, pageSize.getZoomPoint().x, pageSize.getZoomPoint().y,
                         decodeParam.xOrigin, leftBound, topBound, pageSize));
             }
+
+            if ((pageSize.getTargetWidth() > 0)) {
+                pageW = pageSize.getTargetWidth();
+            }
+            pageSize.setCropWidth(pageW);
+
             Bitmap bitmap = BitmapPool.getInstance().acquire(pageW, pageH);//Bitmap.createBitmap(sizeX, sizeY, Bitmap.Config.ARGB_8888);
 
             MupdfDocument.render(page, ctm, bitmap, decodeParam.xOrigin, leftBound, topBound);

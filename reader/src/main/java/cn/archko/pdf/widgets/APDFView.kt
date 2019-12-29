@@ -6,7 +6,6 @@ import android.view.View
 import android.widget.ImageView
 import cn.archko.pdf.common.BitmapCache
 import cn.archko.pdf.common.ImageDecoder
-import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.entity.APage
 import com.artifex.mupdf.fitz.Document
 
@@ -54,14 +53,7 @@ class APDFView(protected val mContext: Context,
     }
 
     fun updatePage(pageSize: APage, newZoom: Float, autoCrop: Boolean) {
-        var changeScale = false
-        if (mZoom != newZoom) {
-            changeScale = true
-        } else {
-            changeScale = aPage !== pageSize
-        }
         aPage = pageSize
-        mZoom = newZoom
         aPage!!.zoom = newZoom
 
         //when scale, mBitmap is always null.because after adapter notify,releaseResources() is invoke.
@@ -69,27 +61,11 @@ class APDFView(protected val mContext: Context,
         val xOrigin = (zoomSize.x - aPage!!.targetWidth) / 2
         //Logcat.d(String.format("xOrigin: %s,changeScale:%s, aPage:%s", xOrigin, changeScale, aPage));
 
-        val mBitmap = BitmapCache.getInstance().getBitmap(aPage!!.index)
+        val mBitmap = BitmapCache.getInstance().getBitmap(String.format("%s-%s", aPage!!.index, aPage!!.zoom))
 
         if (null != mBitmap) {
-            //if (Logcat.loggable) {
-            //    Logcat.d(String.format("decode relayout bitmap:index:%s, %s:%s imageView->%s:%s",
-            //            pageSize.index, mBitmap.width, mBitmap.height,
-            //            getWidth(), getHeight()))
-            //}
             setImageBitmap(mBitmap)
-            /*if (Logcat.loggable) {
-                Logcat.d(String.format("changeScale: %s,cache:%s, aPage:%s", changeScale, mBitmap.toString(), aPage));
-            }
-            if (changeScale) {
-                val matrix = android.graphics.Matrix()
-                matrix.postScale(newZoom, newZoom)
-                matrix.postTranslate((-xOrigin).toFloat(), 0f)
-                imageMatrix = matrix
-                requestLayout()
-            } else {
-
-            }*/
+            return
         }
 
         //mDrawTask = getDrawPageTask(autoCrop, aPage!!, xOrigin, height)
