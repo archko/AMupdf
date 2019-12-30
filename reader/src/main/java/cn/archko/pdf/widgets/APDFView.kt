@@ -18,86 +18,43 @@ import com.artifex.mupdf.fitz.Document
 class APDFView(protected val mContext: Context,
                private val mCore: Document?,
                private var aPage: APage?,
-               private val mBitmapManager: BitmapManager?) : RelativeLayout(mContext) {
+               private val mBitmapManager: BitmapManager?) : ImageView(mContext) {
 
-    private var mEntireView: AImageView? = null // Image rendered at minimum zoom
-    //private var mBitmap: Bitmap? = null
-    private var mDrawTask: AsyncTask<Void, Void, Bitmap>? = null
     private var mZoom: Float = 0.toFloat()
-
-    //page number
-    private var showPaint = false
-    private var drawText = ""
-    //lateinit var mTextPaint: Paint
-    //lateinit var mRectPaint: Paint
-    //private var textWidth: Float = 100f
-    //private var textHeight: Float = 40f
-
-    //fun setShowPaint(showPaint: Boolean) {
-    //    this.showPaint = showPaint
-    //}
-
-    //fun setDrawText(drawText: String) {
-    //    this.drawText = drawText
-    //}
 
     init {
         mZoom = aPage!!.getZoom()
-        //mTextPaint = Paint()
-        //mTextPaint.isAntiAlias = true
-        //mTextPaint.color = resources.getColor(R.color.seek_thumb)
-        //mTextPaint.textSize = Utils.sp2px(60f).toFloat()
-        //mTextPaint.typeface = Typeface.DEFAULT_BOLD
-        //textWidth = mTextPaint.measureText("100")
-        //textHeight = mTextPaint.measureText("0")
-        //mRectPaint = Paint()
-        //mRectPaint.isAntiAlias = true
-        //mRectPaint.color = resources.getColor(R.color.seek_thumb)
-        //mRectPaint.strokeWidth = Utils.dipToPixel(2f).toFloat()
-        //mRectPaint.style = Paint.Style.STROKE
 
         updateView()
     }
 
-    //override fun dispatchDraw(canvas: Canvas?) {
-    //    super.dispatchDraw(canvas)
-    //    if (!TextUtils.isEmpty(drawText) && showPaint && height > 0) {
-    //        val centerX: Float = ((getWidth() - 2 * width) / 2).toFloat()
-    //        val centerY: Float = ((getHeight() - height) / 2).toFloat()
-    //        canvas?.drawText(drawText, centerX, centerY, mTextPaint)
-    //        val rect = RectF(centerX - width / 2, centerY - height, centerX + width * 1.5f, centerY + height / 2)
-    //        canvas?.drawRect(rect, mRectPaint)
-    //    }
-    //}
-
     fun updateView() {
-        mEntireView = AImageView(mContext)
-        mEntireView!!.scaleType = ImageView.ScaleType.MATRIX
-        mEntireView!!.setLayerType(View.LAYER_TYPE_HARDWARE, null)
-        val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-        lp.addRule(CENTER_IN_PARENT)
-        addView(mEntireView, lp)
-        drawText = (aPage!!.index.toString())
+        scaleType = ImageView.ScaleType.MATRIX
+        setLayerType(View.LAYER_TYPE_HARDWARE, null)
     }
 
     fun recycle() {
-        if (mDrawTask != null) {
-            mDrawTask!!.cancel(true)
-            mDrawTask = null
+        setImageBitmap(null)
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        //super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        var x: Int
+        var y: Int
+        x = aPage!!.effectivePagesWidth
+        y = aPage!!.effectivePagesHeight
+        val d = drawable;
+        if (d != null && (d.intrinsicWidth > 0 && d.intrinsicHeight > 0)) {
+            x = d.intrinsicWidth
+            y = d.intrinsicHeight
         }
 
-        //if (null != mBitmap) {
-        //    //BitmapPool.getInstance().release(mBitmap);
-        //    mBitmap = null
-        //}
+        setMeasuredDimension(x, y)
+        //Logcat.d(String.format("onMeasure,width:%s,height:%s, page:%s-%s, mZoom: %s, aPage:%s",
+        //        x, y, aPage!!.effectivePagesWidth, aPage!!.effectivePagesHeight, mZoom, aPage));
     }
 
     fun setPage(pageSize: APage, newZoom: Float, autoCrop: Boolean) {
-        if (mDrawTask != null) {
-            mDrawTask!!.cancel(true)
-            mDrawTask = null
-        }
-
         var changeScale = false
         if (mZoom != newZoom) {
             changeScale = true
@@ -108,13 +65,6 @@ class APDFView(protected val mContext: Context,
         mZoom = newZoom
         aPage!!.zoom = newZoom
 
-        //when scale, mBitmap is always null.because after adapter notify,releaseResources() is invoke.
-
-        showPaint = true
-        //mEntireView!!.setSearchBoxes(emptyArray())
-        //mEntireView!!.setLinks(emptyArray())
-        //mEntireView.setScale(aPage.getScaleZoom());
-
         val zoomSize = aPage!!.zoomPoint
         val xOrigin = (zoomSize.x - aPage!!.targetWidth) / 2
         Logcat.d(String.format("xOrigin: %s,changeScale:%s", xOrigin, changeScale));
@@ -122,8 +72,6 @@ class APDFView(protected val mContext: Context,
         val mBitmap = mBitmapManager?.getBitmap(aPage!!.index)
 
         if (null != mBitmap) {
-            showPaint = false
-            mEntireView!!.setImageBitmap(mBitmap)
             if (Logcat.loggable) {
                 Logcat.d(String.format("changeScale: %s,cache:%s", changeScale, mBitmap.toString()));
             }
@@ -131,16 +79,23 @@ class APDFView(protected val mContext: Context,
                 val matrix = android.graphics.Matrix()
                 matrix.postScale(newZoom, newZoom)
                 matrix.postTranslate((-xOrigin).toFloat(), 0f)
-                mEntireView!!.imageMatrix = matrix
-                requestLayout()
-            } else {
-
+                imageMatrix = matrix
             }
+
+            setImageBitmap(mBitmap)
         }
 
         //mDrawTask = getDrawPageTask(autoCrop, aPage!!, xOrigin, height)
         //Utils.execute(true, mDrawTask)
-        ImageDecoder.getInstance().loadImage(aPage, autoCrop, xOrigin, mEntireView, mCore)
+        ImageDecoder.getInstance().loadImage(aPage, autoCrop, xOrigin, this, mCore) { bitmap ->
+            //if (Logcat.loggable) {
+            //    Logcat.d(String.format("decode2 relayout bitmap:index:%s, %s:%s imageView->%s:%s",
+            //            pageSize.index, bitmap.width, bitmap.height,
+            //            getWidth(), getHeight()))
+            //}
+            setImageBitmap(bitmap)
+            imageMatrix.reset()
+        }
     }
 
     /*@SuppressLint("StaticFieldLeak")

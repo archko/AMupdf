@@ -14,6 +14,7 @@ import com.artifex.mupdf.fitz.Page;
 import androidx.collection.LruCache;
 import cn.archko.pdf.App;
 import cn.archko.pdf.entity.APage;
+import cn.archko.pdf.listeners.DecodeCallback;
 import cn.archko.pdf.pdf.MupdfDocument;
 import cn.archko.pdf.utils.Utils;
 
@@ -88,11 +89,11 @@ public class ImageDecoder extends ImageWorker {
     }
 
     public void loadImage(APage aPage, boolean autoCrop, int xOrigin,
-                          ImageView imageView, Document document) {
+                          ImageView imageView, Document document, DecodeCallback callback) {
         if (document == null || aPage == null || getImageCache() == null || imageView == null) {
             return;
         }
-        super.loadImage(new DecodeParam(String.valueOf(aPage.index), imageView, autoCrop, xOrigin, aPage, document));
+        super.loadImage(new DecodeParam(String.valueOf(aPage.index), imageView, autoCrop, xOrigin, aPage, document, callback));
     }
 
     @Override
@@ -164,7 +165,10 @@ public class ImageDecoder extends ImageWorker {
             if (null != mBitmapManager) {
                 mBitmapManager.setBitmap(decodeParam.pageSize.index, bitmap);
             }
-            imageView.setImageBitmap(bitmap);
+            if (null != decodeParam.decodeCallback) {
+                decodeParam.decodeCallback.decodeComplete(bitmap);
+            }
+            /*imageView.setImageBitmap(bitmap);
             imageView.getImageMatrix().reset();
 
             View parent = (View) imageView.getParent();
@@ -178,7 +182,7 @@ public class ImageDecoder extends ImageWorker {
                 parent.getLayoutParams().height = bitmap.getHeight();
                 parent.getLayoutParams().width = bitmap.getWidth();
                 parent.requestLayout();
-            }
+            }*/
         }
     }
 

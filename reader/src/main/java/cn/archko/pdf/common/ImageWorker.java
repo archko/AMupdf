@@ -17,6 +17,7 @@ import java.lang.ref.WeakReference;
 
 import androidx.collection.LruCache;
 import cn.archko.pdf.entity.APage;
+import cn.archko.pdf.listeners.DecodeCallback;
 import cn.archko.pdf.utils.Utils;
 
 /**
@@ -364,6 +365,8 @@ public abstract class ImageWorker {
         public int xOrigin;
         public APage pageSize;
         public Document document;
+        public int targetWidth;
+        DecodeCallback decodeCallback;
 
         public DecodeParam(String key, int pageNum, float zoom, int screenWidth, ImageView imageView) {
             this.key = key;
@@ -374,7 +377,7 @@ public abstract class ImageWorker {
         }
 
         public DecodeParam(String key, ImageView imageView, boolean autoCrop, int xOrigin,
-                           APage pageSize, Document document) {
+                           APage pageSize, Document document, DecodeCallback callback) {
             this.key = key;
             if (TextUtils.isEmpty(key)) {
                 this.key = String.format("%s,%s,%s,%s", imageView, autoCrop, xOrigin, pageSize);
@@ -384,6 +387,7 @@ public abstract class ImageWorker {
             this.xOrigin = xOrigin;
             this.pageSize = pageSize;
             this.document = document;
+            this.decodeCallback = callback;
         }
     }
 }
