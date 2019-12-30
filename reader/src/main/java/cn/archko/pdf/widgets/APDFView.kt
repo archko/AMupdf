@@ -6,6 +6,7 @@ import android.os.AsyncTask
 import android.view.View
 import android.widget.ImageView
 import android.widget.RelativeLayout
+import cn.archko.pdf.common.BitmapCache
 import cn.archko.pdf.common.BitmapManager
 import cn.archko.pdf.common.ImageDecoder
 import cn.archko.pdf.common.Logcat
@@ -17,8 +18,7 @@ import com.artifex.mupdf.fitz.Document
  */
 class APDFView(protected val mContext: Context,
                private val mCore: Document?,
-               private var aPage: APage?,
-               private val mBitmapManager: BitmapManager?) : ImageView(mContext) {
+               private var aPage: APage?) : ImageView(mContext) {
 
     private var mZoom: Float = 0.toFloat()
 
@@ -69,7 +69,7 @@ class APDFView(protected val mContext: Context,
         val xOrigin = (zoomSize.x - aPage!!.targetWidth) / 2
         Logcat.d(String.format("xOrigin: %s,changeScale:%s", xOrigin, changeScale));
 
-        val mBitmap = mBitmapManager?.getBitmap(aPage!!.index)
+        val mBitmap = BitmapCache.getInstance().getBitmap(String.format("%s", aPage!!.index))
 
         if (null != mBitmap) {
             if (Logcat.loggable) {

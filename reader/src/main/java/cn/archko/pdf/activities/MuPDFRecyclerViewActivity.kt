@@ -18,10 +18,7 @@ import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import cn.archko.pdf.R
-import cn.archko.pdf.common.BitmapManager
-import cn.archko.pdf.common.Event
-import cn.archko.pdf.common.Logcat
-import cn.archko.pdf.common.SensorHelper
+import cn.archko.pdf.common.*
 import cn.archko.pdf.entity.APage
 import cn.archko.pdf.utils.Utils
 import cn.archko.pdf.widgets.APDFView
@@ -52,7 +49,6 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
     protected var mDocument: Document? = null
     protected val mPageSizes = SparseArray<APage>()
     protected var zoomModel: ZoomModel? = null
-    protected var bitmapManager: BitmapManager? = null
     protected var multiTouchZoom: MultiTouchZoom? = null
 
     protected var autoCrop: Boolean = false
@@ -86,7 +82,6 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
     open fun doLoadDoc() {
         try {
             progressDialog.setMessage("Loading menu")
-            bitmapManager = BitmapManager()
 
             mRecyclerView.adapter = PDFRecyclerAdapter()
             addGesture()
@@ -160,8 +155,8 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
                 .post(null)
         mRecyclerView.adapter = null
         mDocument?.destroy()
-        bitmapManager?.recycle()
         progressDialog.dismiss()
+        BitmapCache.getInstance().clear()
     }
 
     open fun initView() {
@@ -385,7 +380,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
                     pageSize.targetWidth = parent.width;
                 }
             }
-            val view = APDFView(parent.context, mDocument, pageSize, bitmapManager)
+            val view = APDFView(parent.context, mDocument, pageSize)
             var lp: RecyclerView.LayoutParams? = view.layoutParams as RecyclerView.LayoutParams?
             var width: Int = ViewGroup.LayoutParams.MATCH_PARENT
             var height: Int = ViewGroup.LayoutParams.MATCH_PARENT

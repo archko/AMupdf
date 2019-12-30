@@ -6,6 +6,9 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.Environment;
 
+import cn.archko.pdf.common.BitmapPool;
+import cn.archko.pdf.common.Logcat;
+
 import com.artifex.mupdf.fitz.Cookie;
 import com.artifex.mupdf.fitz.DisplayList;
 import com.artifex.mupdf.fitz.Document;
@@ -22,20 +25,16 @@ import com.artifex.mupdf.viewer.OutlineActivity;
 import org.ebookdroid.core.crop.PageCropper;
 
 import java.io.File;
-import java.io.FileDescriptor;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-
-import cn.archko.pdf.common.BitmapPool;
-import cn.archko.pdf.common.ImageWorker;
-import cn.archko.pdf.common.Logcat;
 
 /**
  * @author archko 2019/12/8 :12:43
  */
 public class MupdfDocument {
 
+    private static final String TAG = "Mupdf";
     private Context context;
     private int resolution;
     private Document document;
@@ -46,6 +45,7 @@ public class MupdfDocument {
     private float pageWidth;
     private float pageHeight;
     private DisplayList displayList;
+    public static float ZOOM = 160f / 72;
 
     /* Default to "A Format" pocket book size. */
     private int layoutW = 312;
@@ -195,8 +195,7 @@ public class MupdfDocument {
         if (displayList == null)
             displayList = page.toDisplayList(false);
 
-        float zoom = resolution / 72;
-        Matrix ctm = new Matrix(zoom, zoom);
+        Matrix ctm = new Matrix(ZOOM, ZOOM);
         RectI bbox = new RectI(page.getBounds().transform(ctm));
         float xscale = (float) pageW / (float) (bbox.x1 - bbox.x0);
         float yscale = (float) pageH / (float) (bbox.y1 - bbox.y0);
@@ -207,7 +206,6 @@ public class MupdfDocument {
         dev.close();
         dev.destroy();
     }
-
 
     public Link[] getPageLinks(int pageNum) {
         gotoPage(pageNum);
@@ -274,7 +272,7 @@ public class MupdfDocument {
         patchX = (int) (tb.left * bounds.width());
         patchY = (int) (tb.top * bounds.height());
 
-        AndroidDrawDevice dev = new AndroidDrawDevice(bitmap, patchX, patchY, 0,0,bitmap.getWidth(),bitmap.getHeight());
+        AndroidDrawDevice dev = new AndroidDrawDevice(bitmap, patchX, patchY, 0, 0, bitmap.getWidth(), bitmap.getHeight());
         page.run(dev, ctm, (Cookie) null);
         dev.close();
         dev.destroy();
@@ -305,22 +303,10 @@ public class MupdfDocument {
         int width = pageW;
         int height = pageH;
         if (autoCrop) {
-            float ratio = 6f;
-            Bitmap thumb = BitmapPool.getInstance().acquire((int) (pageW / ratio), (int) (pageH / ratio));
-            Matrix matrix = new Matrix(ctm.a / ratio, ctm.d / ratio);
-            render(page, matrix, thumb, 0, leftBound, topBound);
-
-            RectF rectF = getCropRect(thumb);
-
-            float scale = thumb.getWidth() / rectF.width();
-            leftBound = (int) (rectF.left * ratio * scale);
-            topBound = (int) (rectF.top * ratio * scale);
-
-            height = (int) (rectF.height() * ratio * scale);
-            ctm.scale(scale, scale);
-            //if (Logcat.loggable) {
-            //    Logcat.d(String.format("decode t:%s:%s:%s,thumb:%s=%s, rectF:%s", width, height, scale, thumb.getWidth(), thumb.getHeight(), rectF));
-            //}
+            float[] arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound);
+            leftBound = (int) arr[0];
+            topBound = (int) arr[1];
+            height = (int) arr[2];
         }
 
         //if (Logcat.loggable) {
@@ -334,6 +320,35 @@ public class MupdfDocument {
 
         page.destroy();
         return bitmap;
+    }
+
+    public static float[] getArrByCrop(final Page page, final Matrix ctm, final int pageW, final int pageH, int leftBound, int topBound) {
+        float ratio = 6f;
+        Bitmap thumb = BitmapPool.getInstance().acquire((int) (pageW / ratio), (int) (pageH / ratio));
+        Matrix matrix = new Matrix(ctm.a / ratio, ctm.d / ratio);
+        render(page, matrix, thumb, 0, leftBound, topBound);
+
+        RectF rectF = getCropRect(thumb);
+
+        float xscale = thumb.getWidth() / rectF.width();
+        leftBound = (int) (rectF.left * ratio * xscale);
+        topBound = (int) (rectF.top * ratio * xscale);
+
+        int height = (int) (rectF.height() * ratio * xscale);
+        ctm.scale(xscale, xscale);
+        if (Logcat.loggable) {
+            float tw = (thumb.getWidth() * ratio);
+            float th = (thumb.getHeight() * ratio);
+            float sw = (xscale * pageW);
+            float sh = (xscale * pageH);
+            Logcat.d(TAG, String.format("bitmap tw:%s, th:%s, sw:%s, sh:%s,xscale:%s, rect:%s-%s",
+                    tw, th, sw, sh, xscale, rectF.width() * ratio, rectF.height() * ratio));
+
+            //Logcat.d(TAG, String.format("bitmap:%s-%s,height:%s,thumb:%s-%s, crop rect:%s, xscale:%s,yscale:%s",
+            //        pageW, pageH, height, thumb.getWidth(), thumb.getHeight(), rectF, xscale, yscale));
+        }
+        float[] arr = {leftBound, topBound, height, xscale};
+        return arr;
     }
 
     public static void render(Page page, Matrix ctm, Bitmap bitmap, int xOrigin, int leftBound, int topBound) {

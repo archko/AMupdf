@@ -108,7 +108,7 @@ public abstract class ImageWorker {
 
     public abstract Bitmap getBitmapFromCache(final String key);
 
-    public abstract LruCache<String, Bitmap> getImageCache();
+    public abstract LruCache<Object, Bitmap> getImageCache();
 
     public abstract LruCache<String, APage> getPageLruCache();
 
