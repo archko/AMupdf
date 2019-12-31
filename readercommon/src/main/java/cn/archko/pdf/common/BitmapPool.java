@@ -2,6 +2,7 @@ package cn.archko.pdf.common;
 
 import android.graphics.Bitmap;
 
+import androidx.annotation.NonNull;
 import androidx.core.util.Pools;
 
 /**
@@ -11,10 +12,10 @@ import androidx.core.util.Pools;
 public class BitmapPool {
 
     private static BitmapPool sInstance = new BitmapPool();
-    private Pools.SimplePool<Bitmap> simplePool;
+    private FixedSimplePool<Bitmap> simplePool;
 
     private BitmapPool() {
-        simplePool = new Pools.SimplePool<>(16);
+        simplePool = new FixedSimplePool<>(16);
     }
 
     public static BitmapPool getInstance() {
@@ -51,5 +52,59 @@ public class BitmapPool {
             bitmap.recycle();
         }
         //simplePool = null;
+    }
+
+    public static class FixedSimplePool<T> implements Pools.Pool<T> {
+        private final Object[] mPool;
+
+        private int mPoolSize;
+
+        /**
+         * Creates a new instance.
+         *
+         * @param maxPoolSize The max pool size.
+         * @throws IllegalArgumentException If the max pool size is less than zero.
+         */
+        public FixedSimplePool(int maxPoolSize) {
+            if (maxPoolSize <= 0) {
+                throw new IllegalArgumentException("The max pool size must be > 0");
+            }
+            mPool = new Object[maxPoolSize];
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public T acquire() {
+            if (mPoolSize > 0) {
+                final int lastPooledIndex = mPoolSize - 1;
+                T instance = (T) mPool[lastPooledIndex];
+                mPool[lastPooledIndex] = null;
+                mPoolSize--;
+                return instance;
+            }
+            return null;
+        }
+
+        @Override
+        public boolean release(@NonNull T instance) {
+            if (isInPool(instance)) {
+                return false;
+            }
+            if (mPoolSize < mPool.length) {
+                mPool[mPoolSize] = instance;
+                mPoolSize++;
+                return true;
+            }
+            return false;
+        }
+
+        private boolean isInPool(@NonNull T instance) {
+            for (int i = 0; i < mPoolSize; i++) {
+                if (mPool[i] == instance) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }
