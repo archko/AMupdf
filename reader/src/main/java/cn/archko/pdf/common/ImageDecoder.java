@@ -127,6 +127,7 @@ public class ImageDecoder extends ImageWorker {
 
             page.destroy();
             //Logcat.d(TAG, "decode:" + (SystemClock.uptimeMillis() - start));
+            BitmapCache.getInstance().addBitmap(decodeParam.key, bitmap);
             return bitmap;
         } catch (Exception e) {
             e.printStackTrace();

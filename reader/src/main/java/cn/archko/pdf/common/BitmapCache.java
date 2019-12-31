@@ -49,7 +49,7 @@ public class BitmapCache {
 
         @Override
         protected void entryRemoved(boolean evicted, @NonNull Object key, @NonNull Bitmap oldValue, @Nullable Bitmap newValue) {
-            BitmapPool.getInstance().release(oldValue);
+            //BitmapPool.getInstance().release(oldValue);
         }
     }
 }
