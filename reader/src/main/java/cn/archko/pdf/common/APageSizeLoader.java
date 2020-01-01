@@ -1,5 +1,6 @@
 package cn.archko.pdf.common;
 
+import android.text.TextUtils;
 import android.util.SparseArray;
 
 import org.json.JSONArray;
@@ -19,7 +20,9 @@ public class APageSizeLoader {
         SparseArray<APage> sparseArray = null;
         try {
             String content = StreamUtils.readStringFromFile(file);
-            sparseArray = fromJson(targetWidth, new JSONArray(content));
+            if (!TextUtils.isEmpty(content)) {
+                sparseArray = fromJson(targetWidth, new JSONArray(content));
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

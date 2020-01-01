@@ -67,7 +67,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
     private var mStyleHelper: StyleHelper? = null
 
-    public override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         if (TextUtils.isEmpty(mPath)) {
@@ -131,6 +131,22 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             APageSizeLoader.savePageSizeToFile(mPageSizes,
                     FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
                             pdfBookmarkManager?.bookmarkToRestore?.name))
+        }
+    }
+
+    override fun preparePageSize(cp: Int) {
+        var start = SystemClock.uptimeMillis()
+        val pageSizes = APageSizeLoader.loadPageSizeFromFile(mRecyclerView.width,
+                FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
+                        pdfBookmarkManager?.bookmarkToRestore?.name))
+        Logcat.d("open3:" + (SystemClock.uptimeMillis() - start))
+
+        if (pageSizes != null && pageSizes.size() > 0) {
+            mPageSizes = pageSizes
+        } else {
+            start = SystemClock.uptimeMillis()
+            super.preparePageSize(cp)
+            Logcat.d("open2:" + (SystemClock.uptimeMillis() - start))
         }
     }
 
@@ -562,21 +578,5 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             }
         }
 
-    }
-
-    override fun preparePageSize(cp: Int) {
-        var start = SystemClock.uptimeMillis()
-        val pageSizes = APageSizeLoader.loadPageSizeFromFile(mRecyclerView.width,
-                FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
-                        pdfBookmarkManager?.bookmarkToRestore?.name))
-        Logcat.d("open3:" + (SystemClock.uptimeMillis() - start))
-
-        if (pageSizes != null && pageSizes.size() > 0) {
-            mPageSizes = pageSizes
-        } else {
-            start = SystemClock.uptimeMillis()
-            super.preparePageSize(cp)
-            Logcat.d("open2:" + (SystemClock.uptimeMillis() - start))
-        }
     }
 }
