@@ -58,8 +58,7 @@ class Page {
 
     private Paint fillPaint() {
         final Paint fillPaint = new Paint();
-        //fillPaint.setColor(Color.GRAY);
-        fillPaint.setColor(Color.WHITE);
+        fillPaint.setColor(Color.GRAY);
         fillPaint.setStyle(Paint.Style.FILL);
         return fillPaint;
     }

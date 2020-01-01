@@ -56,6 +56,11 @@ public class MupdfDocument {
         return document;
     }
 
+    public void setDocument(Document document) {
+        this.document = document;
+        initDocument();
+    }
+
     //File selectedFile = new File(filename);
     //String documentPath = selectedFile.getAbsolutePath();
     //String acceleratorPath = getAcceleratorPath(documentPath);

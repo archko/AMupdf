@@ -43,9 +43,6 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     lateinit var mControllerLayout: RelativeLayout
 
     private var mPageSeekBarControls: APageSeekBarControls? = null
-    private var mReflow = false
-    private val OUTLINE_REQUEST = 0
-    private var pdfBookmarkManager: PDFBookmarkManager? = null
     private var outlineHelper: OutlineHelper? = null
     private var mZoomControls: PageViewZoomControls? = null
     private var mStyleControls: View? = null
@@ -65,7 +62,6 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     private var colorPickerDialog: ColorPickerDialog? = null
 
     private var mStyleHelper: StyleHelper? = null
-    private val START_PROGRESS = 15
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,33 +79,9 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             progressDialog.setMessage("Loading menu")
 
             mRecyclerView.adapter = PDFRecyclerAdapter()
-            addGesture()
 
             isDocLoaded = true
-            pdfBookmarkManager = PDFBookmarkManager()
-            var ac = 0;
-            if (!autoCrop) {
-                ac = 1;
-            }
-            pdfBookmarkManager!!.setStartBookmark(mPath, ac)
             var pos = pdfBookmarkManager?.restoreBookmark(mDocument!!.countPages())!!
-            val progress = pdfBookmarkManager?.bookmarkToRestore;
-            progress?.let {
-                autoCrop = it.autoCrop == 0;
-                mReflow = it.reflow == 1
-            }
-
-            if (mReflow) {
-                if (null == mStyleHelper) {
-                    mStyleHelper = StyleHelper()
-                }
-                mRecyclerView.adapter = MuPDFReflowAdapter(this, mDocument, mStyleHelper)
-                mPageSeekBarControls?.reflowButton!!.setColorFilter(Color.argb(0xFF, 172, 114, 37))
-
-            } else {
-                mRecyclerView.adapter = PDFRecyclerAdapter()
-                mPageSeekBarControls?.reflowButton!!.setColorFilter(Color.argb(0xFF, 255, 255, 255))
-            }
             if (pos > 0) {
                 mRecyclerView.scrollToPosition(pos)
             }
@@ -548,8 +520,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     companion object {
 
         private const val TAG = "AMuPDFRecyclerViewActivity"
-        public const val TYPE_TITLE = 0
-        const val PREF_READER = "pref_reader"
+        const val PREF_READER = "pref_reader_amupdf"
         const val PREF_READER_KEY_FIRST = "pref_reader_key_first"
     }
 

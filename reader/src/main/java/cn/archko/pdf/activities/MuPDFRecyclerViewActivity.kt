@@ -3,7 +3,6 @@ package cn.archko.pdf.activities
 import android.annotation.TargetApi
 import android.app.ProgressDialog
 import android.content.Intent
-import android.content.res.Configuration
 import android.database.Cursor
 import android.graphics.PointF
 import android.net.Uri
@@ -37,6 +36,7 @@ import org.vudroid.core.multitouch.MultiTouchZoom
  */
 abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
 
+    protected val OUTLINE_REQUEST = 0
     protected var mPath: String? = null
 
     protected lateinit var mRecyclerView: RecyclerView
@@ -45,14 +45,17 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
     protected var gestureDetector: GestureDetector? = null
     protected var pageNumberToast: Toast? = null
 
+    protected var pdfBookmarkManager: PDFBookmarkManager? = null
     protected var sensorHelper: SensorHelper? = null
     protected var mDocument: Document? = null
     protected val mPageSizes = SparseArray<APage>()
     protected var zoomModel: ZoomModel? = null
     protected var multiTouchZoom: MultiTouchZoom? = null
 
+    protected var mReflow = false
     protected var autoCrop: Boolean = false
     protected var isDocLoaded: Boolean = false
+    protected val START_PROGRESS = 15
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,7 +79,22 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
 
         autoCrop = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(PdfOptionsActivity.PREF_AUTOCROP, false)
 
+        loadBookmark()
         loadDoc()
+    }
+
+    open fun loadBookmark() {
+        pdfBookmarkManager = PDFBookmarkManager()
+        var ac = 0;
+        if (!autoCrop) {
+            ac = 1;
+        }
+        pdfBookmarkManager!!.setStartBookmark(mPath, ac)
+        val progress = pdfBookmarkManager?.bookmarkToRestore;
+        progress?.let {
+            autoCrop = it.autoCrop == 0;
+            mReflow = it.reflow == 1
+        }
     }
 
     open fun doLoadDoc() {
@@ -275,8 +293,6 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
             }
 
             override fun onDoubleTap(e: MotionEvent): Boolean {
-                //mPageSeekBarControls?.toggleSeekControls()
-                //zoomModel?.toggleZoomControls()
                 onDoubleTap()
                 return true
             }
@@ -461,10 +477,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
 
                 //val loc = mDocument!!.layout(mLayoutW, mLayoutH, mLayoutEM)
 
-                for (i in 0 until cp) {
-                    val pointF = getPageSize(i)
-                    mPageSizes.put(i, pointF)
-                }
+                preparePageSize(cp)
                 result = true
                 val mill = SystemClock.uptimeMillis() - start
                 if (mill < 500L) {
@@ -485,7 +498,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         //toast("loading:$mPath")
     }
 
-    fun getPageSize(pageNum: Int): APage {
+    open fun getPageSize(pageNum: Int): APage {
         val p = mDocument?.loadPage(pageNum)
         val b = p!!.getBounds()
         val w = b.x1 - b.x0
@@ -493,5 +506,12 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         val pointf = PointF(w, h)
         p.destroy()
         return APage(pageNum, pointf, zoomModel!!.zoom, 0)
+    }
+
+    open fun preparePageSize(cp: Int) {
+        for (i in 0 until cp) {
+            val pointF = getPageSize(i)
+            mPageSizes.put(i, pointF)
+        }
     }
 }
