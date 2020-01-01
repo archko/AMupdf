@@ -48,7 +48,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
     protected var pdfBookmarkManager: PDFBookmarkManager? = null
     protected var sensorHelper: SensorHelper? = null
     protected var mDocument: Document? = null
-    protected val mPageSizes = SparseArray<APage>()
+    protected var mPageSizes = SparseArray<APage>()
     protected var zoomModel: ZoomModel? = null
     protected var multiTouchZoom: MultiTouchZoom? = null
 
@@ -470,10 +470,10 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         doAsync {
             var result = false
             try {
-                //var start = SystemClock.uptimeMillis();
+                var start = SystemClock.uptimeMillis();
                 mDocument = Document.openDocument(mPath)
                 val cp = mDocument!!.countPages();
-                //Logcat.d(TAG, "open:" + (SystemClock.uptimeMillis() - start))
+                Logcat.d(TAG, "open:" + (SystemClock.uptimeMillis() - start))
 
                 //val loc = mDocument!!.layout(mLayoutW, mLayoutH, mLayoutEM)
 

@@ -270,13 +270,17 @@ public class APage {
         float sbtop = (float) jo.optDouble("sbtop");
         float sbright = (float) jo.optDouble("sbright");
         float sbbottom = (float) jo.optDouble("sbbottom");
-        aPage.sourceBounds = new RectF(sbleft, sbtop, sbright, sbbottom);
+        if (sbright > 0 && sbbottom > 0) {
+            aPage.sourceBounds = new RectF(sbleft, sbtop, sbright, sbbottom);
+        }
 
         float cbleft = (float) jo.optDouble("cbleft");
         float cbtop = (float) jo.optDouble("cbtop");
         float cbright = (float) jo.optDouble("cbright");
         float cbbottom = (float) jo.optDouble("cbbottom");
-        aPage.cropBounds = new RectF(cbleft, cbtop, cbright, cbbottom);
+        if (cbright > 0 && cbbottom > 0) {
+            aPage.cropBounds = new RectF(cbleft, cbtop, cbright, cbbottom);
+        }
 
         aPage.cropWidth = jo.optInt("cropWidth");
         aPage.cropHeight = jo.optInt("cropHeight");
@@ -292,16 +296,24 @@ public class APage {
             jo.put("zoom", mZoom);
             jo.put("scale", scale);
             jo.put("cropScale", cropScale);
-            jo.put("sbleft", sourceBounds.left);
-            jo.put("sbtop", sourceBounds.top);
-            jo.put("sbright", sourceBounds.right);
-            jo.put("sbbottom", sourceBounds.bottom);
-            jo.put("cbleft", cropBounds.left);
-            jo.put("cbtop", cropBounds.top);
-            jo.put("cbright", cropBounds.right);
-            jo.put("cbbottom", cropBounds.bottom);
-            jo.put("cropWidth", cropWidth);
-            jo.put("cropHeight", cropHeight);
+            if (sourceBounds != null) {
+                jo.put("sbleft", sourceBounds.left);
+                jo.put("sbtop", sourceBounds.top);
+                jo.put("sbright", sourceBounds.right);
+                jo.put("sbbottom", sourceBounds.bottom);
+            }
+            if (cropBounds != null) {
+                jo.put("cbleft", cropBounds.left);
+                jo.put("cbtop", cropBounds.top);
+                jo.put("cbright", cropBounds.right);
+                jo.put("cbbottom", cropBounds.bottom);
+            }
+            if (cropWidth > 0) {
+                jo.put("cropWidth", cropWidth);
+            }
+            if (cropHeight > 0) {
+                jo.put("cropHeight", cropHeight);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }

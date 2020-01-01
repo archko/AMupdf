@@ -5,6 +5,8 @@ import android.util.SparseArray;
 import org.json.JSONArray;
 import org.vudroid.core.codec.CodecPage;
 
+import java.io.File;
+
 import cn.archko.pdf.entity.APage;
 import cn.archko.pdf.utils.StreamUtils;
 
@@ -13,10 +15,10 @@ import cn.archko.pdf.utils.StreamUtils;
  */
 public class APageSizeLoader {
 
-    public static SparseArray<APage> loadPageSizeFromFile(int targetWidth, String name) {
+    public static SparseArray<APage> loadPageSizeFromFile(int targetWidth, File file) {
         SparseArray<APage> sparseArray = null;
         try {
-            String content = StreamUtils.readStringFromFile(name);
+            String content = StreamUtils.readStringFromFile(file);
             sparseArray = fromJson(targetWidth, new JSONArray(content));
         } catch (Exception e) {
             e.printStackTrace();
@@ -24,13 +26,13 @@ public class APageSizeLoader {
         return sparseArray;
     }
 
-    public static void savePageSizeToFile(JSONArray ja, String name) {
-        StreamUtils.saveStringToFile(ja.toString(), name);
+    public static void savePageSizeToFile(JSONArray ja, File file) {
+        StreamUtils.saveStringToFile(ja.toString(), file);
     }
 
-    public static void savePageSizeToFile(SparseArray<APage> sparseArray, String name) {
+    public static void savePageSizeToFile(SparseArray<APage> sparseArray, File file) {
         String content = toJson(sparseArray).toString();
-        StreamUtils.saveStringToFile(content, name);
+        StreamUtils.saveStringToFile(content, file);
     }
 
     public static SparseArray<APage> fromJson(int targetWidth, JSONArray ja) {
