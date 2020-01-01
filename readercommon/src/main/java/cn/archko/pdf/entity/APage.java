@@ -3,6 +3,11 @@ package cn.archko.pdf.entity;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.util.SparseArray;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * 有两个对象,一个是com.artifex.mupdf.fitz.Page,包含了这个页的原始信息.
@@ -28,7 +33,7 @@ public class APage {
     /**
      * pageindex
      */
-    public final int index;
+    public int index;
     /**
      * width/height
      */
@@ -79,6 +84,9 @@ public class APage {
     private int cropWidth = 0;
     private int cropHeight = 0;
 
+    public APage() {
+    }
+
     public APage(int pageNumber, PointF pageSize, float zoom, int targetWidth) {
         index = pageNumber;
         this.mPageSize = pageSize;
@@ -91,6 +99,10 @@ public class APage {
         sourceBounds = new RectF();
         sourceBounds.right = getEffectivePagesWidth() * scale;
         sourceBounds.bottom = getEffectivePagesHeight() * scale;
+    }
+
+    public PointF getPageSize() {
+        return mPageSize;
     }
 
     public int getTargetWidth() {
@@ -242,5 +254,57 @@ public class APage {
                 ", cropWidth=" + cropWidth +
                 ", cropHeight=" + cropHeight +
                 '}';
+    }
+
+    public static APage fromJson(int targetWidth, JSONObject jo) {
+        APage aPage = new APage();
+        aPage.targetWidth = targetWidth;
+        aPage.index = jo.optInt("index");
+        int x = jo.optInt("x");
+        int y = jo.optInt("y");
+        aPage.mPageSize = new PointF(x, y);
+        aPage.mZoom = (float) jo.optDouble("zoom");
+        aPage.scale = (float) jo.optDouble("scale");
+        aPage.cropScale = (float) jo.optDouble("cropScale");
+        float sbleft = (float) jo.optDouble("sbleft");
+        float sbtop = (float) jo.optDouble("sbtop");
+        float sbright = (float) jo.optDouble("sbright");
+        float sbbottom = (float) jo.optDouble("sbbottom");
+        aPage.sourceBounds = new RectF(sbleft, sbtop, sbright, sbbottom);
+
+        float cbleft = (float) jo.optDouble("cbleft");
+        float cbtop = (float) jo.optDouble("cbtop");
+        float cbright = (float) jo.optDouble("cbright");
+        float cbbottom = (float) jo.optDouble("cbbottom");
+        aPage.cropBounds = new RectF(cbleft, cbtop, cbright, cbbottom);
+
+        aPage.cropWidth = jo.optInt("cropWidth");
+        aPage.cropHeight = jo.optInt("cropHeight");
+        return aPage;
+    }
+
+    public JSONObject toJson() {
+        JSONObject jo = new JSONObject();
+        try {
+            jo.put("index", index);
+            jo.put("x", mPageSize.x);
+            jo.put("y", mPageSize.y);
+            jo.put("zoom", mZoom);
+            jo.put("scale", scale);
+            jo.put("cropScale", cropScale);
+            jo.put("sbleft", sourceBounds.left);
+            jo.put("sbtop", sourceBounds.top);
+            jo.put("sbright", sourceBounds.right);
+            jo.put("sbbottom", sourceBounds.bottom);
+            jo.put("cbleft", cropBounds.left);
+            jo.put("cbtop", cropBounds.top);
+            jo.put("cbright", cropBounds.right);
+            jo.put("cbbottom", cropBounds.bottom);
+            jo.put("cropWidth", cropWidth);
+            jo.put("cropHeight", cropHeight);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jo;
     }
 }
