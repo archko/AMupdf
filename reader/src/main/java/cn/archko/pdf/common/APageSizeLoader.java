@@ -16,6 +16,8 @@ import cn.archko.pdf.utils.StreamUtils;
  */
 public class APageSizeLoader {
 
+    public static final int PAGE_COUNT = 220;
+
     public static SparseArray<APage> loadPageSizeFromFile(int targetWidth, File file) {
         SparseArray<APage> sparseArray = null;
         try {

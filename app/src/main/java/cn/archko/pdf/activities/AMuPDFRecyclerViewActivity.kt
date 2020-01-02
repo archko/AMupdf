@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.preference.PreferenceManager
 import android.text.TextUtils
-import android.util.SparseArray
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -23,7 +22,6 @@ import cn.archko.mupdf.R
 import cn.archko.pdf.adapters.MuPDFReflowAdapter
 import cn.archko.pdf.colorpicker.ColorPickerDialog
 import cn.archko.pdf.common.*
-import cn.archko.pdf.entity.APage
 import cn.archko.pdf.entity.FontBean
 import cn.archko.pdf.entity.MenuBean
 import cn.archko.pdf.fragments.FontsFragment
@@ -34,6 +32,8 @@ import cn.archko.pdf.presenter.PageViewPresenter
 import cn.archko.pdf.utils.FileUtils
 import cn.archko.pdf.widgets.APageSeekBarControls
 import cn.archko.pdf.widgets.ViewerDividerItemDecoration
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 import org.vudroid.core.models.ZoomModel
 import org.vudroid.core.views.PageViewZoomControls
 
@@ -125,7 +125,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     override fun onDestroy() {
         super.onDestroy()
         mPageSizes.let {
-            if (it.size() < 0) {
+            if (it.size() < 0 || it.size() < APageSizeLoader.PAGE_COUNT) {
                 return
             }
             APageSizeLoader.savePageSizeToFile(mPageSizes,
@@ -135,18 +135,23 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     }
 
     override fun preparePageSize(cp: Int) {
-        var start = SystemClock.uptimeMillis()
-        val pageSizes = APageSizeLoader.loadPageSizeFromFile(mRecyclerView.width,
-                FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
-                        pdfBookmarkManager?.bookmarkToRestore?.name))
-        Logcat.d("open3:" + (SystemClock.uptimeMillis() - start))
+        val width = mRecyclerView.width
+        doAsync {
+            var start = SystemClock.uptimeMillis()
+            val pageSizes = APageSizeLoader.loadPageSizeFromFile(width,
+                    FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
+                            pdfBookmarkManager?.bookmarkToRestore?.name))
+            Logcat.d("open3:" + (SystemClock.uptimeMillis() - start))
 
-        if (pageSizes != null && pageSizes.size() > 0) {
-            mPageSizes = pageSizes
-        } else {
-            start = SystemClock.uptimeMillis()
-            super.preparePageSize(cp)
-            Logcat.d("open2:" + (SystemClock.uptimeMillis() - start))
+            uiThread {
+                if (pageSizes != null && pageSizes.size() > 0 && !autoCrop) {
+                    mPageSizes = pageSizes
+                } else {
+                    start = SystemClock.uptimeMillis()
+                    super.preparePageSize(cp)
+                    Logcat.d("open2:" + (SystemClock.uptimeMillis() - start))
+                }
+            }
         }
     }
 
