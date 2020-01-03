@@ -6,8 +6,6 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.os.SystemClock
-import android.preference.PreferenceManager
-import android.text.TextUtils
 import android.util.SparseArray
 import android.view.Gravity
 import android.view.View
@@ -70,14 +68,10 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     private var mStyleHelper: StyleHelper? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        BitmapCache.getInstance().resize(BitmapCache.CAPACITY_FOR_AMUPDF)
         super.onCreate(savedInstanceState)
 
-        if (TextUtils.isEmpty(mPath)) {
-            return
-        }
         mPageSeekBarControls?.updateTitle(mPath)
-
-        autoCrop = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(PdfOptionsActivity.PREF_AUTOCROP, true)
     }
 
     override fun doLoadDoc() {
@@ -86,13 +80,12 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
             mRecyclerView.adapter = PDFRecyclerAdapter()
 
-            isDocLoaded = true
             var pos = pdfBookmarkManager?.restoreBookmark(mDocument!!.countPages())!!
             if (pos > 0) {
                 mRecyclerView.scrollToPosition(pos)
             }
             addGesture()
-            autoCropModeSet(autoCrop)
+            cropModeSet(crop)
 
             mPageSeekBarControls?.showReflow(true)
             if (null != pdfBookmarkManager!!.getBookmarkToRestore()) {
@@ -130,7 +123,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             if (it.size() < 0 || it.size() < APageSizeLoader.PAGE_COUNT) {
                 return
             }
-            APageSizeLoader.savePageSizeToFile(autoCrop, mPageSizes,
+            APageSizeLoader.savePageSizeToFile(crop, mPageSizes,
                     FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
                             pdfBookmarkManager?.bookmarkToRestore?.name))
         }
@@ -150,7 +143,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
                 if (pageSizeBean != null) {
                     pageSizes = pageSizeBean.sparseArray;
                 }
-                if (pageSizes != null && pageSizes.size() > 0 && !autoCrop) {
+                if (pageSizes != null && pageSizes.size() > 0 && !crop) {
                     mPageSizes = pageSizes
                 } else {
                     start = SystemClock.uptimeMillis()
@@ -299,7 +292,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             }
 
             override fun autoCrop() {
-                toggleAutoCrop();
+                toggleCrop();
             }
         })
         return mPageSeekBarControls!!
@@ -322,19 +315,19 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         }
     }
 
-    private fun toggleAutoCrop() {
-        var flag = autoCropModeSet(!autoCrop)
+    private fun toggleCrop() {
+        var flag = cropModeSet(!crop)
         if (flag) {
-            autoCrop = !autoCrop;
+            crop = !crop;
         }
     }
 
-    private fun autoCropModeSet(autoCrop: Boolean): Boolean {
+    private fun cropModeSet(crop: Boolean): Boolean {
         if (mReflow) {
             mPageSeekBarControls?.autoCropButton!!.setColorFilter(Color.argb(0xFF, 255, 255, 255))
             return false
         } else {
-            if (autoCrop) {
+            if (crop) {
                 mPageSeekBarControls?.autoCropButton!!.setColorFilter(Color.argb(0xFF, 172, 114, 37))
             } else {
                 mPageSeekBarControls?.autoCropButton!!.setColorFilter(Color.argb(0xFF, 255, 255, 255))
@@ -393,7 +386,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
     override fun onPause() {
         super.onPause()
-        if (autoCrop) {
+        if (crop) {
             pdfBookmarkManager?.bookmarkToRestore?.autoCrop = 0
         } else {
             pdfBookmarkManager?.bookmarkToRestore?.autoCrop = 1
