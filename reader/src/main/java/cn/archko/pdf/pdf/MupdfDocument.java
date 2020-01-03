@@ -5,10 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.Environment;
-
 import cn.archko.pdf.common.BitmapPool;
 import cn.archko.pdf.common.Logcat;
-
 import com.artifex.mupdf.fitz.Cookie;
 import com.artifex.mupdf.fitz.DisplayList;
 import com.artifex.mupdf.fitz.Document;
@@ -21,7 +19,6 @@ import com.artifex.mupdf.fitz.Rect;
 import com.artifex.mupdf.fitz.RectI;
 import com.artifex.mupdf.fitz.android.AndroidDrawDevice;
 import com.artifex.mupdf.viewer.OutlineActivity;
-
 import org.ebookdroid.core.crop.PageCropper;
 
 import java.io.File;
@@ -282,48 +279,6 @@ public class MupdfDocument {
         dev.close();
         dev.destroy();
 
-        return bitmap;
-    }
-
-    public Bitmap nativeRender(int pageNum, boolean autoCrop,
-                               int pageW, int pageH,
-                               int patchX, int patchY) {
-
-        /*pdfiumCore.renderPageBitmap(pdfDocument, bitmap, docPage,
-                bounds.left, bounds.top, bounds.width(), bounds.height(), annotationRendering);
-
-        nativeRenderPageBitmap(doc.mNativePagesPtr.get(pageIndex), bitmap, mCurrentDpi,
-                startX, startY, drawSizeX, drawSizeY, renderAnnot);*/
-        Page page = document.loadPage(pageNum);
-
-        final float zoom = 2;
-        final Matrix ctm = new Matrix(zoom, zoom);
-        final RectI bbox = new RectI(page.getBounds().transform(ctm));
-        final float xscale = (float) pageW / (float) (bbox.x1 - bbox.x0);
-        final float yscale = (float) pageH / (float) (bbox.y1 - bbox.y0);
-        ctm.scale(xscale, yscale);
-
-        int leftBound = 0;
-        int topBound = 0;
-        int width = pageW;
-        int height = pageH;
-        if (autoCrop) {
-            float[] arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound);
-            leftBound = (int) arr[0];
-            topBound = (int) arr[1];
-            height = (int) arr[2];
-        }
-
-        //if (Logcat.loggable) {
-        //    Logcat.d(String.format("decode bitmap:width-height: %s-%s,pagesize:%s,%s, bound:%s,%s,%s",
-        //            width, height, pageW, pageH, leftBound, topBound, ctm));
-        //}
-
-        Bitmap bitmap = BitmapPool.getInstance().acquire(width, height);
-
-        render(page, ctm, bitmap, 0, leftBound, topBound);
-
-        page.destroy();
         return bitmap;
     }
 
