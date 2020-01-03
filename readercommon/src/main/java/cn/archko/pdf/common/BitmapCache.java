@@ -7,7 +7,7 @@ import androidx.annotation.Nullable;
 import androidx.collection.LruCache;
 
 /**
- * @author: wushuyong 2019/12/25 :15:54
+ * @author: archko 2019/12/25 :15:54
  */
 public class BitmapCache {
 
@@ -23,10 +23,25 @@ public class BitmapCache {
     private BitmapCache() {
     }
 
-    private LruCache<Object, Bitmap> cacheKt = new RecycleLruCache(8);
+    /**
+     * cache size for amupdf
+     */
+    public static final int CAPACITY_FOR_AMUPDF = 8;
+    /**
+     * cache size for vudroid
+     */
+    public static final int CAPACITY_FOR_VUDROID = 32;
+
+    private int capacity = 8;
+    private LruCache<Object, Bitmap> cacheKt = new RecycleLruCache(capacity);
 
     public LruCache<Object, Bitmap> getCache() {
         return cacheKt;
+    }
+
+    public void resize(int maxSize) {
+        capacity = maxSize;
+        cacheKt.resize(maxSize);
     }
 
     public void clear() {

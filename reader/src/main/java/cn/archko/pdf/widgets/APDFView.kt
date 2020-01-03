@@ -1,13 +1,9 @@
 package cn.archko.pdf.widgets
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.os.AsyncTask
 import android.view.View
 import android.widget.ImageView
-import android.widget.RelativeLayout
 import cn.archko.pdf.common.BitmapCache
-import cn.archko.pdf.common.BitmapManager
 import cn.archko.pdf.common.ImageDecoder
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.entity.APage
@@ -16,7 +12,7 @@ import com.artifex.mupdf.fitz.Document
 /**
  * @author: archko 2018/7/25 :12:43
  */
-class APDFView(protected val mContext: Context,
+public class APDFView(protected val mContext: Context,
                private val mCore: Document?,
                private var aPage: APage?) : ImageView(mContext) {
 
@@ -54,7 +50,7 @@ class APDFView(protected val mContext: Context,
         //        x, y, aPage!!.effectivePagesWidth, aPage!!.effectivePagesHeight, mZoom, aPage));
     }
 
-    fun setPage(pageSize: APage, newZoom: Float, autoCrop: Boolean) {
+    fun setPage(pageSize: APage, newZoom: Float, crop: Boolean) {
         var changeScale = false
         if (mZoom != newZoom) {
             changeScale = true
@@ -67,13 +63,13 @@ class APDFView(protected val mContext: Context,
 
         val zoomSize = aPage!!.zoomPoint
         val xOrigin = (zoomSize.x - aPage!!.targetWidth) / 2
-        Logcat.d(String.format("xOrigin: %s,changeScale:%s", xOrigin, changeScale));
+        Logcat.d(String.format("setPage xOrigin: %s,changeScale:%s", xOrigin, changeScale));
 
-        val mBitmap = BitmapCache.getInstance().getBitmap(String.format("%s", aPage!!.index))
+        val mBitmap = BitmapCache.getInstance().getBitmap(ImageDecoder.getCacheKey(aPage!!.index, crop))
 
         if (null != mBitmap) {
             if (Logcat.loggable) {
-                Logcat.d(String.format("changeScale: %s,cache:%s", changeScale, mBitmap.toString()));
+                Logcat.d(String.format("setPage changeScale: %s,cache:%s", changeScale, mBitmap.toString()));
             }
             if (changeScale) {
                 val matrix = android.graphics.Matrix()
@@ -85,7 +81,7 @@ class APDFView(protected val mContext: Context,
             setImageBitmap(mBitmap)
         }
 
-        ImageDecoder.getInstance().loadImage(aPage, autoCrop, xOrigin, this, mCore) { bitmap ->
+        ImageDecoder.getInstance().loadImage(aPage, crop, xOrigin, this, mCore) { bitmap ->
             //if (Logcat.loggable) {
             //    Logcat.d(String.format("decode2 relayout bitmap:index:%s, %s:%s imageView->%s:%s",
             //            pageSize.index, bitmap.width, bitmap.height,

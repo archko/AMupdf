@@ -73,12 +73,17 @@ public class ImageDecoder extends ImageWorker {
         return pageLruCache;
     }
 
-    public void loadImage(APage aPage, boolean autoCrop, int xOrigin,
+    public void loadImage(APage aPage, boolean crop, int xOrigin,
                           ImageView imageView, Document document, DecodeCallback callback) {
         if (document == null || aPage == null || getImageCache() == null || imageView == null) {
             return;
         }
-        super.loadImage(new DecodeParam(String.valueOf(aPage.index), imageView, autoCrop, xOrigin, aPage, document, callback));
+        super.loadImage(new DecodeParam(getCacheKey(aPage.index, crop),
+                imageView, crop, xOrigin, aPage, document, callback));
+    }
+
+    public static String getCacheKey(int index, boolean crop) {
+        return String.format("%s-%s", index, crop);
     }
 
     @Override
@@ -99,7 +104,7 @@ public class ImageDecoder extends ImageWorker {
             float yscale = (float) pageH / (float) (bbox.y1 - bbox.y0);
             ctm.scale(xscale, yscale);
 
-            if (decodeParam.autoCrop) {
+            if (decodeParam.crop) {
                 float[] arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound);
                 leftBound = (int) arr[0];
                 topBound = (int) arr[1];
@@ -143,10 +148,7 @@ public class ImageDecoder extends ImageWorker {
         }
         final ImageView imageView = bitmapWorkerTask.getAttachedImageView();
         if (imageView != null) {
-            //((APDFView) imageView.getParent()).setDrawText("");
-            //((APDFView) imageView.getParent()).setShowPaint(false);
-
-            addBitmapToCache(String.valueOf(decodeParam.pageSize.index), bitmap);
+            addBitmapToCache(getCacheKey(decodeParam.pageSize.index, decodeParam.crop), bitmap);
 
             if (null != decodeParam.decodeCallback) {
                 decodeParam.decodeCallback.decodeComplete(bitmap);

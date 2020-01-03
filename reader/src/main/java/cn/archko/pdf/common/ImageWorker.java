@@ -361,7 +361,7 @@ public abstract class ImageWorker {
         public float zoom;
         public int screenWidth;
         public ImageView imageView;
-        public boolean autoCrop;
+        public boolean crop;
         public int xOrigin;
         public APage pageSize;
         public Document document;
@@ -376,14 +376,14 @@ public abstract class ImageWorker {
             this.imageView = imageView;
         }
 
-        public DecodeParam(String key, ImageView imageView, boolean autoCrop, int xOrigin,
+        public DecodeParam(String key, ImageView imageView, boolean crop, int xOrigin,
                            APage pageSize, Document document, DecodeCallback callback) {
             this.key = key;
             if (TextUtils.isEmpty(key)) {
-                this.key = String.format("%s,%s,%s,%s", imageView, autoCrop, xOrigin, pageSize);
+                this.key = String.format("%s,%s,%s,%s", imageView, crop, xOrigin, pageSize);
             }
             this.imageView = imageView;
-            this.autoCrop = autoCrop;
+            this.crop = crop;
             this.xOrigin = xOrigin;
             this.pageSize = pageSize;
             this.document = document;

@@ -53,7 +53,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
     protected var multiTouchZoom: MultiTouchZoom? = null
 
     protected var mReflow = false
-    protected var autoCrop: Boolean = false
+    protected var crop: Boolean = false
     protected var isDocLoaded: Boolean = false
     protected val START_PROGRESS = 15
 
@@ -77,7 +77,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         }
         sensorHelper = SensorHelper(this)
 
-        autoCrop = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(PdfOptionsActivity.PREF_AUTOCROP, false)
+        crop = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(PdfOptionsActivity.PREF_AUTOCROP, false)
 
         loadBookmark()
         loadDoc()
@@ -86,13 +86,13 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
     open fun loadBookmark() {
         pdfBookmarkManager = PDFBookmarkManager()
         var ac = 0;
-        if (!autoCrop) {
+        if (!crop) {
             ac = 1;
         }
         pdfBookmarkManager!!.setStartBookmark(mPath, ac)
         val progress = pdfBookmarkManager?.bookmarkToRestore;
         progress?.let {
-            autoCrop = it.autoCrop == 0;
+            crop = it.autoCrop == 0;
             mReflow = it.reflow == 1
         }
     }
@@ -444,9 +444,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
                 if (pageSize.targetWidth <= 0) {
                     return
                 }
-                view.setPage(pageSize, zoomModel!!.zoom, autoCrop)
-
-                //Logcat.d("onBindViewHolder:$pos, view:${view}")
+                view.setPage(pageSize, zoomModel!!.zoom, crop)
             }
         }
 
@@ -466,7 +464,6 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
     open fun loadDoc() {
         progressDialog.setMessage(mPath)
         progressDialog.show()
-        val start = SystemClock.uptimeMillis()
         doAsync {
             var result = false
             try {
