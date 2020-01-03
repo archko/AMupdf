@@ -2,6 +2,7 @@ package org.vudroid.core;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -10,10 +11,11 @@ import android.graphics.RectF;
 import java.lang.ref.SoftReference;
 import java.util.Arrays;
 
+import cn.archko.pdf.common.BitmapCache;
 import cn.archko.pdf.common.BitmapPool;
 
 class PageTreeNode {
-    private static final int SLICE_SIZE =256*256*8;
+    private static final int SLICE_SIZE = 256 * 256 * 2;
     private Bitmap bitmap;
     private SoftReference<Bitmap> bitmapWeakReference;
     private boolean decodingNow;
@@ -27,6 +29,15 @@ class PageTreeNode {
     private boolean invalidateFlag;
     private Rect targetRect;
     private RectF targetRectF;
+    private final Paint strokePaint = strokePaint();
+
+    private Paint strokePaint() {
+        final Paint strokePaint = new Paint();
+        strokePaint.setColor(Color.GREEN);
+        strokePaint.setStyle(Paint.Style.STROKE);
+        strokePaint.setStrokeWidth(2);
+        return strokePaint;
+    }
 
     PageTreeNode(DocumentView documentView, RectF localPageSliceBounds, Page page, int treeNodeDepthLevel, PageTreeNode parent) {
         this.documentView = documentView;
@@ -83,10 +94,10 @@ class PageTreeNode {
         }
     }
 
-
     void draw(Canvas canvas) {
         if (getBitmap() != null) {
             canvas.drawBitmap(getBitmap(), new Rect(0, 0, getBitmap().getWidth(), getBitmap().getHeight()), getTargetRect(), bitmapPaint);
+            canvas.drawRect(getTargetRect(), strokePaint);
         }
         if (children == null) {
             return;
@@ -133,7 +144,15 @@ class PageTreeNode {
     }
 
     public Bitmap getBitmap() {
-        return bitmapWeakReference != null ? bitmapWeakReference.get() : null;
+        Bitmap bitmap = bitmapWeakReference != null ? bitmapWeakReference.get() : null;
+        if (null == bitmap) {
+            bitmap = BitmapCache.getInstance().getBitmap(getCacheKey());
+        }
+        return bitmap;
+    }
+
+    private String getCacheKey() {
+        return String.format("%s-%s", page.index, pageSliceBounds);
     }
 
     private void restoreBitmapReference() {
@@ -149,6 +168,7 @@ class PageTreeNode {
             public void decodeComplete(final Bitmap bitmap) {
                 documentView.post(new Runnable() {
                     public void run() {
+                        BitmapCache.getInstance().addBitmap(getCacheKey(), bitmap);
                         setBitmap(bitmap);
                         invalidateFlag = false;
                         setDecodingNow(false);
