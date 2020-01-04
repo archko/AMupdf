@@ -1,9 +1,7 @@
 package cn.archko.pdf.fragments
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.preference.PreferenceManager
@@ -11,13 +9,11 @@ import android.view.*
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
-import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import cn.archko.mupdf.R
 import cn.archko.pdf.App
-import cn.archko.pdf.activities.AMuPDFRecyclerViewActivity
 import cn.archko.pdf.activities.ChooseFileFragmentActivity
 import cn.archko.pdf.activities.PdfOptionsActivity
 import cn.archko.pdf.adapters.BookAdapter
@@ -27,12 +23,10 @@ import cn.archko.pdf.entity.FileBean
 import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.listeners.OnItemClickListener
 import cn.archko.pdf.utils.FileUtils
-import com.artifex.mupdf.viewer.DocumentActivity
 import com.jeremyliao.liveeventbus.LiveEventBus
 import com.umeng.analytics.MobclickAgent
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
-import org.vudroid.pdfdroid.PdfViewerActivity
 import java.io.File
 import java.io.FileFilter
 import java.util.*
@@ -55,7 +49,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     protected var fileListAdapter: BookAdapter? = null
 
     private val dirsFirst = true
-    private var showExtension: Boolean? = false
+    protected var showExtension: Boolean? = false
 
     internal var mPathMap: MutableMap<String, Int> = HashMap()
     protected var mSelectedPos = -1
@@ -284,19 +278,6 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
             return defaultHome
     }
 
-    fun pdfView(f: File) {
-        Logcat.i(TAG, "post intent to open file " + f)
-        if (f.absolutePath.endsWith("txt", true)) {
-            Toast.makeText(this@BrowserFragment.context, "can't load f:${f.absolutePath}", Toast.LENGTH_SHORT).show()
-            return
-        }
-        val intent = Intent()
-        intent.setDataAndType(Uri.fromFile(f), "application/pdf")
-        intent.setClass(activity!!, AMuPDFRecyclerViewActivity::class.java)
-        intent.action = "android.intent.action.VIEW"
-        activity?.startActivity(intent)
-    }
-
     val itemClickListener: OnItemClickListener<FileBean> = object : OnItemClickListener<FileBean> {
         override fun onItemClick(view: View?, data: FileBean?, position: Int) {
             clickItem(position)
@@ -334,7 +315,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         } else {
             var map = mapOf("type" to "file", "name" to clickedFile.name)
             MobclickAgent.onEvent(activity, AnalysticsHelper.A_FILE, map)
-            pdfView(clickedFile)
+            PDFViewerHelper.openWithDefaultViewer(Uri.fromFile(clickedFile), activity!!)
         }
     }
 
@@ -443,93 +424,22 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
             val clickedFile: File = entry.file
 
             if (null != clickedFile && clickedFile.exists()) {
-                val uri = Uri.parse(clickedFile.absolutePath)
-                val intent: Intent
-                intent = Intent()
-                intent.action = Intent.ACTION_VIEW
-                intent.data = uri
+                if (item.itemId == infoContextMenuItem) {
+                    var map = mapOf("type" to "info", "name" to clickedFile.name)
+                    MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
 
-                when (item.itemId) {
-                    vudroidContextMenuItem -> {
-                        var map = mapOf("type" to "vudroid", "name" to clickedFile.name)
-                        MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
-
-                        intent.setClass(activity!!, PdfViewerActivity::class.java)
-                        intent.data = Uri.fromFile(clickedFile)
-                        startActivity(intent)
-                    }
-                    mupdfContextMenuItem -> {
-                        var map = mapOf("type" to "AMuPDF", "name" to clickedFile.name)
-                        MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
-
-                        intent.setClass(activity!!, AMuPDFRecyclerViewActivity::class.java)
-                        startActivity(intent)
-                    }
-                    //bartekscViewContextMenuItem -> {
-                    //    var map = mapOf("type" to "barteksc", "name" to clickedFile.name)
-                    //    MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
-                    //    intent.setClass(activity!!, PDFViewActivity::class.java)
-                    //    startActivity(intent)
-                    //}
-                    documentContextMenuItem -> {
-                        var map = mapOf("type" to "Document", "name" to clickedFile.name)
-                        MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
-
-                        intent.setClass(activity!!, DocumentActivity::class.java)
-                        // API>=21: intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT); /* launch as a new document */
-                        intent.setAction(Intent.ACTION_VIEW)
-                        intent.setData(Uri.fromFile(clickedFile))
-                        startActivity(intent)
-                    }
-                    otherContextMenuItem -> {
-                        var map = mapOf("type" to "other", "name" to clickedFile.name)
-                        MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
-                        var mimeType = "application/pdf"
-                        val name = clickedFile.absolutePath;
-                        if (name.endsWith("pdf", true)) {
-                            mimeType = "application/pdf";
-                        } else if (name.endsWith("epub", true)) {
-                            mimeType = "application/epub+zip";
-                        } else if (name.endsWith("cbz", true)) {
-                            mimeType = "application/x-cbz";
-                        } else if (name.endsWith("fb2", true)) {
-                            mimeType = "application/fb2";
-                        } else if (name.endsWith("txt", true)) {
-                            mimeType = "text/plain";
-                        }
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                            //val mimeType = this@BrowserFragment.activity?.contentResolver?.getType(FileProvider.getUriForFile(getContext()!!, "cn.archko.mupdf.fileProvider", clickedFile))
-                            intent.setDataAndType(FileProvider.getUriForFile(getContext()!!, "cn.archko.mupdf.fileProvider", clickedFile), mimeType);
-                            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                            intent.addCategory(Intent.CATEGORY_DEFAULT);
-                        } else {
-                            //val mimeType = this@BrowserFragment.activity?.contentResolver?.getType(Uri.fromFile(clickedFile))
-                            intent.setDataAndType(Uri.fromFile(clickedFile), mimeType)
-                        }
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        startActivity(intent)
-                    }
-                    //================== ==================
-                    infoContextMenuItem -> {
-                        var map = mapOf("type" to "info", "name" to clickedFile.name)
-                        MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
-
-                        showFileInfoDiaLog(entry)
-                    }
-                    addToFavoriteContextMenuItem -> {
-                        var map = mapOf("type" to "addToFavorite", "name" to clickedFile.name)
-                        MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
-
-                        favorite(entry, 1)
-                    }
-                    removeFromFavoriteContextMenuItem -> {
-                        var map = mapOf("type" to "removeFromFavorite", "name" to clickedFile.name)
-                        MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
-
-                        favorite(entry, 0)
-                    }
+                    showFileInfoDiaLog(entry)
+                    return true
                 }
+                if (item.itemId == addToFavoriteContextMenuItem) {
+                    var map = mapOf("type" to "addToFavorite", "name" to clickedFile.name)
+                    MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
+
+                    favorite(entry, 1)
+                    return true
+                }
+
+                PDFViewerHelper.openViewer(clickedFile, item, activity!!)
             }
         }
         return false
@@ -596,17 +506,17 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
 
         const val TAG = "BrowserFragment"
 
-        protected const val deleteContextMenuItem = Menu.FIRST + 100
-        protected const val removeContextMenuItem = Menu.FIRST + 101
+        const val deleteContextMenuItem = Menu.FIRST + 100
+        const val removeContextMenuItem = Menu.FIRST + 101
 
-        protected const val mupdfContextMenuItem = Menu.FIRST + 110
+        const val mupdfContextMenuItem = Menu.FIRST + 110
         //protected const val apvContextMenuItem = Menu.FIRST + 111
-        protected const val vudroidContextMenuItem = Menu.FIRST + 112
-        protected const val otherContextMenuItem = Menu.FIRST + 113
-        protected const val infoContextMenuItem = Menu.FIRST + 114
-        protected const val documentContextMenuItem = Menu.FIRST + 115
-        protected const val addToFavoriteContextMenuItem = Menu.FIRST + 116
-        protected const val removeFromFavoriteContextMenuItem = Menu.FIRST + 117
+        const val vudroidContextMenuItem = Menu.FIRST + 112
+        const val otherContextMenuItem = Menu.FIRST + 113
+        const val infoContextMenuItem = Menu.FIRST + 114
+        const val documentContextMenuItem = Menu.FIRST + 115
+        const val addToFavoriteContextMenuItem = Menu.FIRST + 116
+        const val removeFromFavoriteContextMenuItem = Menu.FIRST + 117
         //protected const val bartekscViewContextMenuItem = Menu.FIRST + 118
     }
 }

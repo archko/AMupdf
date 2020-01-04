@@ -1,9 +1,6 @@
 package cn.archko.pdf.fragments
 
-//import com.github.barteksc.pdfviewer.PDFViewActivity
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.text.Editable
@@ -18,10 +15,9 @@ import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import cn.archko.mupdf.R
-import cn.archko.pdf.activities.AMuPDFRecyclerViewActivity
 import cn.archko.pdf.activities.ChooseFileFragmentActivity
 import cn.archko.pdf.adapters.BookAdapter
-import cn.archko.pdf.common.Logcat
+import cn.archko.pdf.common.PDFViewerHelper
 import cn.archko.pdf.entity.FileBean
 import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.listeners.OnItemClickListener
@@ -36,9 +32,9 @@ import java.util.*
  */
 open class SearchFragment : DialogFragment() {
 
-    lateinit var editView: EditText
-    lateinit var filesListView: RecyclerView
-    lateinit var imgClose: ImageView
+    private lateinit var editView: EditText
+    private lateinit var filesListView: RecyclerView
+    private lateinit var imgClose: ImageView
     private val fileFilter: FileFilter? = null
     protected var fileListAdapter: BookAdapter? = null
 
@@ -71,9 +67,9 @@ open class SearchFragment : DialogFragment() {
         toolbar.setNavigationOnClickListener(View.OnClickListener { dismiss() })
 
         dialog?.setTitle(R.string.menu_search)
-        editView = view.findViewById<EditText>(R.id.searchEdit)
-        imgClose = view.findViewById<ImageView>(R.id.img_close)
-        filesListView = view.findViewById<RecyclerView>(R.id.files)
+        editView = view.findViewById(R.id.searchEdit)
+        imgClose = view.findViewById(R.id.img_close)
+        filesListView = view.findViewById(R.id.files)
         filesListView.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
 
         imgClose.setOnClickListener { clear() }
@@ -124,11 +120,9 @@ open class SearchFragment : DialogFragment() {
             this.fileListAdapter!!.setMode(BookAdapter.TYPE_SEARCH)
         }
         filesListView.adapter = this.fileListAdapter
-        //filesListView.onItemClickListener = this
-        //filesListView.onItemLongClickListener = this
     }
 
-    fun search(keyword: String) {
+    private fun search(keyword: String) {
         if (!isResumed) {
             return
         }
@@ -139,7 +133,6 @@ open class SearchFragment : DialogFragment() {
 
         fileListAdapter?.setData(fileList)
         fileListAdapter?.notifyDataSetChanged()
-        //this.filesListView.setSelection(0);
     }
 
     private fun doSearch(fileList: ArrayList<FileBean>, keyword: String, dir: File) {
@@ -173,37 +166,29 @@ open class SearchFragment : DialogFragment() {
 
         val pathFile = File(path)
 
-        if (pathFile.exists() && pathFile.isDirectory)
+        if (pathFile.exists() && pathFile.isDirectory) {
             return path
-        else
+        } else {
             return defaultHome
+        }
     }
 
-    val itemClickListener: OnItemClickListener<FileBean> = object : OnItemClickListener<FileBean> {
+    private val itemClickListener: OnItemClickListener<FileBean> = object : OnItemClickListener<FileBean> {
         override fun onItemClick(view: View?, data: FileBean?, position: Int) {
             val clickedEntry = this@SearchFragment.fileListAdapter!!.data[position] as FileBean
             val clickedFile = clickedEntry.file
 
-            if (null == clickedFile || !clickedFile.exists())
+            if (null == clickedFile || !clickedFile.exists()) {
                 return
+            }
 
-            pdfView(clickedFile)
+            PDFViewerHelper.openWithDefaultViewer(clickedFile, activity!!)
         }
 
         override fun onItemClick2(view: View?, data: FileBean?, position: Int) {
             val entry = this@SearchFragment.fileListAdapter!!.data[position] as FileBean
             showFileInfoDialog(entry)
         }
-    }
-
-    fun pdfView(f: File) {
-        Logcat.i("", "post intent to open file " + f)
-        dismiss()
-        val intent = Intent()
-        intent.setDataAndType(Uri.fromFile(f), "application/pdf")
-        intent.setClass(activity!!, AMuPDFRecyclerViewActivity::class.java)
-        intent.action = "android.intent.action.VIEW"
-        activity?.startActivity(intent)
     }
 
     protected fun showFileInfoDialog(entry: FileBean) {
@@ -223,7 +208,7 @@ open class SearchFragment : DialogFragment() {
         fileInfoFragment.setListener(object : DataListener {
             override fun onSuccess(vararg args: Any?) {
                 val fileEntry = args[0] as FileBean
-                pdfView(fileEntry.file)
+                PDFViewerHelper.openWithDefaultViewer(fileEntry.file, activity!!)
             }
 
             override fun onFailed(vararg args: Any?) {

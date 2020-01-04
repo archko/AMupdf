@@ -40,7 +40,6 @@ import java.util.*
  * @author: archko 11-11-17
  */
 class HistoryFragment : BrowserFragment() {
-    private val showExtension = false
 
     internal var curPage = 0
     internal var mListMoreView: ListMoreView? = null

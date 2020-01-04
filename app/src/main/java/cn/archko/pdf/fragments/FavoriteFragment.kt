@@ -141,7 +141,7 @@ class FavoriteFragment : BrowserFragment() {
             progresses?.map {
                 try {
                     file = File(path + "/" + it.path)
-                    entry = FileBean(FileBean.FAVORITE, file, true)
+                    entry = FileBean(FileBean.FAVORITE, file, showExtension)
                     entry.bookProgress = it
                     entryList.add(entry)
                 } catch (e: Exception) {
