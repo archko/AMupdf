@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.ImageView
 import cn.archko.pdf.common.BitmapCache
 import cn.archko.pdf.common.ImageDecoder
+import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.entity.APage
 import com.artifex.mupdf.fitz.Document
 
@@ -14,9 +15,9 @@ import com.artifex.mupdf.fitz.Document
  */
 @SuppressLint("AppCompatCustomView")
 public class APDFView(protected val mContext: Context,
-               private val mCore: Document?,
-               private var aPage: APage?,
-               crop: Boolean) : ImageView(mContext) {
+                      private val mCore: Document?,
+                      private var aPage: APage?,
+                      crop: Boolean) : ImageView(mContext) {
 
     private var mZoom: Float = 0.toFloat()
 
@@ -52,7 +53,7 @@ public class APDFView(protected val mContext: Context,
         //        x, y, aPage!!.effectivePagesWidth, aPage!!.effectivePagesHeight, mZoom, aPage));
     }
 
-    fun updatePage(pageSize: APage, newZoom: Float, autoCrop: Boolean) {
+    fun updatePage(pageSize: APage, newZoom: Float, crop: Boolean) {
         var changeScale = false
         if (mZoom != newZoom) {
             changeScale = true
@@ -62,28 +63,34 @@ public class APDFView(protected val mContext: Context,
         aPage = pageSize
         aPage!!.zoom = newZoom
 
-        //when scale, mBitmap is always null.because after adapter notify,releaseResources() is invoke.
         val zoomSize = aPage!!.zoomPoint
         val xOrigin = (zoomSize.x - aPage!!.targetWidth) / 2
-        //Logcat.d(String.format("xOrigin: %s,changeScale:%s, aPage:%s", xOrigin, changeScale, aPage));
+        Logcat.d(String.format("updatePage xOrigin: %s,changeScale:%s", xOrigin, changeScale));
 
-        val mBitmap = BitmapCache.getInstance().getBitmap(String.format("%s-%s", aPage!!.index, aPage!!.zoom))
+        val mBitmap = BitmapCache.getInstance().getBitmap(ImageDecoder.getCacheKey(aPage!!.index, crop))
 
         if (null != mBitmap) {
+            if (Logcat.loggable) {
+                Logcat.d(String.format("setPage changeScale: %s,cache:%s", changeScale, mBitmap.toString()));
+            }
+            if (changeScale) {
+                val matrix = android.graphics.Matrix()
+                matrix.postScale(newZoom, newZoom)
+                matrix.postTranslate((-xOrigin).toFloat(), 0f)
+                imageMatrix = matrix
+            }
+
             setImageBitmap(mBitmap)
-            return
         }
 
-        //mDrawTask = getDrawPageTask(autoCrop, aPage!!, xOrigin, height)
-        //Utils.execute(true, mDrawTask)
-        ImageDecoder.getInstance().loadImage(aPage, autoCrop, xOrigin, this, mCore) { bitmap ->
+        ImageDecoder.getInstance().loadImage(aPage, crop, xOrigin, this, mCore) { bitmap ->
             //if (Logcat.loggable) {
             //    Logcat.d(String.format("decode2 relayout bitmap:index:%s, %s:%s imageView->%s:%s",
             //            pageSize.index, bitmap.width, bitmap.height,
             //            getWidth(), getHeight()))
             //}
             setImageBitmap(bitmap)
-            //imageMatrix.reset()
+            imageMatrix.reset()
         }
     }
 

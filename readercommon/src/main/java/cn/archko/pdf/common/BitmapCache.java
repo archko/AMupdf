@@ -30,7 +30,7 @@ public class BitmapCache {
     /**
      * cache size for vudroid
      */
-    public static final int CAPACITY_FOR_VUDROID = 32;
+    public static final int CAPACITY_FOR_VUDROID = 64;
 
     private int capacity = 8;
     private LruCache<Object, Bitmap> cacheKt = new RecycleLruCache(capacity);

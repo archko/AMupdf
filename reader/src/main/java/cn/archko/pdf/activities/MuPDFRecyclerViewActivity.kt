@@ -396,7 +396,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
                     pageSize.targetWidth = parent.width;
                 }
             }
-            val view = APDFView(parent.context, mDocument, pageSize)
+            val view = APDFView(parent.context, mDocument, pageSize, crop)
             var lp: RecyclerView.LayoutParams? = view.layoutParams as RecyclerView.LayoutParams?
             var width: Int = ViewGroup.LayoutParams.MATCH_PARENT
             var height: Int = ViewGroup.LayoutParams.MATCH_PARENT
@@ -444,7 +444,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
                 if (pageSize.targetWidth <= 0) {
                     return
                 }
-                view.setPage(pageSize, zoomModel!!.zoom, crop)
+                view.updatePage(pageSize, zoomModel!!.zoom, crop)
             }
         }
 

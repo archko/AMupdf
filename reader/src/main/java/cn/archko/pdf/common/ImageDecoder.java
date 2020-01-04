@@ -75,15 +75,15 @@ public class ImageDecoder extends ImageWorker {
 
     public void loadImage(APage aPage, boolean crop, int xOrigin,
                           ImageView imageView, Document document, DecodeCallback callback) {
-        if (document == null || aPage == null || getImageCache() == null || imageView == null) {
+        if (document == null || aPage == null || imageView == null) {
             return;
         }
-        super.loadImage(new DecodeParam(getCacheKey(aPage.index, crop, aPage.getScaleZoom()),
+        super.loadImage(new DecodeParam(getCacheKey(aPage.index, crop),
                 imageView, crop, xOrigin, aPage, document, callback));
     }
 
-    public static String getCacheKey(int index, boolean crop, float scale) {
-        return String.format("%s-%s-%s", index, crop, scale);
+    public static String getCacheKey(int index, boolean crop) {
+        return String.format("%s-%s", index, crop);
     }
 
     @Override
@@ -148,26 +148,11 @@ public class ImageDecoder extends ImageWorker {
         }
         final ImageView imageView = bitmapWorkerTask.getAttachedImageView();
         if (imageView != null) {
-            addBitmapToCache(getCacheKey(decodeParam.pageSize.index, decodeParam.crop, decodeParam.pageSize.getScaleZoom()), bitmap);
+            addBitmapToCache(getCacheKey(decodeParam.pageSize.index, decodeParam.crop), bitmap);
 
             if (null != decodeParam.decodeCallback) {
                 decodeParam.decodeCallback.decodeComplete(bitmap);
             }
-            /*imageView.setImageBitmap(bitmap);
-            imageView.getImageMatrix().reset();
-
-            View parent = (View) imageView.getParent();
-            if (parent.getHeight() != bitmap.getHeight() || parent.getWidth() != bitmap.getWidth()) {
-                if (Logcat.loggable) {
-                    Logcat.d(TAG, String.format("decode relayout bitmap:index:%s, %s:%s imageView->%s:%s view->%s:%s",
-                            decodeParam.pageSize.index, bitmap.getWidth(), bitmap.getHeight(),
-                            imageView.getWidth(), imageView.getHeight(),
-                            parent.getWidth(), parent.getHeight()));
-                }
-                parent.getLayoutParams().height = bitmap.getHeight();
-                parent.getLayoutParams().width = bitmap.getWidth();
-                parent.requestLayout();
-            }*/
         }
     }
 

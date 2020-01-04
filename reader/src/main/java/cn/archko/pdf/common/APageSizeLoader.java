@@ -17,7 +17,7 @@ import cn.archko.pdf.utils.StreamUtils;
  */
 public class APageSizeLoader {
 
-    public static final int PAGE_COUNT = 220;
+    public static final int PAGE_COUNT = 320;
 
     public static PageSizeBean loadPageSizeFromFile(int targetWidth, File file) {
         PageSizeBean pageSizeBean = null;
