@@ -43,19 +43,21 @@ public class APDFView(protected val mContext: Context,
             val dwidth = d.intrinsicWidth
             val dheight = d.intrinsicHeight
 
-            mwidth = dwidth
-            mheight = dheight
+            if (dwidth > 0 && dheight > 0) {
+                mwidth = dwidth
+                mheight = dheight
 
-            if (mZoom > 1.0f) {
-                val sx = (mwidth * mZoom).toInt()
-                val sy = (mheight * mZoom).toInt()
-                val dx = sx - mwidth;
-                val dy = sy - mheight;
-                mwidth = sx
-                mheight = sy
-                imageMatrix.reset()
-                imageMatrix.setScale(mZoom, mZoom)
-                imageMatrix.postTranslate((-dx).toFloat(), (-dy).toFloat())
+                if (mZoom > 1.0f) {
+                    val sx = (mwidth * mZoom).toInt()
+                    val sy = (mheight * mZoom).toInt()
+                    val dx = sx - mwidth;
+                    val dy = sy - mheight;
+                    mwidth = sx
+                    mheight = sy
+                    imageMatrix.reset()
+                    imageMatrix.setScale(mZoom, mZoom)
+                    imageMatrix.postTranslate((-dx).toFloat(), (-dy).toFloat())
+                }
             }
         }
 
@@ -78,7 +80,7 @@ public class APDFView(protected val mContext: Context,
         val zoomSize = aPage!!.zoomPoint
         val xOrigin = (zoomSize.x - aPage!!.targetWidth) / 2
         Logcat.d(String.format("updatePage xOrigin: %s,changeScale:%s, oldZoom:%s, newScaleZoom:%s,newZoom:%s,",
-                xOrigin, changeScale, oldZoom,aPage!!.scaleZoom, newZoom));
+                xOrigin, changeScale, oldZoom, aPage!!.scaleZoom, newZoom));
 
         var bmp = BitmapCache.getInstance().getBitmap(ImageDecoder.getCacheKey(aPage!!.index, crop, aPage!!.scaleZoom))
 
