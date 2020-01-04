@@ -97,7 +97,7 @@ class PageTreeNode {
     void draw(Canvas canvas) {
         if (getBitmap() != null) {
             canvas.drawBitmap(getBitmap(), new Rect(0, 0, getBitmap().getWidth(), getBitmap().getHeight()), getTargetRect(), bitmapPaint);
-            canvas.drawRect(getTargetRect(), strokePaint);
+            //canvas.drawRect(getTargetRect(), strokePaint);
         }
         if (children == null) {
             return;

@@ -13,8 +13,8 @@ import com.artifex.mupdf.fitz.Document
  * @author: archko 2018/7/25 :12:43
  */
 public class APDFView(protected val mContext: Context,
-               private val mCore: Document?,
-               private var aPage: APage?) : ImageView(mContext) {
+                      private val mCore: Document?,
+                      private var aPage: APage?) : ImageView(mContext) {
 
     private var mZoom: Float = 0.toFloat()
 
@@ -65,7 +65,7 @@ public class APDFView(protected val mContext: Context,
         val xOrigin = (zoomSize.x - aPage!!.targetWidth) / 2
         Logcat.d(String.format("setPage xOrigin: %s,changeScale:%s", xOrigin, changeScale));
 
-        val mBitmap = BitmapCache.getInstance().getBitmap(ImageDecoder.getCacheKey(aPage!!.index, crop))
+        val mBitmap = BitmapCache.getInstance().getBitmap(ImageDecoder.getCacheKey(aPage!!.index, crop, aPage!!.scaleZoom))
 
         if (null != mBitmap) {
             if (Logcat.loggable) {

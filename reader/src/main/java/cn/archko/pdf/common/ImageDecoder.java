@@ -78,12 +78,12 @@ public class ImageDecoder extends ImageWorker {
         if (document == null || aPage == null || getImageCache() == null || imageView == null) {
             return;
         }
-        super.loadImage(new DecodeParam(getCacheKey(aPage.index, crop),
+        super.loadImage(new DecodeParam(getCacheKey(aPage.index, crop, aPage.getScaleZoom()),
                 imageView, crop, xOrigin, aPage, document, callback));
     }
 
-    public static String getCacheKey(int index, boolean crop) {
-        return String.format("%s-%s", index, crop);
+    public static String getCacheKey(int index, boolean crop, float scale) {
+        return String.format("%s-%s-%s", index, crop, scale);
     }
 
     @Override
@@ -148,7 +148,7 @@ public class ImageDecoder extends ImageWorker {
         }
         final ImageView imageView = bitmapWorkerTask.getAttachedImageView();
         if (imageView != null) {
-            addBitmapToCache(getCacheKey(decodeParam.pageSize.index, decodeParam.crop), bitmap);
+            addBitmapToCache(getCacheKey(decodeParam.pageSize.index, decodeParam.crop, decodeParam.pageSize.getScaleZoom()), bitmap);
 
             if (null != decodeParam.decodeCallback) {
                 decodeParam.decodeCallback.decodeComplete(bitmap);
