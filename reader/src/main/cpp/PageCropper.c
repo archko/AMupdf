@@ -283,7 +283,7 @@ float getRightColumnBound(uint8_t* src, int width, int height, int avgLum, float
 
 float getBottomBound(uint8_t* src, int width, int height, int avgLum)
 {
-    int h = height * 2/ 3;
+    int h = height * 2 / 3;
     int whiteCount = 0;
     int y = 0;
     for (y = height - H_LINE_SIZE; y > height - h; y -= H_LINE_SIZE)

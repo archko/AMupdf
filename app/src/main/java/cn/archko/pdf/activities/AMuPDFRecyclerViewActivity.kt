@@ -5,8 +5,8 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
-import android.preference.PreferenceManager
-import android.text.TextUtils
+import android.os.SystemClock
+import android.util.SparseArray
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -20,11 +20,8 @@ import androidx.recyclerview.widget.RecyclerView
 import cn.archko.mupdf.R
 import cn.archko.pdf.adapters.MuPDFReflowAdapter
 import cn.archko.pdf.colorpicker.ColorPickerDialog
-import cn.archko.pdf.common.BitmapCache
-import cn.archko.pdf.common.MenuHelper
-import cn.archko.pdf.common.OutlineHelper
-import cn.archko.pdf.common.PDFBookmarkManager
-import cn.archko.pdf.common.StyleHelper
+import cn.archko.pdf.common.*
+import cn.archko.pdf.entity.APage
 import cn.archko.pdf.entity.FontBean
 import cn.archko.pdf.entity.MenuBean
 import cn.archko.pdf.fragments.FontsFragment
@@ -32,8 +29,11 @@ import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.listeners.MenuListener
 import cn.archko.pdf.listeners.OutlineListener
 import cn.archko.pdf.presenter.PageViewPresenter
+import cn.archko.pdf.utils.FileUtils
 import cn.archko.pdf.widgets.APageSeekBarControls
 import cn.archko.pdf.widgets.ViewerDividerItemDecoration
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 import org.vudroid.core.models.ZoomModel
 import org.vudroid.core.views.PageViewZoomControls
 
@@ -47,9 +47,6 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     lateinit var mControllerLayout: RelativeLayout
 
     private var mPageSeekBarControls: APageSeekBarControls? = null
-    private var mReflow = false
-    private val OUTLINE_REQUEST = 0
-    private var pdfBookmarkManager: PDFBookmarkManager? = null
     private var outlineHelper: OutlineHelper? = null
     private var mZoomControls: PageViewZoomControls? = null
     private var mStyleControls: View? = null
@@ -69,57 +66,26 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     private var colorPickerDialog: ColorPickerDialog? = null
 
     private var mStyleHelper: StyleHelper? = null
-    private val START_PROGRESS = 15
 
-    public override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        BitmapCache.getInstance().resize(BitmapCache.CAPACITY_FOR_AMUPDF)
         super.onCreate(savedInstanceState)
 
-        if (TextUtils.isEmpty(mPath)) {
-            return
-        }
         mPageSeekBarControls?.updateTitle(mPath)
-
-        autoCrop = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(PdfOptionsActivity.PREF_AUTOCROP, true)
     }
 
     override fun doLoadDoc() {
         try {
-            BitmapCache.getInstance().clear()
             progressDialog.setMessage("Loading menu")
 
             mRecyclerView.adapter = PDFRecyclerAdapter()
-            addGesture()
 
-            isDocLoaded = true
-            pdfBookmarkManager = PDFBookmarkManager()
-            var ac = 0;
-            if (!autoCrop) {
-                ac = 1;
-            }
-            pdfBookmarkManager!!.setStartBookmark(mPath, ac)
             var pos = pdfBookmarkManager?.restoreBookmark(mDocument!!.countPages())!!
-            val progress = pdfBookmarkManager?.bookmarkToRestore;
-            progress?.let {
-                autoCrop = it.autoCrop == 0;
-                mReflow = it.reflow == 1
-            }
-
-            if (mReflow) {
-                if (null == mStyleHelper) {
-                    mStyleHelper = StyleHelper()
-                }
-                mRecyclerView.adapter = MuPDFReflowAdapter(this, mDocument, mStyleHelper)
-                mPageSeekBarControls?.reflowButton!!.setColorFilter(Color.argb(0xFF, 172, 114, 37))
-
-            } else {
-                mRecyclerView.adapter = PDFRecyclerAdapter()
-                mPageSeekBarControls?.reflowButton!!.setColorFilter(Color.argb(0xFF, 255, 255, 255))
-            }
             if (pos > 0) {
                 mRecyclerView.scrollToPosition(pos)
             }
             addGesture()
-            autoCropModeSet(autoCrop)
+            cropModeSet(crop)
 
             mPageSeekBarControls?.showReflow(true)
             if (null != pdfBookmarkManager!!.getBookmarkToRestore()) {
@@ -148,6 +114,43 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             finish()
         } finally {
             progressDialog.dismiss()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mPageSizes.let {
+            if (it.size() < 0 || it.size() < APageSizeLoader.PAGE_COUNT) {
+                return
+            }
+            APageSizeLoader.savePageSizeToFile(crop, mPageSizes,
+                    FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
+                            pdfBookmarkManager?.bookmarkToRestore?.name))
+        }
+    }
+
+    override fun preparePageSize(cp: Int) {
+        val width = mRecyclerView.width
+        doAsync {
+            var start = SystemClock.uptimeMillis()
+            val pageSizeBean = APageSizeLoader.loadPageSizeFromFile(width,
+                    FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
+                            pdfBookmarkManager?.bookmarkToRestore?.name))
+            Logcat.d("open3:" + (SystemClock.uptimeMillis() - start))
+
+            uiThread {
+                var pageSizes: SparseArray<APage>? = null;
+                if (pageSizeBean != null) {
+                    pageSizes = pageSizeBean.sparseArray;
+                }
+                if (pageSizes != null && pageSizes.size() > 0 && !crop) {
+                    mPageSizes = pageSizes
+                } else {
+                    start = SystemClock.uptimeMillis()
+                    super.preparePageSize(cp)
+                    Logcat.d("open2:" + (SystemClock.uptimeMillis() - start))
+                }
+            }
         }
     }
 
@@ -289,7 +292,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             }
 
             override fun autoCrop() {
-                toggleAutoCrop();
+                toggleCrop();
             }
         })
         return mPageSeekBarControls!!
@@ -312,19 +315,19 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         }
     }
 
-    private fun toggleAutoCrop() {
-        var flag = autoCropModeSet(!autoCrop)
+    private fun toggleCrop() {
+        var flag = cropModeSet(!crop)
         if (flag) {
-            autoCrop = !autoCrop;
+            crop = !crop;
         }
     }
 
-    private fun autoCropModeSet(autoCrop: Boolean): Boolean {
+    private fun cropModeSet(crop: Boolean): Boolean {
         if (mReflow) {
             mPageSeekBarControls?.autoCropButton!!.setColorFilter(Color.argb(0xFF, 255, 255, 255))
             return false
         } else {
-            if (autoCrop) {
+            if (crop) {
                 mPageSeekBarControls?.autoCropButton!!.setColorFilter(Color.argb(0xFF, 172, 114, 37))
             } else {
                 mPageSeekBarControls?.autoCropButton!!.setColorFilter(Color.argb(0xFF, 255, 255, 255))
@@ -383,7 +386,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
     override fun onPause() {
         super.onPause()
-        if (autoCrop) {
+        if (crop) {
             pdfBookmarkManager?.bookmarkToRestore?.autoCrop = 0
         } else {
             pdfBookmarkManager?.bookmarkToRestore?.autoCrop = 1
@@ -549,8 +552,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     companion object {
 
         private const val TAG = "AMuPDFRecyclerViewActivity"
-        public const val TYPE_TITLE = 0
-        const val PREF_READER = "pref_reader"
+        const val PREF_READER = "pref_reader_amupdf"
         const val PREF_READER_KEY_FIRST = "pref_reader_key_first"
     }
 

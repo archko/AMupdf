@@ -5,7 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.Environment;
-
+import cn.archko.pdf.common.BitmapPool;
+import cn.archko.pdf.common.Logcat;
 import com.artifex.mupdf.fitz.Cookie;
 import com.artifex.mupdf.fitz.DisplayList;
 import com.artifex.mupdf.fitz.Document;
@@ -18,16 +19,12 @@ import com.artifex.mupdf.fitz.Rect;
 import com.artifex.mupdf.fitz.RectI;
 import com.artifex.mupdf.fitz.android.AndroidDrawDevice;
 import com.artifex.mupdf.viewer.OutlineActivity;
-
 import org.ebookdroid.core.crop.PageCropper;
 
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-
-import cn.archko.pdf.common.BitmapPool;
-import cn.archko.pdf.common.Logcat;
 
 /**
  * @author archko 2019/12/8 :12:43
@@ -54,6 +51,11 @@ public class MupdfDocument {
 
     public Document getDocument() {
         return document;
+    }
+
+    public void setDocument(Document document) {
+        this.document = document;
+        initDocument();
     }
 
     //File selectedFile = new File(filename);
@@ -207,7 +209,6 @@ public class MupdfDocument {
         dev.destroy();
     }
 
-
     public Link[] getPageLinks(int pageNum) {
         gotoPage(pageNum);
         return page.getLinks();
@@ -258,39 +259,26 @@ public class MupdfDocument {
         return document.authenticatePassword(password);
     }
 
-    public Bitmap nativeRender(int pageNum, boolean autoCrop,
-                               int pageW, int pageH,
-                               int patchX, int patchY) {
+    public Bitmap renderBitmap(Bitmap bitmap, int pageNum, boolean autoCrop, RectF tb, android.graphics.Rect bounds) {
         Page page = document.loadPage(pageNum);
 
         final float zoom = 2;
         final Matrix ctm = new Matrix(zoom, zoom);
         final RectI bbox = new RectI(page.getBounds().transform(ctm));
-        final float xscale = (float) pageW / (float) (bbox.x1 - bbox.x0);
-        final float yscale = (float) pageH / (float) (bbox.y1 - bbox.y0);
+        final float xscale = (float) bounds.width() / (float) (bbox.x1 - bbox.x0);
+        final float yscale = (float) bounds.height() / (float) (bbox.y1 - bbox.y0);
         ctm.scale(xscale, yscale);
 
-        int leftBound = 0;
-        int topBound = 0;
-        int width = pageW;
-        int height = pageH;
-        if (autoCrop) {
-            float[] arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound);
-            leftBound = (int) arr[0];
-            topBound = (int) arr[1];
-            height = (int) arr[2];
-        }
+        int patchX;
+        int patchY;
+        patchX = (int) (tb.left * bounds.width());
+        patchY = (int) (tb.top * bounds.height());
 
-        //if (Logcat.loggable) {
-        //    Logcat.d(String.format("decode bitmap:width-height: %s-%s,pagesize:%s,%s, bound:%s,%s,%s",
-        //            width, height, pageW, pageH, leftBound, topBound, ctm));
-        //}
+        AndroidDrawDevice dev = new AndroidDrawDevice(bitmap, patchX, patchY, 0, 0, bitmap.getWidth(), bitmap.getHeight());
+        page.run(dev, ctm, (Cookie) null);
+        dev.close();
+        dev.destroy();
 
-        Bitmap bitmap = BitmapPool.getInstance().acquire(width, height);
-
-        render(page, ctm, bitmap, 0, leftBound, topBound);
-
-        page.destroy();
         return bitmap;
     }
 

@@ -13,7 +13,7 @@ import com.artifex.mupdf.fitz.Document
  * @author: archko 2018/7/25 :12:43
  */
 @SuppressLint("AppCompatCustomView")
-class APDFView(protected val mContext: Context,
+public class APDFView(protected val mContext: Context,
                private val mCore: Document?,
                private var aPage: APage?,
                crop: Boolean) : ImageView(mContext) {
@@ -53,6 +53,12 @@ class APDFView(protected val mContext: Context,
     }
 
     fun updatePage(pageSize: APage, newZoom: Float, autoCrop: Boolean) {
+        var changeScale = false
+        if (mZoom != newZoom) {
+            changeScale = true
+        } else {
+            changeScale = aPage !== pageSize
+        }
         aPage = pageSize
         aPage!!.zoom = newZoom
 

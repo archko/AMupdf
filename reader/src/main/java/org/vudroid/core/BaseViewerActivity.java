@@ -19,6 +19,7 @@ import android.widget.Toast;
 import androidx.fragment.app.FragmentActivity;
 
 import cn.archko.pdf.activities.PdfOptionsActivity;
+import cn.archko.pdf.common.BitmapCache;
 import cn.archko.pdf.common.PDFBookmarkManager;
 import cn.archko.pdf.common.SensorHelper;
 
@@ -61,6 +62,8 @@ public abstract class BaseViewerActivity extends FragmentActivity implements Dec
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        BitmapCache.getInstance().resize(BitmapCache.CAPACITY_FOR_VUDROID);
         initDecodeService();
         final ZoomModel zoomModel = new ZoomModel();
         pdfBookmarkManager = new PDFBookmarkManager();

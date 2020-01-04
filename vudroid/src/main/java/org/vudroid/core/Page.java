@@ -59,7 +59,7 @@ class Page {
     private Paint fillPaint() {
         final Paint fillPaint = new Paint();
         //fillPaint.setColor(Color.GRAY);
-        fillPaint.setColor(Color.WHITE);
+        fillPaint.setColor(Color.WHITE);    //scroll back show white bg
         fillPaint.setStyle(Paint.Style.FILL);
         return fillPaint;
     }

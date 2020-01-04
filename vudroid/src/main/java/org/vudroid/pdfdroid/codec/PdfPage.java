@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.os.SystemClock;
 
 import com.artifex.mupdf.fitz.Cookie;
 import com.artifex.mupdf.fitz.Document;
@@ -11,6 +12,8 @@ import com.artifex.mupdf.fitz.Page;
 import com.artifex.mupdf.fitz.android.AndroidDrawDevice;
 
 import cn.archko.pdf.common.BitmapPool;
+import cn.archko.pdf.common.Logcat;
+
 import org.vudroid.core.codec.CodecPage;
 
 public class PdfPage implements CodecPage {
@@ -73,6 +76,7 @@ public class PdfPage implements CodecPage {
         //matrix.postTranslate(-pageSliceBounds.left*width, -pageSliceBounds.top*height);
         //matrix.postScale(1/pageSliceBounds.width(), 1/pageSliceBounds.height());
 
+        long start= SystemClock.uptimeMillis();
         int pageW;
         int pageH;
         int patchX;
@@ -90,6 +94,7 @@ public class PdfPage implements CodecPage {
         page.run(dev, ctm, (Cookie) null);
         dev.close();
         dev.destroy();
+        add(start);
 
         return bitmap;
     }
@@ -139,5 +144,14 @@ public class PdfPage implements CodecPage {
 
     public byte[] asHtml(int pageno) {
         return page.textAsHtml();
+    }
+
+    static long time;
+    static int count;
+
+    static void add(long start) {
+        count++;
+        time += (SystemClock.uptimeMillis() - start);
+        Logcat.d("decode time:" + time/count);
     }
 }
