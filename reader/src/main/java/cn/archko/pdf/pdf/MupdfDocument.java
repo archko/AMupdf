@@ -5,10 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.Environment;
-import android.os.SystemClock;
-
-import cn.archko.pdf.common.BitmapPool;
-import cn.archko.pdf.common.Logcat;
 
 import com.artifex.mupdf.fitz.Cookie;
 import com.artifex.mupdf.fitz.DisplayList;
@@ -26,9 +22,10 @@ import com.artifex.mupdf.viewer.OutlineActivity;
 import org.ebookdroid.core.crop.PageCropper;
 
 import java.io.File;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
+
+import cn.archko.pdf.common.BitmapPool;
+import cn.archko.pdf.common.Logcat;
 
 /**
  * @author archko 2019/12/8 :12:43
@@ -286,6 +283,8 @@ public class MupdfDocument {
         return bitmap;
     }
 
+    //=================================================
+
     public static float[] getArrByCrop(final Page page, final Matrix ctm, final int pageW, final int pageH, int leftBound, int topBound) {
         float ratio = 6f;
         Bitmap thumb = BitmapPool.getInstance().acquire((int) (pageW / ratio), (int) (pageH / ratio));
@@ -312,6 +311,7 @@ public class MupdfDocument {
             //        pageW, pageH, height, thumb.getWidth(), thumb.getHeight(), rectF, xscale, yscale));
         }
         float[] arr = {leftBound, topBound, height, xscale};
+        BitmapPool.getInstance().release(thumb);
         return arr;
     }
 
