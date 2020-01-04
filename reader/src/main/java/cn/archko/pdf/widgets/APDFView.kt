@@ -22,12 +22,10 @@ public class APDFView(protected val mContext: Context,
     private var mZoom: Float = 0.toFloat()
 
     init {
-        mZoom = aPage!!.getZoom()
-
         updateView()
     }
 
-    fun updateView() {
+    private fun updateView() {
         scaleType = ImageView.ScaleType.MATRIX
         setLayerType(View.LAYER_TYPE_HARDWARE, null)
     }
@@ -37,23 +35,37 @@ public class APDFView(protected val mContext: Context,
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        //super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        var x: Int
-        var y: Int
-        x = aPage!!.realCropWidth
-        y = aPage!!.realCropHeight
-        val d = drawable;
-        if (d != null && (d.intrinsicWidth > 0 && d.intrinsicHeight > 0)) {
-            x = d.intrinsicWidth
-            y = d.intrinsicHeight
+        var mwidth = aPage!!.realCropWidth
+        var mheight = aPage!!.realCropHeight
+
+        val d = drawable
+        if (null != d) {
+            val dwidth = d.intrinsicWidth
+            val dheight = d.intrinsicHeight
+
+            mwidth = dwidth
+            mheight = dheight
+
+            if (mZoom > 1.0f) {
+                val sx = (mwidth * mZoom).toInt()
+                val sy = (mheight * mZoom).toInt()
+                val dx = sx - mwidth;
+                val dy = sy - mheight;
+                mwidth = sx
+                mheight = sy
+                imageMatrix.reset()
+                imageMatrix.setScale(mZoom, mZoom)
+                imageMatrix.postTranslate((-dx).toFloat(), (-dy).toFloat())
+            }
         }
 
-        setMeasuredDimension(x, y)
+        setMeasuredDimension(mwidth, mheight)
         //Logcat.d(String.format("onMeasure,width:%s,height:%s, page:%s-%s, mZoom: %s, aPage:%s",
         //        x, y, aPage!!.effectivePagesWidth, aPage!!.effectivePagesHeight, mZoom, aPage));
     }
 
     fun updatePage(pageSize: APage, newZoom: Float, crop: Boolean) {
+        val oldZoom = aPage!!.scaleZoom
         var changeScale = false
         if (mZoom != newZoom) {
             changeScale = true
@@ -65,22 +77,31 @@ public class APDFView(protected val mContext: Context,
 
         val zoomSize = aPage!!.zoomPoint
         val xOrigin = (zoomSize.x - aPage!!.targetWidth) / 2
-        Logcat.d(String.format("updatePage xOrigin: %s,changeScale:%s", xOrigin, changeScale));
+        Logcat.d(String.format("updatePage xOrigin: %s,changeScale:%s, oldZoom:%s, newScaleZoom:%s,newZoom:%s,",
+                xOrigin, changeScale, oldZoom,aPage!!.scaleZoom, newZoom));
 
-        val mBitmap = BitmapCache.getInstance().getBitmap(ImageDecoder.getCacheKey(aPage!!.index, crop))
+        var bmp = BitmapCache.getInstance().getBitmap(ImageDecoder.getCacheKey(aPage!!.index, crop, aPage!!.scaleZoom))
 
-        if (null != mBitmap) {
-            if (Logcat.loggable) {
-                Logcat.d(String.format("setPage changeScale: %s,cache:%s", changeScale, mBitmap.toString()));
+        if (null != bmp) {
+            setImageBitmap(bmp)
+            imageMatrix.reset()
+            if (!changeScale) {
+                return
             }
-            if (changeScale) {
-                val matrix = android.graphics.Matrix()
-                matrix.postScale(newZoom, newZoom)
-                matrix.postTranslate((-xOrigin).toFloat(), 0f)
-                imageMatrix = matrix
-            }
+        }
 
-            setImageBitmap(mBitmap)
+        if (changeScale && bmp == null) {
+            bmp = BitmapCache.getInstance().getBitmap(ImageDecoder.getCacheKey(aPage!!.index, crop, oldZoom))
+            //if (Logcat.loggable) {
+            //    Logcat.d(String.format("updatePage xOrigin: %s, oldZoom:%s, newZoom:%s, bmp:%s",
+            //            xOrigin, oldZoom, newZoom, bmp));
+            //}
+            if (null != bmp) {
+                setImageBitmap(bmp)
+                imageMatrix.reset()
+                imageMatrix.setScale(newZoom, newZoom)
+                imageMatrix.postTranslate((-xOrigin).toFloat(), 0f)
+            }
         }
 
         ImageDecoder.getInstance().loadImage(aPage, crop, xOrigin, this, mCore) { bitmap ->
