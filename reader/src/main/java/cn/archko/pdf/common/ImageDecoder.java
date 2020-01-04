@@ -23,7 +23,6 @@ public class ImageDecoder extends ImageWorker {
 
     public static final String TAG = "ImageDecoder";
     private LruCache<Object, Bitmap> mImageCache = BitmapCache.getInstance().getCache();
-    private LruCache<String, APage> pageLruCache = new LruCache<>(32);
 
     public static ImageDecoder getInstance() {
         return Factory.instance;
@@ -70,7 +69,7 @@ public class ImageDecoder extends ImageWorker {
 
     @Override
     public LruCache<String, APage> getPageLruCache() {
-        return pageLruCache;
+        return null;
     }
 
     public void loadImage(APage aPage, boolean crop, int xOrigin,
@@ -159,6 +158,5 @@ public class ImageDecoder extends ImageWorker {
     @Override
     public void recycle() {
         mImageCache.evictAll();
-        pageLruCache.evictAll();
     }
 }
