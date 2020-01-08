@@ -32,7 +32,7 @@ class APDFPageView(protected val mContext: Context,
         pdfPage.setBounds(RectF(0f, 0f, this.pageSize.effectivePagesWidth.toFloat(), this.pageSize.effectivePagesHeight.toFloat()))
     }
 
-    fun updateView() {
+    private fun updateView() {
         setLayerType(View.LAYER_TYPE_HARDWARE, null)
     }
 
@@ -41,21 +41,10 @@ class APDFPageView(protected val mContext: Context,
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        //super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         var width: Int
         var height: Int
-        val wmode = MeasureSpec.getMode(widthMeasureSpec)
-        val hmode = MeasureSpec.getMode(heightMeasureSpec)
         width = pageSize.realCropWidth
         height = pageSize.realCropHeight
-        //if (wmode == MeasureSpec.UNSPECIFIED) {
-        //} else {
-        //    width = MeasureSpec.getSize(widthMeasureSpec)
-        //}
-        //if (hmode == MeasureSpec.UNSPECIFIED) {
-        //} else {
-        //    height = MeasureSpec.getSize(heightMeasureSpec)
-        //}
 
         setMeasuredDimension(width, height)
         Logcat.d(String.format("onMeasure,width:%s,height:%s, page:%s-%s, mZoom: %s, aPage:%s",

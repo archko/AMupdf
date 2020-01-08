@@ -93,10 +93,10 @@ public class APage {
         initSourceBounds(1.0f);
     }
 
-    private void initSourceBounds(float scale) {
+    private void initSourceBounds(float cropScale) {
         sourceBounds = new RectF();
-        sourceBounds.right = getEffectivePagesWidth() * scale;
-        sourceBounds.bottom = getEffectivePagesHeight() * scale;
+        sourceBounds.right = getEffectivePagesWidth() * cropScale * mZoom;
+        sourceBounds.bottom = getEffectivePagesHeight() * cropScale * mZoom;
     }
 
     public PointF getPageSize() {
@@ -108,10 +108,10 @@ public class APage {
     }
 
     public void setTargetWidth(int targetWidth) {
-        this.targetWidth = targetWidth;
-        if (targetWidth > 0) {
+        if (targetWidth > 0 && this.targetWidth != targetWidth) {
             scale = calculateScale(targetWidth);
         }
+        this.targetWidth = targetWidth;
     }
 
     private float calculateScale(int tw) {
@@ -126,11 +126,11 @@ public class APage {
         return getScaledHeight(mPageSize, scale);
     }
 
-    private int getScaledHeight(PointF page, float scale) {
+    private static int getScaledHeight(PointF page, float scale) {
         return (int) (scale * page.y);
     }
 
-    private int getScaledWidth(PointF page, float scale) {
+    private static int getScaledWidth(PointF page, float scale) {
         return (int) (scale * page.x);
     }
 
@@ -166,8 +166,8 @@ public class APage {
         this.cropBounds = cropBounds;
         this.cropScale = cropScale;
         initSourceBounds(cropScale);
-        setCropWidth((int) cropBounds.right);
-        setCropHeight((int) cropBounds.bottom);
+        setCropWidth((int) cropBounds.width());
+        setCropHeight((int) cropBounds.height());
     }
 
     public RectF getSourceBounds() {
@@ -179,10 +179,19 @@ public class APage {
     }
 
     public int getCropWidth() {
+        if (cropWidth == 0) {
+            cropWidth = getEffectivePagesWidth();
+        }
         return cropWidth;
     }
 
     public int getCropHeight() {
+        if (cropBounds != null) {
+            return (int) cropBounds.height();
+        }
+        if (cropHeight == 0) {
+            cropHeight = getEffectivePagesHeight();
+        }
         return cropHeight;
     }
 

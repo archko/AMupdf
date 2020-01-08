@@ -307,7 +307,7 @@ class PageTreeNode {
 
                 pageSize.setCropWidth(pageW);
                 pageSize.setCropHeight(pageH);
-                RectF cropRectf = new RectF(leftBound, topBound, pageW, pageH);
+                RectF cropRectf = new RectF(leftBound, topBound, leftBound + pageW, topBound + pageH);
                 pageSize.setCropBounds(cropRectf, cropScale);
                 return cropRectf;
             }

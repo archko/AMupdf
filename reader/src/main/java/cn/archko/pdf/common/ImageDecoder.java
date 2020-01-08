@@ -103,6 +103,10 @@ public class ImageDecoder extends ImageWorker {
             float yscale = (float) pageH / (float) (bbox.y1 - bbox.y0);
             ctm.scale(xscale, yscale);
 
+            if ((pageSize.getTargetWidth() > 0)) {
+                pageW = pageSize.getTargetWidth();
+            }
+
             if (decodeParam.crop) {
                 float[] arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound);
                 leftBound = (int) arr[0];
@@ -110,20 +114,16 @@ public class ImageDecoder extends ImageWorker {
                 pageH = (int) arr[2];
                 float cropScale = arr[3];
 
-                RectF cropRectf = new RectF(leftBound, topBound, pageW, pageH);
-                pageSize.setCropBounds(cropRectf, cropScale);
                 pageSize.setCropHeight(pageH);
+                pageSize.setCropWidth(pageW);
+                //RectF cropRectf = new RectF(leftBound, topBound, leftBound + pageW, topBound + pageH);
+                //pageSize.setCropBounds(cropRectf, cropScale);
             }
             if (Logcat.loggable) {
                 Logcat.d(TAG, String.format("decode bitmap: %s-%s,page:%s-%s,xOrigin:%s, bound(left-top):%s-%s, page:%s",
                         pageW, pageH, pageSize.getZoomPoint().x, pageSize.getZoomPoint().y,
                         decodeParam.xOrigin, leftBound, topBound, pageSize));
             }
-
-            if ((pageSize.getTargetWidth() > 0)) {
-                pageW = pageSize.getTargetWidth();
-            }
-            pageSize.setCropWidth(pageW);
 
             Bitmap bitmap = BitmapPool.getInstance().acquire(pageW, pageH);//Bitmap.createBitmap(sizeX, sizeY, Bitmap.Config.ARGB_8888);
 

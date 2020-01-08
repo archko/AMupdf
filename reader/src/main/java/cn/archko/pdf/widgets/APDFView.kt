@@ -35,8 +35,8 @@ public class APDFView(protected val mContext: Context,
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        var mwidth = aPage!!.realCropWidth
-        var mheight = aPage!!.realCropHeight
+        var mwidth = aPage!!.cropWidth
+        var mheight = aPage!!.cropHeight
 
         val d = drawable
         if (null != d) {
