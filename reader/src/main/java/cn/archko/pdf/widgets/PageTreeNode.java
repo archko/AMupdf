@@ -158,7 +158,7 @@ class PageTreeNode {
     private Rect getCropTargetRect() {
         if (cropTargetRect == null) {
             cropMatrix.reset();
-            RectF cropBounds = apdfPage.aPage.getCropBounds();
+            RectF cropBounds = apdfPage.getCropBounds();
             cropMatrix.postScale(cropBounds.width(), cropBounds.height());
             //cropMatrix.postScale(apdfPage.aPage.getCropScale(), apdfPage.aPage.getCropScale());
             cropMatrix.postTranslate(cropBounds.left, cropBounds.top);

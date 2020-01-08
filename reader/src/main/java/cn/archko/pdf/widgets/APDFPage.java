@@ -137,7 +137,6 @@ class APDFPage {
             initChildren();
             for (PageTreeNode child : children) {
                 child.updateVisibility();
-                child.invalidateNodeBounds();
             }
         }
     }
