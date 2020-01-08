@@ -62,8 +62,8 @@ public class APDFView(protected val mContext: Context,
         }
 
         setMeasuredDimension(mwidth, mheight)
-        //Logcat.d(String.format("onMeasure,width:%s,height:%s, page:%s-%s, mZoom: %s, aPage:%s",
-        //        x, y, aPage!!.effectivePagesWidth, aPage!!.effectivePagesHeight, mZoom, aPage));
+        Logcat.d(String.format("onMeasure,width:%s,height:%s, page:%s-%s, mZoom: %s, aPage:%s",
+                mwidth, mheight, aPage!!.effectivePagesWidth, aPage!!.effectivePagesHeight, mZoom, aPage));
     }
 
     fun updatePage(pageSize: APage, newZoom: Float, crop: Boolean) {

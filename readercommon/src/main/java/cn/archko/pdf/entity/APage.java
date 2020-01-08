@@ -203,17 +203,17 @@ public class APage {
         this.cropHeight = cropHeight;
     }
 
-    public int getRealCropWidth() {
-        //if (sourceBounds != null) {
-        //    return (int) sourceBounds.width();
-        //}
+    public int getCropScaleWidth() {
+        if (cropBounds != null) {
+            return (int) cropBounds.width();
+        }
         if (cropWidth == 0) {
             cropWidth = getEffectivePagesWidth();
         }
         return cropWidth;
     }
 
-    public int getRealCropHeight() {
+    public int getCropScaleHeight() {
         if (cropBounds != null) {
             return (int) cropBounds.height();
         }
@@ -234,7 +234,12 @@ public class APage {
         if (Float.compare(aPage.mZoom, mZoom) != 0) return false;
         if (targetWidth != aPage.targetWidth) return false;
         if (Float.compare(aPage.scale, scale) != 0) return false;
-        return mPageSize != null ? mPageSize.equals(aPage.mPageSize) : aPage.mPageSize == null;
+        if (Float.compare(aPage.cropScale, cropScale) != 0) return false;
+        if (mPageSize != null ? !mPageSize.equals(aPage.mPageSize) : aPage.mPageSize != null)
+            return false;
+        if (sourceBounds != null ? !sourceBounds.equals(aPage.sourceBounds) : aPage.sourceBounds != null)
+            return false;
+        return cropBounds != null ? cropBounds.equals(aPage.cropBounds) : aPage.cropBounds == null;
     }
 
     @Override
@@ -244,6 +249,9 @@ public class APage {
         result = 31 * result + (mZoom != +0.0f ? Float.floatToIntBits(mZoom) : 0);
         result = 31 * result + targetWidth;
         result = 31 * result + (scale != +0.0f ? Float.floatToIntBits(scale) : 0);
+        result = 31 * result + (cropScale != +0.0f ? Float.floatToIntBits(cropScale) : 0);
+        result = 31 * result + (sourceBounds != null ? sourceBounds.hashCode() : 0);
+        result = 31 * result + (cropBounds != null ? cropBounds.hashCode() : 0);
         return result;
     }
 

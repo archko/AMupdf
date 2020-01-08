@@ -29,7 +29,7 @@ class APDFPageView(protected val mContext: Context,
 
     private fun initPdfPage(crop: Boolean) {
         pdfPage = APDFPage(this, pageSize, mCore, crop);
-        pdfPage.setBounds(RectF(0f, 0f, this.pageSize.effectivePagesWidth.toFloat(), this.pageSize.effectivePagesHeight.toFloat()))
+        pdfPage.setBounds(RectF(0f, 0f, this.pageSize.cropScaleWidth.toFloat(), this.pageSize.cropScaleHeight.toFloat()))
     }
 
     private fun updateView() {
@@ -41,10 +41,8 @@ class APDFPageView(protected val mContext: Context,
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        var width: Int
-        var height: Int
-        width = pageSize.realCropWidth
-        height = pageSize.realCropHeight
+        val width = pageSize.cropScaleWidth
+        val height = pageSize.cropScaleHeight
 
         setMeasuredDimension(width, height)
         Logcat.d(String.format("onMeasure,width:%s,height:%s, page:%s-%s, mZoom: %s, aPage:%s",
@@ -61,7 +59,7 @@ class APDFPageView(protected val mContext: Context,
         if (this.pageSize != pageSize) {
             this.pageSize = pageSize
             isNew = true
-            pdfPage.setBounds(RectF(0f, 0f, pageSize.effectivePagesWidth.toFloat(), pageSize.effectivePagesHeight.toFloat()))
+            pdfPage.setBounds(RectF(0f, 0f, pageSize.cropScaleWidth.toFloat(), pageSize.cropScaleHeight.toFloat()))
             pdfPage.update(this, pageSize)
         }
         mZoom = newZoom
@@ -71,7 +69,7 @@ class APDFPageView(protected val mContext: Context,
         val xOrigin = (zoomSize.x - this.pageSize.targetWidth) / 2
 
         Logcat.d(String.format("setPage:isNew:%s,width-height:%s-%s, mZoom: %s, aPage:%s",
-                isNew, pageSize.effectivePagesWidth, pageSize.effectivePagesHeight, mZoom, pageSize));
+                isNew, pageSize.cropScaleWidth, pageSize.cropScaleHeight, mZoom, pageSize));
         pdfPage.updateVisibility(crop, xOrigin)
     }
 }

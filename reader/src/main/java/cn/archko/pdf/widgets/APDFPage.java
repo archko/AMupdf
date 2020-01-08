@@ -129,6 +129,7 @@ class APDFPage {
     public void setCropBounds(RectF cropBounds) {
         isDecodingCrop = false;
         if (this.cropBounds != cropBounds) {
+            documentView.requestLayout();
             this.cropBounds = cropBounds;
             if (children != null) {
                 for (PageTreeNode child : children) {
