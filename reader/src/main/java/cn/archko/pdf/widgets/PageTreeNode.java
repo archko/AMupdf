@@ -10,13 +10,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.os.AsyncTask;
 
-import cn.archko.pdf.utils.BitmapUtils;
-import cn.archko.pdf.utils.FileUtils;
-import cn.archko.pdf.utils.StreamUtils;
-
 import com.artifex.mupdf.fitz.RectI;
-
-import java.io.File;
 
 import cn.archko.pdf.common.BitmapCache;
 import cn.archko.pdf.common.BitmapPool;
@@ -274,7 +268,7 @@ class PageTreeNode {
                 }
                 mPage.destroy();
 
-                BitmapUtils.saveBitmapToFile(bitmap, new File(FileUtils.getStoragePath(pageType + "xx.png")));
+                //BitmapUtils.saveBitmapToFile(bitmap, new File(FileUtils.getStoragePath(pageType + "xx.png")));
                 return bitmap;
             }
 
