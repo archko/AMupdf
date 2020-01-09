@@ -16,7 +16,7 @@ import com.artifex.mupdf.fitz.Document
 @SuppressLint("AppCompatCustomView")
 public class APDFView(protected val mContext: Context,
                       private val mCore: Document?,
-                      private var aPage: APage?,
+                      private var aPage: APage,
                       crop: Boolean) : ImageView(mContext) {
 
     private var mZoom: Float = 0.toFloat()

@@ -10,7 +10,13 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.os.AsyncTask;
 
+import cn.archko.pdf.utils.BitmapUtils;
+import cn.archko.pdf.utils.FileUtils;
+import cn.archko.pdf.utils.StreamUtils;
+
 import com.artifex.mupdf.fitz.RectI;
+
+import java.io.File;
 
 import cn.archko.pdf.common.BitmapCache;
 import cn.archko.pdf.common.BitmapPool;
@@ -20,6 +26,7 @@ import cn.archko.pdf.pdf.MupdfDocument;
 import cn.archko.pdf.utils.Utils;
 
 class PageTreeNode {
+
     static final int PAGE_TYPE_LEFT_TOP = 0;
     static final int PAGE_TYPE_RIGHT_TOP = 1;
     static final int PAGE_TYPE_LEFT_BOTTOM = 2;
@@ -240,8 +247,10 @@ class PageTreeNode {
 
             private Bitmap renderBitmap() {
                 Rect rect = getTargetRect();
+                float scale = 1.0f;
                 if (apdfPage.crop && apdfPage.cropBounds != null) {
                     rect = getCropTargetRect();
+                    scale=apdfPage.aPage.getCropScale();
                 }
 
                 int leftBound = 0;
@@ -254,7 +263,6 @@ class PageTreeNode {
 
                 Bitmap bitmap = BitmapPool.getInstance().acquire(width, height);
 
-                float scale = 1.0f;
                 com.artifex.mupdf.fitz.Page mPage = apdfPage.mDocument.loadPage(pageSize.index);
                 com.artifex.mupdf.fitz.Matrix ctm = new com.artifex.mupdf.fitz.Matrix(pageSize.getScaleZoom() * scale);
                 MupdfDocument.render(mPage, ctm, bitmap, xOrigin, leftBound, topBound);
@@ -265,6 +273,8 @@ class PageTreeNode {
                             width, height, xOrigin, leftBound, topBound, pageSize));
                 }
                 mPage.destroy();
+
+                BitmapUtils.saveBitmapToFile(bitmap, new File(FileUtils.getStoragePath(pageType + "xx.png")));
                 return bitmap;
             }
 
