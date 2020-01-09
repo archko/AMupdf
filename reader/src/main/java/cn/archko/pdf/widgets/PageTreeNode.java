@@ -216,7 +216,7 @@ class PageTreeNode {
         bitmapAsyncTask = new AsyncTask<String, String, Bitmap>() {
             @Override
             protected Bitmap doInBackground(String... params) {
-                if (isCancelled()) {
+                if (isCancelled() || isRecycle) {
                     return null;
                 }
                 return renderBitmap();
@@ -268,7 +268,7 @@ class PageTreeNode {
         Utils.execute(true, new AsyncTask<String, String, RectF>() {
             @Override
             protected RectF doInBackground(String... params) {
-                if (isCancelled()) {
+                if (isCancelled() || isRecycle) {
                     return null;
                 }
                 return renderBitmap();

@@ -117,11 +117,13 @@ class APDFPage {
     }
 
     void setBounds(RectF pageBounds) {
-        bounds = pageBounds;
-        cropBounds = null;
-        if (children != null) {
-            for (PageTreeNode child : children) {
-                child.invalidateNodeBounds();
+        if (!isRectEquals(bounds, pageBounds)) {
+            bounds = pageBounds;
+            cropBounds = null;
+            if (children != null) {
+                for (PageTreeNode child : children) {
+                    child.invalidateNodeBounds();
+                }
             }
         }
     }
@@ -169,6 +171,17 @@ class APDFPage {
     public void recycle() {
         recycleChildren();
         //aPage = null;
+    }
+
+    static boolean isRectEquals(RectF thisBounds, RectF thatBounds) {
+        if (thisBounds == null || thatBounds == null) {
+            return false;
+        }
+
+        return thisBounds.left == thatBounds.left
+                && thisBounds.top == thatBounds.top
+                && thisBounds.right == thatBounds.right
+                && thisBounds.bottom == thatBounds.bottom;
     }
 
     @Override
