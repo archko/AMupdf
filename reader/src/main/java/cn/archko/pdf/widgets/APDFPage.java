@@ -75,7 +75,7 @@ class APDFPage {
         if (!isVisible()) {
             return;
         }
-        canvas.drawRect(bounds, fillPaint);
+        //canvas.drawRect(bounds, fillPaint);
         if (children == null) {
             return;
         }
@@ -96,8 +96,8 @@ class APDFPage {
 
     private Paint fillPaint() {
         final Paint fillPaint = new Paint();
-        fillPaint.setColor(Color.GRAY);
-        //fillPaint.setColor(Color.WHITE);
+        //fillPaint.setColor(Color.GRAY);
+        fillPaint.setColor(Color.WHITE);
         fillPaint.setStyle(Paint.Style.FILL);
         return fillPaint;
     }
@@ -131,7 +131,7 @@ class APDFPage {
         if (this.cropBounds != cropBounds) {
             documentView.requestLayout();
             this.cropBounds = cropBounds;
-            bounds = new RectF(0, 0, aPage.getCropScaleWidth() * aPage.getCropScale(), aPage.getCropScaleHeight() * aPage.getCropScale());
+            bounds = new RectF(0, 0, aPage.getCropScaleWidth(), aPage.getCropScaleHeight());
 
             recycleChildren();
             initChildren();

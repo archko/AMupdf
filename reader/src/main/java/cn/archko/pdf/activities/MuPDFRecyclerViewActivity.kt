@@ -20,7 +20,7 @@ import cn.archko.pdf.R
 import cn.archko.pdf.common.*
 import cn.archko.pdf.entity.APage
 import cn.archko.pdf.utils.Utils
-import cn.archko.pdf.widgets.APDFView
+import cn.archko.pdf.widgets.APDFPageView
 import cn.archko.pdf.widgets.ViewerDividerItemDecoration
 import com.artifex.mupdf.fitz.Document
 import com.jeremyliao.liveeventbus.LiveEventBus
@@ -396,7 +396,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
                     pageSize.targetWidth = parent.width;
                 }
             }
-            val view = APDFView(parent.context, mDocument, pageSize!!, crop)
+            val view = APDFPageView(parent.context, mDocument, pageSize!!, crop)
             var lp: RecyclerView.LayoutParams? = view.layoutParams as RecyclerView.LayoutParams?
             var width: Int = ViewGroup.LayoutParams.MATCH_PARENT
             var height: Int = ViewGroup.LayoutParams.MATCH_PARENT
@@ -434,7 +434,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
             return mDocument!!.countPages()
         }
 
-        inner class PdfHolder(internal var view: APDFView) : RecyclerView.ViewHolder(view) {
+        inner class PdfHolder(internal var view: APDFPageView) : RecyclerView.ViewHolder(view) {
             fun onBind(position: Int) {
                 val pageSize = mPageSizes.get(position)
                 //Logcat.d(String.format("bind:position:%s,width:%s,%s", position, pageSize.targetWidth, mRecyclerView.measuredWidth));

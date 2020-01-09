@@ -56,6 +56,12 @@ public class BitmapCache {
         return cacheKt.get(key);
     }
 
+    public Bitmap removeBitmap(Object key) {
+        Bitmap bitmap = cacheKt.get(key);
+        cacheKt.remove(key);
+        return bitmap;
+    }
+
     private static class RecycleLruCache extends LruCache<Object, Bitmap> {
 
         public RecycleLruCache(int maxSize) {

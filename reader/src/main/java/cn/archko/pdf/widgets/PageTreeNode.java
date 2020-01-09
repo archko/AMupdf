@@ -31,9 +31,8 @@ class PageTreeNode {
     private Matrix matrix = new Matrix();
     private Matrix cropMatrix = new Matrix();
     private final Paint bitmapPaint = new Paint();
-    private final Paint strokePaint = strokePaint();
-    private final Paint strokePaint2 = strokePaint2();
-    private final Paint fillPaint = fillPaint();
+    //private final Paint strokePaint = strokePaint();
+    //private final Paint strokePaint2 = strokePaint2();
     private Rect targetRect;
     private Rect cropTargetRect;
     private AsyncTask<String, String, Bitmap> bitmapAsyncTask;
@@ -75,21 +74,14 @@ class PageTreeNode {
         return strokePaint;
     }
 
-    private Paint fillPaint() {
-        final Paint fillPaint = new Paint();
-        fillPaint.setColor(Color.GRAY);
-        fillPaint.setStyle(Paint.Style.FILL);
-        return fillPaint;
-    }
-
     void draw(Canvas canvas) {
         Bitmap bitmap = getBitmap();
         if (bitmap != null) {
             Rect tRect = getTargetRect();
-            Logcat.d(String.format("draw:%s-%s,w-h:%s-%s,rect:%s", tRect.width(), tRect.height(), bitmap.getWidth(), bitmap.getHeight(), tRect));
+            //Logcat.d(String.format("draw:%s-%s,w-h:%s-%s,rect:%s", tRect.width(), tRect.height(), bitmap.getWidth(), bitmap.getHeight(), tRect));
             canvas.drawBitmap(bitmap, new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight()), tRect, bitmapPaint);
-            canvas.drawRect(tRect, strokePaint);
-            canvas.drawRect(getCropTargetRect(), strokePaint2);
+            //canvas.drawRect(tRect, strokePaint);
+            //canvas.drawRect(getCropTargetRect(), strokePaint2);
         }
     }
 
@@ -102,18 +94,6 @@ class PageTreeNode {
     }
 
     private void decodePageTreeNode() {
-        //ImageDecoder.getInstance().loadImage(page.aPage, false, 0, page.documentView, page.mDocument,
-        //        new DecodeService.DecodeCallback() {
-        //            @Override
-        //            public void decodeComplete(Bitmap bitmap) {
-        //                //if (Logcat.loggable) {
-        //                //    Logcat.d(String.format("decode2 relayout bitmap:index:%s, %s:%s imageView->%s:%s",
-        //                //            pageSize.index, bitmap.width, bitmap.height,
-        //                //            getWidth(), getHeight()));
-        //                //}
-        //                setBitmap(bitmap);
-        //            }
-        //        });
         decode(0, apdfPage.aPage);
     }
 
@@ -161,7 +141,6 @@ class PageTreeNode {
             cropMatrix.reset();
             RectF cropBounds = apdfPage.getCropBounds();
             cropMatrix.postScale(cropBounds.width(), cropBounds.height());
-            //cropMatrix.postScale(apdfPage.aPage.getCropScale(), apdfPage.aPage.getCropScale());
             cropMatrix.postTranslate(cropBounds.left, cropBounds.top);
             RectF rectF = new RectF();
             cropMatrix.mapRect(rectF, pageSliceBounds);
@@ -176,7 +155,11 @@ class PageTreeNode {
             bitmapAsyncTask.cancel(true);
             bitmapAsyncTask = null;
         }
-        setBitmap(null);
+        Bitmap bitmap = BitmapCache.getInstance().removeBitmap(getKey());
+        if (bitmap != null) {
+            BitmapPool.getInstance().release(bitmap);
+            bitmap = null;
+        }
     }
 
     @Override
@@ -244,7 +227,7 @@ class PageTreeNode {
                 float scale = 1.0f;
                 if (apdfPage.crop && apdfPage.cropBounds != null) {
                     rect = getCropTargetRect();
-                    scale=apdfPage.aPage.getCropScale();
+                    scale = apdfPage.aPage.getCropScale();
                 }
 
                 int leftBound = 0;
