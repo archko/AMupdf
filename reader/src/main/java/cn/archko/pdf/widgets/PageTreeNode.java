@@ -47,7 +47,7 @@ class PageTreeNode {
     void updateVisibility() {
         if (isVisible()) {
             if (getBitmap() != null) {
-                //apdfPage.documentView.postInvalidate();
+                apdfPage.documentView.postInvalidate();
             } else {
                 decodePageTreeNode();
             }
@@ -199,6 +199,8 @@ class PageTreeNode {
 
     @SuppressLint("StaticFieldLeak")
     void decode(int xOrigin, APage pageSize) {
+        Logcat.d(String.format("task:%s,isRecycle:%s,decoding:%s,crop:%s,size:%s",
+                bitmapAsyncTask, isRecycle, apdfPage.isDecodingCrop, apdfPage.cropBounds, pageSize));
         if (null != bitmapAsyncTask) {
             bitmapAsyncTask.cancel(true);
         }
@@ -269,6 +271,7 @@ class PageTreeNode {
             @Override
             protected RectF doInBackground(String... params) {
                 if (isCancelled() || isRecycle) {
+                    apdfPage.isDecodingCrop = false;
                     return null;
                 }
                 return renderBitmap();
@@ -301,6 +304,7 @@ class PageTreeNode {
 
             @Override
             protected void onPostExecute(RectF rectF) {
+                apdfPage.isDecodingCrop = true;
                 if (null != rectF) {
                     apdfPage.setCropBounds(rectF);
                 }

@@ -82,8 +82,8 @@ class APDFPage {
         for (PageTreeNode child : children) {
             child.draw(canvas);
         }
-        canvas.drawLine(bounds.left, bounds.top, bounds.right, bounds.top, strokePaint);
-        canvas.drawLine(bounds.left, bounds.bottom, bounds.right, bounds.bottom, strokePaint);
+        //canvas.drawLine(bounds.left, bounds.top, bounds.right, bounds.top, strokePaint);
+        //canvas.drawLine(bounds.left, bounds.bottom, bounds.right, bounds.bottom, strokePaint);
     }
 
     private Paint strokePaint() {

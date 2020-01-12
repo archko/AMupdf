@@ -26,7 +26,7 @@ public class BitmapCache {
     /**
      * cache size for amupdf
      */
-    public static final int CAPACITY_FOR_AMUPDF = 8;
+    public static final int CAPACITY_FOR_AMUPDF = 32;
     /**
      * cache size for vudroid
      */
