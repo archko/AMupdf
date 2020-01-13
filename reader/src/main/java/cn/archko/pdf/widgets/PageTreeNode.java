@@ -246,7 +246,7 @@ class PageTreeNode {
                 com.artifex.mupdf.fitz.Matrix ctm = new com.artifex.mupdf.fitz.Matrix(pageSize.getScaleZoom() * scale);
                 MupdfDocument.render(mPage, ctm, bitmap, xOrigin, leftBound, topBound);
 
-                if (Logcat.loggable) {
+                if (Logcat.loggable && pageType == PAGE_TYPE_LEFT_TOP) {
                     Logcat.d(String.format("decode bitmap:rect:%s-%s, width-height:%s-%s,xOrigin:%s, bound:%s-%s, page:%s",
                             getTargetRect(), rect,
                             width, height, xOrigin, leftBound, topBound, pageSize));

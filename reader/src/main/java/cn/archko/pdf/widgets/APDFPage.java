@@ -11,6 +11,7 @@ import com.artifex.mupdf.fitz.Document;
 
 import java.util.Arrays;
 
+import cn.archko.pdf.common.Logcat;
 import cn.archko.pdf.entity.APage;
 
 class APDFPage {
@@ -50,6 +51,7 @@ class APDFPage {
             }
             initChildren();
         }
+        Logcat.d(String.format("cropBounds:%s,isDecodingCrop:%s,aPage:%s, children:%s", cropBounds, isDecodingCrop, aPage, children));
         this.aPage = aPage;
         this.documentView = documentView;
         if (null != aPage.getCropBounds() && cropBounds != aPage.getCropBounds()) {
@@ -160,6 +162,7 @@ class APDFPage {
         }
         checkChildren();
         this.crop = crop;
+        isDecodingCrop = false;
         if (children != null) {
             for (PageTreeNode child : children) {
                 child.updateVisibility();
@@ -170,7 +173,8 @@ class APDFPage {
 
     public void recycle() {
         recycleChildren();
-        //aPage = null;
+        isDecodingCrop = false;
+        cropBounds = null;
     }
 
     static boolean isRectEquals(RectF thisBounds, RectF thatBounds) {

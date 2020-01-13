@@ -68,7 +68,7 @@ class APDFPageView(protected val mContext: Context,
         val zoomSize = this.pageSize.zoomPoint
         val xOrigin = (zoomSize.x - this.pageSize.targetWidth) / 2
 
-        Logcat.d(String.format("setPage:isNew:%s,width-height:%s-%s, mZoom: %s, aPage:%s",
+        Logcat.d(String.format("updatePage:isNew:%s,width-height:%s-%s, mZoom: %s, aPage:%s",
                 isNew, pageSize.cropScaleWidth, pageSize.cropScaleHeight, mZoom, pageSize));
         pdfPage.updateVisibility(crop, xOrigin)
     }
