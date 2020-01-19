@@ -163,6 +163,7 @@ class APDFPage {
         checkChildren();
         this.crop = crop;
         isDecodingCrop = false;
+        cropBounds = aPage.getCropBounds();
         if (children != null) {
             for (PageTreeNode child : children) {
                 child.updateVisibility();
