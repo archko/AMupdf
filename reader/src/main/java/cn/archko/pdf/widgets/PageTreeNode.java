@@ -90,7 +90,11 @@ class PageTreeNode {
     }
 
     public Bitmap getBitmap() {
-        return BitmapCache.getInstance().getBitmap(getKey());
+        Bitmap bitmap = BitmapCache.getInstance().getBitmap(getKey());
+        if (bitmap != null && bitmap.isRecycled()) {
+            bitmap = null;
+        }
+        return bitmap;
     }
 
     private void decodePageTreeNode() {
@@ -155,11 +159,11 @@ class PageTreeNode {
             bitmapAsyncTask.cancel(true);
             bitmapAsyncTask = null;
         }
-        Bitmap bitmap = BitmapCache.getInstance().removeBitmap(getKey());
-        if (bitmap != null) {
-            BitmapPool.getInstance().release(bitmap);
-            bitmap = null;
-        }
+        //Bitmap bitmap = BitmapCache.getInstance().removeBitmap(getKey());
+        //if (bitmap != null) {
+        //    BitmapPool.getInstance().release(bitmap);
+        //    bitmap = null;
+        //}
     }
 
     @Override

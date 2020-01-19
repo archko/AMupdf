@@ -26,7 +26,7 @@ public class BitmapCache {
     /**
      * cache size for amupdf
      */
-    public static final int CAPACITY_FOR_AMUPDF = 32;
+    public static final int CAPACITY_FOR_AMUPDF = 16;
     /**
      * cache size for vudroid
      */
@@ -70,7 +70,7 @@ public class BitmapCache {
 
         @Override
         protected void entryRemoved(boolean evicted, @NonNull Object key, @NonNull Bitmap oldValue, @Nullable Bitmap newValue) {
-            //BitmapPool.getInstance().release(oldValue);
+            BitmapPool.getInstance().release(oldValue);
         }
     }
 }

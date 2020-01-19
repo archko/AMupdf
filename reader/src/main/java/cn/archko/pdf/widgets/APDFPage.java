@@ -51,7 +51,7 @@ class APDFPage {
             }
             initChildren();
         }
-        Logcat.d(String.format("cropBounds:%s,isDecodingCrop:%s,aPage:%s, children:%s", cropBounds, isDecodingCrop, aPage, children));
+        //Logcat.d(String.format("cropBounds:%s,isDecodingCrop:%s,aPage:%s, children:%s", cropBounds, isDecodingCrop, aPage, children));
         this.aPage = aPage;
         this.documentView = documentView;
         if (null != aPage.getCropBounds() && cropBounds != aPage.getCropBounds()) {
