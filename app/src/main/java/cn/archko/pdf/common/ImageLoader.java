@@ -16,10 +16,9 @@ import com.artifex.mupdf.fitz.Rect;
 
 import java.io.File;
 
-import cn.archko.mupdf.R;
 import cn.archko.pdf.App;
 import cn.archko.pdf.entity.APage;
-import cn.archko.pdf.pdf.MupdfDocument;
+import cn.archko.pdf.mupdf.MupdfDocument;
 import cn.archko.pdf.utils.BitmapUtils;
 import cn.archko.pdf.utils.FileUtils;
 

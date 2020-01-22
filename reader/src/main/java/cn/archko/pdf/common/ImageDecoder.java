@@ -2,7 +2,6 @@ package cn.archko.pdf.common;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.RectF;
 import android.widget.ImageView;
 
 import com.artifex.mupdf.fitz.Document;
@@ -14,7 +13,7 @@ import androidx.collection.LruCache;
 import cn.archko.pdf.App;
 import cn.archko.pdf.entity.APage;
 import cn.archko.pdf.listeners.DecodeCallback;
-import cn.archko.pdf.pdf.MupdfDocument;
+import cn.archko.pdf.mupdf.MupdfDocument;
 
 /**
  * @author: archko 2019/8/30 :16:17

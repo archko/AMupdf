@@ -1,4 +1,4 @@
-package cn.archko.pdf.pdf;
+package cn.archko.pdf.mupdf;
 
 import android.content.Context;
 import android.graphics.Bitmap;

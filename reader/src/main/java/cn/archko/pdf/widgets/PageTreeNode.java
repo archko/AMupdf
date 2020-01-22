@@ -16,7 +16,7 @@ import cn.archko.pdf.common.BitmapCache;
 import cn.archko.pdf.common.BitmapPool;
 import cn.archko.pdf.common.Logcat;
 import cn.archko.pdf.entity.APage;
-import cn.archko.pdf.pdf.MupdfDocument;
+import cn.archko.pdf.mupdf.MupdfDocument;
 import cn.archko.pdf.utils.Utils;
 
 class PageTreeNode {
