@@ -30,7 +30,7 @@ public class BitmapCache {
     /**
      * cache size for vudroid
      */
-    public static final int CAPACITY_FOR_VUDROID = 64;
+    public static final int CAPACITY_FOR_VUDROID = 32;
 
     private int capacity = 8;
     private LruCache<Object, Bitmap> cacheKt = new RecycleLruCache(capacity);
@@ -70,7 +70,7 @@ public class BitmapCache {
 
         @Override
         protected void entryRemoved(boolean evicted, @NonNull Object key, @NonNull Bitmap oldValue, @Nullable Bitmap newValue) {
-            BitmapPool.getInstance().release(oldValue);
+            //BitmapPool.getInstance().release(oldValue);
         }
     }
 }

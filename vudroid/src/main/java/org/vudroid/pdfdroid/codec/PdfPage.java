@@ -76,7 +76,7 @@ public class PdfPage implements CodecPage {
         //matrix.postTranslate(-pageSliceBounds.left*width, -pageSliceBounds.top*height);
         //matrix.postScale(1/pageSliceBounds.width(), 1/pageSliceBounds.height());
 
-        long start= SystemClock.uptimeMillis();
+        //long start= SystemClock.uptimeMillis();
         int pageW;
         int pageH;
         int patchX;
@@ -94,7 +94,7 @@ public class PdfPage implements CodecPage {
         page.run(dev, ctm, (Cookie) null);
         dev.close();
         dev.destroy();
-        add(start);
+        //add(start);
 
         return bitmap;
     }
