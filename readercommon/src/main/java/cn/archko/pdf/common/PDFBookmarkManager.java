@@ -77,8 +77,8 @@ public class PDFBookmarkManager {
             bookmarkToRestore.offsetX = scrollX;
         }
         bookmarkToRestore.offsetY = scrollY;
-        bookmarkToRestore.progress = currentPage / pageCount;
-        Log.i(TAG, String.format("last page saved for :%s", bookmarkToRestore));
+        bookmarkToRestore.progress = currentPage * 100 / pageCount;
+        Log.i(TAG, String.format("last page saved for currentPage:%s, :%s", currentPage, bookmarkToRestore));
         RecentManager.getInstance().addAsyncToDB(bookmarkToRestore,
                 new DataListener() {
                     @Override

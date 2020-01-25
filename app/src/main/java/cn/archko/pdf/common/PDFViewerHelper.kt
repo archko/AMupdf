@@ -22,7 +22,7 @@ public class PDFViewerHelper {
     companion object {
 
         fun openWithDefaultViewer(f: File, activity: Activity) {
-            Logcat.i(Logcat.TAG, "post intent to open file " + f)
+            Logcat.i(Logcat.TAG, "post intent to open file $f")
             if (f.absolutePath.endsWith("txt", true)) {
                 Toast.makeText(activity, "can't load f:${f.absolutePath}", Toast.LENGTH_SHORT).show()
                 return
@@ -31,7 +31,7 @@ public class PDFViewerHelper {
         }
 
         fun openWithDefaultViewer(uri: Uri, activity: Activity) {
-            Logcat.i(Logcat.TAG, "post intent to open file " + uri)
+            Logcat.i(Logcat.TAG, "post intent to open file $uri")
             val intent = Intent()
             intent.setDataAndType(uri, "application/pdf")
             intent.setClass(activity, AMuPDFRecyclerViewActivity::class.java)
@@ -47,14 +47,14 @@ public class PDFViewerHelper {
 
             when (item.itemId) {
                 BrowserFragment.vudroidContextMenuItem -> {
-                    var map = mapOf("type" to "vudroid", "name" to clickedFile.name)
+                    val map = mapOf("type" to "vudroid", "name" to clickedFile.name)
                     MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
 
                     intent.setClass(activity, PdfViewerActivity::class.java)
                     activity.startActivity(intent)
                 }
                 BrowserFragment.mupdfContextMenuItem -> {
-                    var map = mapOf("type" to "AMuPDF", "name" to clickedFile.name)
+                    val map = mapOf("type" to "AMuPDF", "name" to clickedFile.name)
                     MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
 
                     intent.setClass(activity, AMuPDFRecyclerViewActivity::class.java)
@@ -67,7 +67,7 @@ public class PDFViewerHelper {
                 //    startActivity(intent)
                 //}
                 BrowserFragment.documentContextMenuItem -> {
-                    var map = mapOf("type" to "Document", "name" to clickedFile.name)
+                    val map = mapOf("type" to "Document", "name" to clickedFile.name)
                     MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
 
                     intent.setClass(activity, DocumentActivity::class.java)
@@ -75,7 +75,7 @@ public class PDFViewerHelper {
                     activity.startActivity(intent)
                 }
                 BrowserFragment.otherContextMenuItem -> {
-                    var map = mapOf("type" to "other", "name" to clickedFile.name)
+                    val map = mapOf("type" to "other", "name" to clickedFile.name)
                     MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
                     var mimeType = "application/pdf"
                     val name = clickedFile.absolutePath;

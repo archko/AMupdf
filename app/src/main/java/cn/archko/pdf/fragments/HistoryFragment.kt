@@ -41,7 +41,7 @@ import java.util.*
  */
 class HistoryFragment : BrowserFragment() {
 
-    internal var curPage = 0
+    private var curPage = 0
     internal var mListMoreView: ListMoreView? = null
     private var mStyle: Int = STYLE_GRID;
 
@@ -73,6 +73,10 @@ class HistoryFragment : BrowserFragment() {
                         updateItem(t)
                     }
                 })
+    }
+
+    override fun updateItem() {
+        currentBean = null
     }
 
     private fun updateItem(fileBean: FileBean?) {
@@ -227,6 +231,7 @@ class HistoryFragment : BrowserFragment() {
 
     private fun reset() {
         curPage = 0
+        currentBean = null
     }
 
     override fun loadData() {
@@ -303,7 +308,7 @@ class HistoryFragment : BrowserFragment() {
         }
     }
 
-    val onScrollListener: RecyclerView.OnScrollListener = object : RecyclerView.OnScrollListener() {
+    private val onScrollListener: RecyclerView.OnScrollListener = object : RecyclerView.OnScrollListener() {
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                 if (mListMoreView?.state == IMoreView.STATE_NORMAL

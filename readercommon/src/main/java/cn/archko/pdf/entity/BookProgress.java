@@ -32,7 +32,7 @@ public class BookProgress implements Serializable, Comparator<BookProgress> {
     public long lastTimestampe;
     public int readTimes;
     /**
-     * 进度0-100
+     * 进度0-100,not used
      */
     public int progress = 0;
     public int page;

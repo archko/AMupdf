@@ -33,7 +33,7 @@ public class APageSizeLoader {
     }
 
     public static void savePageSizeToFile(boolean crop, SparseArray<APage> sparseArray, File file) {
-        String content = toJson(crop, sparseArray).toString();
+        String content = toJson(crop, sparseArray);
         StreamUtils.saveStringToFile(content, file);
     }
 

@@ -4,14 +4,12 @@ import android.content.IntentFilter
 import android.os.Bundle
 import android.os.Environment
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import cn.archko.pdf.adapters.BookAdapter
 import cn.archko.pdf.common.Event
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.common.RecentManager
@@ -31,9 +29,9 @@ import java.util.*
  */
 class FavoriteFragment : BrowserFragment() {
 
-    internal var curPage = 0
-    internal var mListMoreView: ListMoreView? = null
-    private var mStyle: Int = STYLE_LIST;
+    private var curPage = 0
+    private var mListMoreView: ListMoreView? = null
+    private var mStyle: Int = HistoryFragment.STYLE_LIST;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,39 +57,8 @@ class FavoriteFragment : BrowserFragment() {
                 })
     }
 
-    override fun onResume() {
-        super.onResume()
-        /*val options = PreferenceManager.getDefaultSharedPreferences(activity)
-        mStyle = Integer.parseInt(options.getString(PdfOptionsActivity.PREF_LIST_STYLE, "0")!!)
-        applyStyle()*/
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        //ImageLoader.getInstance(activity).recycle()
-    }
-
     override fun onBackPressed(): Boolean {
         return false
-    }
-
-    override fun onOptionsItemSelected(menuItem: MenuItem): Boolean {
-        /*when (menuItem.itemId) {
-            R.id.action_style -> {
-                if (mStyle == STYLE_LIST) {
-                    mStyle = STYLE_GRID;
-                } else {
-                    mStyle = STYLE_LIST
-                }
-                PreferenceManager.getDefaultSharedPreferences(activity)
-                        .edit()
-                        .putString(PdfOptionsActivity.PREF_LIST_STYLE, mStyle.toString())
-                        .apply()
-                applyStyle()
-            }
-        }*/
-
-        return super.onOptionsItemSelected(menuItem)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -103,19 +70,6 @@ class FavoriteFragment : BrowserFragment() {
         fileListAdapter!!.addFootView(mListMoreView?.loadMoreView)
 
         return view
-    }
-
-    private fun applyStyle() {
-        if (mStyle == STYLE_LIST) {
-            fileListAdapter!!.setMode(BookAdapter.TYPE_RENCENT)
-            filesListView!!.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-            fileListAdapter!!.notifyDataSetChanged()
-        } else {
-            fileListAdapter!!.setMode(BookAdapter.TYPE_GRID)
-
-            filesListView!!.layoutManager = GridLayoutManager(activity, 3)
-            fileListAdapter!!.notifyDataSetChanged()
-        }
     }
 
     private fun reset() {
@@ -183,18 +137,18 @@ class FavoriteFragment : BrowserFragment() {
         }
     }
 
-    val onScrollListener: RecyclerView.OnScrollListener = object : RecyclerView.OnScrollListener() {
+    private val onScrollListener: RecyclerView.OnScrollListener = object : RecyclerView.OnScrollListener() {
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                 if (mListMoreView?.state == IMoreView.STATE_NORMAL
                         || mListMoreView?.state == IMoreView.STATE_LOAD_FAIL) {
                     var isReachBottom = false
-                    if (mStyle == STYLE_GRID) {
+                    if (mStyle == HistoryFragment.STYLE_GRID) {
                         val gridLayoutManager = filesListView?.layoutManager as GridLayoutManager
                         val rowCount = fileListAdapter!!.getItemCount() / gridLayoutManager.spanCount
                         val lastVisibleRowPosition = gridLayoutManager.findLastVisibleItemPosition() / gridLayoutManager.spanCount
                         isReachBottom = lastVisibleRowPosition >= rowCount - 1
-                    } else if (mStyle == STYLE_LIST) {
+                    } else if (mStyle == HistoryFragment.STYLE_LIST) {
                         val layoutManager: LinearLayoutManager = filesListView?.layoutManager as LinearLayoutManager
                         val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
                         val rowCount = fileListAdapter!!.getItemCount()
@@ -219,12 +173,8 @@ class FavoriteFragment : BrowserFragment() {
 
     companion object {
 
-        val TAG = "FavoriteFragment"
-        internal val PAGE_SIZE = 21
-        @JvmField
-        val STYLE_LIST = 0;
-        @JvmField
-        val STYLE_GRID = 1;
+        const val TAG = "FavoriteFragment"
+        internal const val PAGE_SIZE = 21
     }
 
 }

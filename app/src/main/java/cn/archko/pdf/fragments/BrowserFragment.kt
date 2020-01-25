@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
 import android.preference.PreferenceManager
 import android.view.*
 import android.widget.PopupMenu
@@ -40,6 +41,7 @@ import kotlin.collections.ArrayList
 open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefreshListener,
         PopupMenu.OnMenuItemClickListener {
 
+    protected val mHandler = Handler()
     private var mCurrentPath: String? = null
 
     protected var mSwipeRefreshWidget: SwipeRefreshLayout? = null
@@ -49,11 +51,12 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     protected var fileListAdapter: BookAdapter? = null
 
     private val dirsFirst = true
-    protected var showExtension: Boolean? = false
+    protected var showExtension: Boolean? = true
 
-    internal var mPathMap: MutableMap<String, Int> = HashMap()
-    protected var mSelectedPos = -1
-    internal var mScanner: ProgressScaner? = null
+    private var mPathMap: MutableMap<String, Int> = HashMap()
+    private var mSelectedPos = -1
+    private var mScanner: ProgressScaner? = null
+    protected var currentBean: FileBean? = null;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,7 +71,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         return super.onOptionsItemSelected(menuItem)
     }
 
-    fun setAsHome() {
+    private fun setAsHome() {
         val edit = activity?.getSharedPreferences(ChooseFileFragmentActivity.PREF_TAG, 0)?.edit()
         edit?.putString(ChooseFileFragmentActivity.PREF_HOME, mCurrentPath)
         edit?.apply()
@@ -78,7 +81,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         val path = Environment.getExternalStorageDirectory().absolutePath
         if (this.mCurrentPath != path && this.mCurrentPath != "/") {
             val upFolder = File(this.mCurrentPath!!).parentFile
-            if (upFolder.isDirectory) {
+            if (null != upFolder && upFolder.isDirectory) {
                 this.mCurrentPath = upFolder.absolutePath
                 loadData()
                 return true
@@ -89,16 +92,19 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
 
     override fun onResume() {
         super.onResume()
-        Logcat.d(TAG, ".onResume." + this)
-        MobclickAgent.onPageStart(javaClass.name);
+        Logcat.d(TAG, ".onResume.$this")
+        MobclickAgent.onPageStart(javaClass.name)
         val options = PreferenceManager.getDefaultSharedPreferences(App.getInstance())
         showExtension = options.getBoolean(PdfOptionsActivity.PREF_SHOW_EXTENSION, true)
+        currentBean?.let {
+            mHandler.postDelayed({ updateItem() }, 50L)
+        }
     }
 
     override fun onPause() {
         super.onPause()
         Logcat.i(TAG, ".onPause." + this)
-        MobclickAgent.onPageEnd(javaClass.name);
+        MobclickAgent.onPageEnd(javaClass.name)
     }
 
     override fun onDestroy() {
@@ -135,7 +141,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         super.onActivityCreated(savedInstanceState)
 
         this.filesListView?.adapter = this.fileListAdapter
-        loadData()
+        mHandler.postDelayed({ loadData() }, 80L)
     }
 
     override fun update() {
@@ -144,6 +150,40 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         }
 
         loadData()
+    }
+
+    open fun updateItem() {
+        val file = currentBean!!.file
+
+        file?.let {
+            doAsync {
+                try {
+                    val recentManager = RecentManager.getInstance()
+                    val progress = recentManager.readRecentFromDb(file.absolutePath, BookProgress.ALL);
+                    if (null != progress) {
+                        Logcat.d(TAG, "refresh entry:${progress}")
+                        if (null != fileListAdapter) {
+                            for (fb in fileListAdapter!!.data) {
+                                if (null != fb.bookProgress && fb.bookProgress._id == progress._id) {
+                                    fb.bookProgress.page = progress.page
+                                    fb.bookProgress.isFavorited = progress.isFavorited
+                                    fb.bookProgress.readTimes = progress.readTimes
+                                    fb.bookProgress.pageCount = progress.pageCount
+                                    fb.bookProgress.inRecent = progress.inRecent
+                                    break
+                                }
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                uiThread {
+                    fileListAdapter?.notifyDataSetChanged()
+                }
+            }
+        }
+        currentBean = null
     }
 
     open fun loadData() {
@@ -266,7 +306,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
             Toast.makeText(activity, resources.getString(R.string.toast_set_as_home), Toast.LENGTH_SHORT)
             path = defaultHome
         }
-        if (path!!.length > 1 && path!!.endsWith("/")) {
+        if (path!!.length > 1 && path.endsWith("/")) {
             path = path.substring(0, path.length - 2)
         }
 
@@ -278,7 +318,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
             return defaultHome
     }
 
-    val itemClickListener: OnItemClickListener<FileBean> = object : OnItemClickListener<FileBean> {
+    private val itemClickListener: OnItemClickListener<FileBean> = object : OnItemClickListener<FileBean> {
         override fun onItemClick(view: View?, data: FileBean?, position: Int) {
             clickItem(position)
         }
@@ -310,11 +350,13 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
             this@BrowserFragment.mCurrentPath = clickedFile.absolutePath
             loadData()
 
-            var map = mapOf("type" to "dir", "name" to clickedFile.name)
+            val map = mapOf("type" to "dir", "name" to clickedFile.name)
             MobclickAgent.onEvent(activity, AnalysticsHelper.A_FILE, map)
         } else {
-            var map = mapOf("type" to "file", "name" to clickedFile.name)
+            val map = mapOf("type" to "file", "name" to clickedFile.name)
             MobclickAgent.onEvent(activity, AnalysticsHelper.A_FILE, map)
+
+            currentBean = clickedEntry
             PDFViewerHelper.openWithDefaultViewer(Uri.fromFile(clickedFile), activity!!)
         }
     }
@@ -351,7 +393,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
 
      * @param menuBuilder
      */
-    fun onCreateCustomMenu(menuBuilder: PopupMenu) {
+    private fun onCreateCustomMenu(menuBuilder: PopupMenu) {
         /*menuBuilder.add(0, 1, 0, "title1");*/
         menuBuilder.menu.clear()
     }
@@ -361,7 +403,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
 
      * @param menuBuilder
      */
-    fun onPrepareCustomMenu(menuBuilder: PopupMenu, entry: FileBean) {
+    private fun onPrepareCustomMenu(menuBuilder: PopupMenu, entry: FileBean) {
         /*menuBuilder.add(0, 1, 0, "title1");*/
         if (entry.type == FileBean.HOME) {
             //menuBuilder.getMenu().add(R.string.set_as_home);
@@ -385,7 +427,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         setFavoriteMenu(menuBuilder, entry)
     }
 
-    fun setFavoriteMenu(menuBuilder: PopupMenu, entry: FileBean) {
+    private fun setFavoriteMenu(menuBuilder: PopupMenu, entry: FileBean) {
         if (null == entry.bookProgress) {
             if (null != entry.file) {
                 entry.bookProgress = BookProgress(FileUtils.getRealPath(entry.file.absolutePath))
@@ -407,7 +449,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         val position = mSelectedPos
         val entry = fileListAdapter!!.data[position]
         if (item.itemId == deleteContextMenuItem) {
-            Logcat.d(TAG, "delete:" + entry)
+            Logcat.d(TAG, "delete:$entry")
             MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, "delete")
             if (entry.type == FileBean.NORMAL && !entry.isDirectory) {
                 entry.file.delete()
@@ -423,29 +465,30 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         } else {
             val clickedFile: File = entry.file
 
-            if (null != clickedFile && clickedFile.exists()) {
+            if (clickedFile.exists()) {
                 if (item.itemId == infoContextMenuItem) {
-                    var map = mapOf("type" to "info", "name" to clickedFile.name)
+                    val map = mapOf("type" to "info", "name" to clickedFile.name)
                     MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
 
                     showFileInfoDiaLog(entry)
                     return true
                 }
                 if (item.itemId == addToFavoriteContextMenuItem) {
-                    var map = mapOf("type" to "addToFavorite", "name" to clickedFile.name)
+                    val map = mapOf("type" to "addToFavorite", "name" to clickedFile.name)
                     MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
 
                     favorite(entry, 1)
                     return true
                 }
 
+                currentBean = entry
                 PDFViewerHelper.openViewer(clickedFile, item, activity!!)
             }
         }
         return false
     }
 
-    protected fun favorite(entry: FileBean, isFavorited: Int) {
+    private fun favorite(entry: FileBean, isFavorited: Int) {
         doAsync {
             try {
                 val recentManager = RecentManager.getInstance().recentTableManager
@@ -459,7 +502,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
                     }
                     bookProgress = BookProgress(FileUtils.getRealPath(file.absolutePath))
                     entry.bookProgress = bookProgress
-                    entry.bookProgress.inRecent = BookProgress.NOT_IN_RECENT;
+                    entry.bookProgress.inRecent = BookProgress.NOT_IN_RECENT
                     entry.bookProgress.isFavorited = isFavorited
                     Logcat.d(TAG, "add favorite entry:${entry.bookProgress}")
                     recentManager.addProgress(entry.bookProgress)
@@ -473,12 +516,13 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
                 e.printStackTrace()
             }
             uiThread {
+                fileListAdapter?.notifyDataSetChanged()
                 postFavoriteEvent(entry, isFavorited)
             }
         }
     }
 
-    fun postFavoriteEvent(entry: FileBean, isFavorited: Int) {
+    private fun postFavoriteEvent(entry: FileBean, isFavorited: Int) {
         if (isFavorited == 1) {
             LiveEventBus
                     .get(Event.ACTION_FAVORITED)
@@ -490,7 +534,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         }
     }
 
-    protected fun showFileInfoDiaLog(entry: FileBean) {
+    private fun showFileInfoDiaLog(entry: FileBean) {
         FileInfoFragment.showInfoDialog(activity, entry, object : DataListener {
             override fun onSuccess(vararg args: Any?) {
                 val fileEntry = args[0] as FileBean
