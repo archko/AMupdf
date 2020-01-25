@@ -53,7 +53,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
     protected var multiTouchZoom: MultiTouchZoom? = null
 
     protected var mReflow = false
-    protected var crop: Boolean = false
+    protected var mCrop: Boolean = true
     protected var isDocLoaded: Boolean = false
     protected val START_PROGRESS = 15
 
@@ -77,7 +77,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         }
         sensorHelper = SensorHelper(this)
 
-        crop = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(PdfOptionsActivity.PREF_AUTOCROP, false)
+        mCrop = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(PdfOptionsActivity.PREF_AUTOCROP, true)
 
         loadBookmark()
         loadDoc()
@@ -85,14 +85,14 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
 
     open fun loadBookmark() {
         pdfBookmarkManager = PDFBookmarkManager()
-        var ac = 0;
-        if (!crop) {
-            ac = 1;
+        var autoCrop = 0;
+        if (!mCrop) {
+            autoCrop = 1;
         }
-        pdfBookmarkManager!!.setStartBookmark(mPath, ac)
+        pdfBookmarkManager!!.setStartBookmark(mPath, autoCrop)
         val progress = pdfBookmarkManager?.bookmarkToRestore;
         progress?.let {
-            crop = it.autoCrop == 0;
+            mCrop = it.autoCrop == 0;
             mReflow = it.reflow == 1
         }
     }
@@ -396,7 +396,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
                     pageSize.targetWidth = parent.width;
                 }
             }
-            val view = APDFPageView(parent.context, mDocument, pageSize!!, crop)
+            val view = APDFPageView(parent.context, mDocument, pageSize!!, mCrop)
             var lp: RecyclerView.LayoutParams? = view.layoutParams as RecyclerView.LayoutParams?
             var width: Int = ViewGroup.LayoutParams.MATCH_PARENT
             var height: Int = ViewGroup.LayoutParams.MATCH_PARENT
@@ -444,7 +444,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
                 if (pageSize.targetWidth <= 0) {
                     return
                 }
-                view.updatePage(pageSize, zoomModel!!.zoom, crop)
+                view.updatePage(pageSize, zoomModel!!.zoom, mCrop)
             }
         }
 
