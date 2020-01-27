@@ -36,7 +36,7 @@ import java.io.FileFilter
  */
 open class FontsFragment : DialogFragment() {
 
-    lateinit var recyclerView: RecyclerView
+    private lateinit var recyclerView: RecyclerView
     lateinit var adapter: BaseRecyclerAdapter<FontBean>
     var mStyleHelper: StyleHelper? = null
     var mDataListener: DataListener? = null
@@ -61,7 +61,6 @@ open class FontsFragment : DialogFragment() {
             themeId = android.R.style.Theme_Material_Dialog;
         }
         setStyle(DialogFragment.STYLE_NO_FRAME, themeId)
-        isCancelable = false
 
         val sp: SharedPreferences = App.getInstance().getSharedPreferences(FontHelper.FONT_SP_FILE, Context.MODE_PRIVATE)
         selectedFontName = sp.getString(FontHelper.FONT_KEY_NAME, FontHelper.SYSTEM_FONT)

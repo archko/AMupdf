@@ -46,7 +46,6 @@ open class BackupFragment : DialogFragment() {
             themeId = android.R.style.Theme_Material_Dialog;
         }
         setStyle(DialogFragment.STYLE_NO_FRAME, themeId)
-        isCancelable = false
     }
 
     override fun onResume() {
