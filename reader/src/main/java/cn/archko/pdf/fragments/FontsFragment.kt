@@ -84,7 +84,7 @@ open class FontsFragment : DialogFragment() {
         toolbar.setNavigationOnClickListener(View.OnClickListener { dismiss() })
 
         toolbar?.setTitle(R.string.dialog_title_font)
-        toolbar?.setSubtitle(R.string.no_fonts)
+        toolbar?.setSubtitle(R.string.dialog_sub_title_font)
 
         recyclerView = view.findViewById(R.id.files)
         recyclerView.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
@@ -135,7 +135,7 @@ open class FontsFragment : DialogFragment() {
                     adapter.data = list
                     adapter.notifyDataSetChanged()
                 } else {
-                    Toast.makeText(this@FontsFragment.activity, R.string.no_fonts, Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@FontsFragment.activity, R.string.dialog_sub_title_font, Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -180,7 +180,7 @@ open class FontsFragment : DialogFragment() {
 
     companion object {
 
-        val TAG = "FontsFragment"
+        const val TAG = "FontsFragment"
 
         fun showFontsDialog(activity: FragmentActivity?, styleHelper: StyleHelper?, dataListener: DataListener?) {
             val ft = activity?.supportFragmentManager?.beginTransaction()

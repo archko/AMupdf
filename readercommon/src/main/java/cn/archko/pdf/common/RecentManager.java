@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import cn.archko.pdf.App;
 import cn.archko.pdf.entity.BookProgress;
@@ -268,6 +269,23 @@ public class RecentManager {
         return file;
     }
 
+    public List<File> getBackupFiles() {
+        File dir = FileUtils.getStorageDir("amupdf");
+        if (!dir.exists()) {
+            return null;
+        }
+        File[] files = dir.listFiles(pathname -> pathname.getName().startsWith("mupdf_"));
+        Arrays.sort((files), (f1, f2) -> {
+            if (f1 == null) throw new RuntimeException("f1 is null inside sort");
+            if (f2 == null) throw new RuntimeException("f2 is null inside sort");
+            try {
+                return (int) (f2.lastModified() - f1.lastModified());
+            } catch (NullPointerException e) {
+                throw new RuntimeException("failed to compare " + f1 + " and " + f2, e);
+            }
+        });
+        return Arrays.asList(files);
+    }
 
     //===================== favorite =====================
 

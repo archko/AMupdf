@@ -25,6 +25,8 @@ import cn.archko.pdf.common.ImageLoader
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.common.RecentManager
 import cn.archko.pdf.entity.FileBean
+import cn.archko.pdf.entity.FontBean
+import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.utils.LengthUtils
 import cn.archko.pdf.widgets.IMoreView
 import cn.archko.pdf.widgets.ListMoreView
@@ -155,7 +157,7 @@ class HistoryFragment : BrowserFragment() {
 
                 if (!LengthUtils.isEmpty(filepath)) {
                     Logcat.d("", "file:" + filepath)
-                    Toast.makeText(App.getInstance(), "备份成功:" + filepath, Toast.LENGTH_LONG).show()
+                    Toast.makeText(App.getInstance(), "备份成功:$filepath", Toast.LENGTH_LONG).show()
                 } else {
                     Toast.makeText(App.getInstance(), "备份失败", Toast.LENGTH_LONG).show()
                 }
@@ -164,45 +166,47 @@ class HistoryFragment : BrowserFragment() {
     }
 
     private fun restore() {
-        val progressDialog = ProgressDialog(activity)
-        progressDialog.setTitle("Waiting...")
-        progressDialog.setMessage("Waiting...")
-        val now = System.currentTimeMillis()
-        doAsync {
-            uiThread {
+        BackupFragment.showBackupDialog(activity, object : DataListener {
+            override fun onSuccess(vararg args: Any?) {
+                val file = args[0] as File
+                val progressDialog = ProgressDialog(activity)
+                progressDialog.setTitle("Waiting...")
+                progressDialog.setMessage("Waiting...")
                 progressDialog.setCancelable(false)
                 progressDialog.show()
-            }
-            var file: File? = RecentManager.getInstance().getBackupFile();
-            var flag = false
-            if (null == file) {
-                Toast.makeText(App.getInstance(), "没有发现amupdf目录中有备份!", Toast.LENGTH_LONG).show()
-            } else {
-                flag = RecentManager.getInstance().restoreToDb(file)
-                var newTime = System.currentTimeMillis() - now
-                if (newTime < 1500L) {
-                    newTime = 1500L - newTime
-                } else {
-                    newTime = 0
-                }
+                val now = System.currentTimeMillis()
 
-                try {
-                    Thread.sleep(newTime)
-                } catch (e: InterruptedException) {
-                    e.printStackTrace()
-                }
-            }
-            uiThread {
-                progressDialog.dismiss()
+                doAsync {
+                    val flag = RecentManager.getInstance().restoreToDb(file)
+                    var newTime = System.currentTimeMillis() - now
+                    if (newTime < 1300L) {
+                        newTime = 1300L - newTime
+                    } else {
+                        newTime = 0
+                    }
 
-                if (flag) {
-                    Toast.makeText(App.getInstance(), "恢复成功:" + flag, Toast.LENGTH_LONG).show()
-                    loadData()
-                } else {
-                    Toast.makeText(App.getInstance(), "恢复失败", Toast.LENGTH_LONG).show()
+                    try {
+                        Thread.sleep(newTime)
+                    } catch (e: InterruptedException) {
+                        e.printStackTrace()
+                    }
+
+                    uiThread {
+                        progressDialog.dismiss()
+
+                        if (flag) {
+                            Toast.makeText(App.getInstance(), "恢复成功:$flag", Toast.LENGTH_LONG).show()
+                            loadData()
+                        } else {
+                            Toast.makeText(App.getInstance(), "恢复失败", Toast.LENGTH_LONG).show()
+                        }
+                    }
                 }
             }
-        }
+
+            override fun onFailed(vararg args: Any?) {
+            }
+        })
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

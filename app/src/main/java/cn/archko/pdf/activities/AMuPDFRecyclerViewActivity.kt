@@ -418,14 +418,12 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             } else {
                 if (mStyleControls?.visibility == View.VISIBLE) {
                     mStyleControls?.visibility = View.GONE
-                    super.onSingleTap()
                 } else {
                     showStyleFragment()
                 }
             }
-        } else {
-            super.onSingleTap()
         }
+        super.onSingleTap()
     }
 
     private fun initStyleControls() {

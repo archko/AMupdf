@@ -113,5 +113,5 @@
     <string name="menu_font_fg">Forground</string>
 
     <string name="dialog_title_font">Select Font</string>
-    <string name="no_fonts">Put fonts into /sdcard/amupdf/fonts</string>
+    <string name="dialog_sub_title_font">Put fonts into /sdcard/amupdf/fonts</string>
 </resources>
