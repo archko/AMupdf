@@ -1,5 +1,6 @@
 package cn.archko.pdf.activities
 
+import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.app.ProgressDialog
 import android.content.Intent
@@ -209,6 +210,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         zoomModel?.toggleZoomControls()
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     open fun addGesture() {
         mRecyclerView.setOnTouchListener { v, event ->
             gestureDetector!!.onTouchEvent(event)

@@ -1,5 +1,6 @@
 package cn.archko.pdf.activities
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -122,7 +123,9 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             if (it.size() < 0 || it.size() < APageSizeLoader.PAGE_COUNT) {
                 return
             }
-            APageSizeLoader.savePageSizeToFile(mCrop, mPageSizes,
+            APageSizeLoader.savePageSizeToFile(mCrop,
+                    pdfBookmarkManager!!.bookmarkToRestore.size,
+                    mPageSizes,
                     FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
                             pdfBookmarkManager?.bookmarkToRestore?.name))
         }
@@ -132,9 +135,14 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         val width = mRecyclerView.width
         doAsync {
             var start = SystemClock.uptimeMillis()
-            val pageSizeBean = APageSizeLoader.loadPageSizeFromFile(width,
-                    FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
-                            pdfBookmarkManager?.bookmarkToRestore?.name))
+            var pageSizeBean: APageSizeLoader.PageSizeBean? = null
+            if (pdfBookmarkManager != null && pdfBookmarkManager!!.bookmarkToRestore != null) {
+                pageSizeBean = APageSizeLoader.loadPageSizeFromFile(width,
+                        pdfBookmarkManager!!.bookmarkToRestore.pageCount,
+                        pdfBookmarkManager!!.bookmarkToRestore.size,
+                        FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
+                                pdfBookmarkManager?.bookmarkToRestore?.name))
+            }
             Logcat.d("open3:" + (SystemClock.uptimeMillis() - start))
 
             uiThread {
@@ -142,7 +150,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
                 if (pageSizeBean != null) {
                     pageSizes = pageSizeBean.sparseArray;
                 }
-                if (pageSizes != null && pageSizes.size() > 0 && !mCrop) {
+                if (pageSizes != null && pageSizes.size() > 0) {
                     mPageSizes = pageSizes
                 } else {
                     start = SystemClock.uptimeMillis()
@@ -181,10 +189,11 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun addGesture() {
         mRecyclerView.setOnTouchListener { v, event ->
             gestureDetector!!.onTouchEvent(event)
-            if (!mReflow) {
+            if (!mCrop && !mReflow) {
                 if (multiTouchZoom != null) {
                     if (multiTouchZoom!!.onTouchEvent(event)) {
                         return@setOnTouchListener true
