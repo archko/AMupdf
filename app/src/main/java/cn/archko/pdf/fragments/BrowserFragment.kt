@@ -164,12 +164,19 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
                         Logcat.d(TAG, "refresh entry:${progress}")
                         if (null != fileListAdapter) {
                             for (fb in fileListAdapter!!.data) {
-                                if (null != fb.bookProgress && fb.bookProgress._id == progress._id) {
-                                    fb.bookProgress.page = progress.page
-                                    fb.bookProgress.isFavorited = progress.isFavorited
-                                    fb.bookProgress.readTimes = progress.readTimes
-                                    fb.bookProgress.pageCount = progress.pageCount
-                                    fb.bookProgress.inRecent = progress.inRecent
+                                if (null != fb.bookProgress && fb.bookProgress.name.equals(progress.name)) {
+                                    if (fb.bookProgress._id == 0) {
+                                        fb.bookProgress = progress
+                                        Logcat.d(TAG, "update new entry:${fb.bookProgress}")
+                                        recentManager.recentTableManager.updateProgress(fb.bookProgress)
+                                    } else {
+                                        fb.bookProgress.page = progress.page
+                                        fb.bookProgress.isFavorited = progress.isFavorited
+                                        fb.bookProgress.readTimes = progress.readTimes
+                                        fb.bookProgress.pageCount = progress.pageCount
+                                        fb.bookProgress.inRecent = progress.inRecent
+                                        Logcat.d(TAG, "add new entry:${fb.bookProgress}")
+                                    }
                                     break
                                 }
                             }
@@ -554,6 +561,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         const val removeContextMenuItem = Menu.FIRST + 101
 
         const val mupdfContextMenuItem = Menu.FIRST + 110
+
         //protected const val apvContextMenuItem = Menu.FIRST + 111
         const val vudroidContextMenuItem = Menu.FIRST + 112
         const val otherContextMenuItem = Menu.FIRST + 113
