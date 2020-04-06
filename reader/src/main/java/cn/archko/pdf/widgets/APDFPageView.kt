@@ -13,7 +13,7 @@ import com.artifex.mupdf.fitz.Document
  * @author: archko 2019/11/25 :12:43
  */
 @SuppressLint("AppCompatCustomView")
-class APDFPageView(protected val mContext: Context,
+class APDFPageView(private val mContext: Context,
                    private val mCore: Document?,
                    private var pageSize: APage,
                    crop: Boolean) : View(mContext) {

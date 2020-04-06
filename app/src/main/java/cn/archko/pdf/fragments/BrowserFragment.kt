@@ -266,14 +266,16 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         }
 
         fileListAdapter!!.setData(fileList)
+        fileListAdapter!!.notifyDataSetChanged()
         if (null != mPathMap[mCurrentPath!!]) {
             val pos = mPathMap[mCurrentPath!!]
             if (pos!! < fileList.size) {
-                //filesListView!!.setSelection(pos)
-                (filesListView!!.layoutManager as LinearLayoutManager).scrollToPosition(pos)
+                //(filesListView!!.layoutManager as LinearLayoutManager).scrollToPosition(pos)
+                (filesListView!!.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(pos, 0);
             }
+        } else {
+            (filesListView!!.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(0, 0)
         }
-        fileListAdapter!!.notifyDataSetChanged()
         mSwipeRefreshWidget!!.isRefreshing = false
 
         startGetProgress(fileList, mCurrentPath)
