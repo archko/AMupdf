@@ -205,7 +205,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         initTouchParams()
 
         zoomModel = ZoomModel()
-        initMultiTouchZoomIfAvailable(zoomModel)
+        //initMultiTouchZoomIfAvailable(zoomModel)
 
         zoomModel?.toggleZoomControls()
     }
@@ -214,7 +214,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
     open fun addGesture() {
         mRecyclerView.setOnTouchListener { v, event ->
             gestureDetector!!.onTouchEvent(event)
-            multiTouchZoom?.run {
+            /*multiTouchZoom?.run {
                 if (onTouchEvent(event)) {
                     return@setOnTouchListener true
                 }
@@ -223,7 +223,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
                     //setLastPosition(ev)
                     setResetLastPointAfterZoom(false)
                 }
-            }
+            }*/
             false
         }
     }
@@ -327,6 +327,9 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
     }
 
     override fun zoomChanged(newZoom: Float, oldZoom: Float) {
+        if (mCrop) {
+            return
+        }
         mRecyclerView.adapter?.notifyItemChanged(getCurrentPos())
     }
 
@@ -446,7 +449,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
                 if (pageSize.targetWidth <= 0) {
                     return
                 }
-                view.updatePage(pageSize, zoomModel!!.zoom, mCrop)
+                view.updatePage(pageSize, 1.0f/*zoomModel!!.zoom*/, mCrop)
             }
         }
 
@@ -504,7 +507,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         val h = b.y1 - b.y0
         val pointf = PointF(w, h)
         p.destroy()
-        return APage(pageNum, pointf, zoomModel!!.zoom, 0)
+        return APage(pageNum, pointf, 1.0f/*zoomModel!!.zoom*/, 0)
     }
 
     open fun preparePageSize(cp: Int) {
