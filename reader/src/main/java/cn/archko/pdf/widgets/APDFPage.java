@@ -13,12 +13,13 @@ import java.util.Arrays;
 
 import cn.archko.pdf.common.Logcat;
 import cn.archko.pdf.entity.APage;
+import cn.archko.pdf.utils.Utils;
 
 class APDFPage {
     APage aPage;
     private RectF bounds;
     private final Paint fillPaint = fillPaint();
-    private final Paint strokePaint = strokePaint();
+    private final Paint textPaint = textPaint();
     private PageTreeNode[] children;
     View documentView;
     Document mDocument;
@@ -81,6 +82,8 @@ class APDFPage {
         if (children == null) {
             return;
         }
+        canvas.drawText(String.format("Page %s", (aPage.index + 1)), bounds.centerX(), bounds.centerY(), textPaint);
+
         for (PageTreeNode child : children) {
             child.draw(canvas);
         }
@@ -108,7 +111,7 @@ class APDFPage {
         final TextPaint paint = new TextPaint();
         paint.setColor(Color.BLACK);
         paint.setAntiAlias(true);
-        paint.setTextSize(32);
+        paint.setTextSize(Utils.sp2px(30));
         paint.setTextAlign(Paint.Align.CENTER);
         return paint;
     }
