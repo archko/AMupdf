@@ -344,7 +344,7 @@ index 67c9ea6c1..dfdbbed39 100644
  
  JNIEXPORT void JNICALL
 diff --git a/platform/java/src/com/artifex/mupdf/fitz/Page.java b/platform/java/src/com/artifex/mupdf/fitz/Page.java
-index f31ce6930..6dc20fa84 100644
+index f31ce6930..b1fd8b8d0 100644
 --- a/platform/java/src/com/artifex/mupdf/fitz/Page.java
 +++ b/platform/java/src/com/artifex/mupdf/fitz/Page.java
 @@ -50,6 +50,9 @@ public class Page
@@ -356,5 +356,19 @@ index f31ce6930..6dc20fa84 100644
 +	public native byte[] textAsText(String options);
 
  	public native Separations getSeparations();
+ }
+diff --git a/source/fitz/stext-output.c b/source/fitz/stext-output.c
+index 69d6f5c84..1d5baf5b0 100644
+--- a/source/fitz/stext-output.c
++++ b/source/fitz/stext-output.c
+@@ -473,7 +473,9 @@ fz_print_stext_page_as_text(fz_context *ctx, fz_output *out, fz_stext_page *page
+ 				fz_write_string(ctx, out, "\n");
+ 			}
+ 			fz_write_string(ctx, out, "\n");
+-		}
++		} else {
++			fz_print_stext_image_as_xhtml(ctx, out, block);
++        }
+ 	}
  }
 
