@@ -166,7 +166,7 @@ class FileInfoFragment : DialogFragment() {
             mReadCount.text = progress.readTimes.toString()
             updatePageCount()
         } else {
-            mLastReadLayout.visibility = View.GONE
+            //mLastReadLayout.visibility = View.GONE
             if (bookProgress?.pageCount == 0) {
                 loadBook()
             }
