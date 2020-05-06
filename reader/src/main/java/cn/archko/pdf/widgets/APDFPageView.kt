@@ -61,6 +61,7 @@ class APDFPageView(private val mContext: Context,
             isNew = true
             pdfPage.setBounds(RectF(0f, 0f, pageSize.cropScaleWidth.toFloat(), pageSize.cropScaleHeight.toFloat()))
             pdfPage.update(this, pageSize)
+            requestLayout()
         }
         mZoom = newZoom
         this.pageSize.zoom = newZoom
