@@ -11,14 +11,14 @@ import cn.archko.pdf.common.ParseTextMain
 import cn.archko.pdf.common.ReflowViewCache
 import cn.archko.pdf.common.StyleHelper
 import cn.archko.pdf.entity.ReflowBean
+import cn.archko.pdf.mupdf.MupdfDocument
 import cn.archko.pdf.utils.Utils
-import com.artifex.mupdf.fitz.Document
 
 /**
  * @author: archko 2016/5/13 :11:03
  */
 class MuPDFReflowAdapter(private val mContext: Context,
-                         private val mCore: Document?,
+                         private val mupdfDocument: MupdfDocument?,
                          private var styleHelper: StyleHelper?)
     : BaseRecyclerAdapter<Any>(mContext) {
 
@@ -37,7 +37,7 @@ class MuPDFReflowAdapter(private val mContext: Context,
     }
 
     override fun getItemCount(): Int {
-        return mCore?.countPages()!!
+        return mupdfDocument?.countPages()!!
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<*> {
@@ -58,7 +58,7 @@ class MuPDFReflowAdapter(private val mContext: Context,
         val task = object : AsyncTask<Void, Void, List<ReflowBean>?>() {
             override fun doInBackground(vararg arg0: Void): List<ReflowBean>? {
                 try {
-                    val result = mCore?.loadPage(pos)?.textAsText("preserve-whitespace,inhibit-spaces,preserve-images")
+                    val result = mupdfDocument?.loadPage(pos)?.textAsText("preserve-whitespace,inhibit-spaces,preserve-images")
                     val list = result?.let { ParseTextMain.instance.parseAsList(it, pos) }
                     return list
                 } catch (e: Exception) {

@@ -7,14 +7,14 @@ import android.graphics.RectF
 import android.view.View
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.entity.APage
-import com.artifex.mupdf.fitz.Document
+import cn.archko.pdf.mupdf.MupdfDocument
 
 /**
  * @author: archko 2019/11/25 :12:43
  */
 @SuppressLint("AppCompatCustomView")
 class APDFPageView(private val mContext: Context,
-                   private val mCore: Document?,
+                   private val mupdfDocument: MupdfDocument?,
                    private var pageSize: APage,
                    crop: Boolean) : View(mContext) {
 
@@ -28,7 +28,7 @@ class APDFPageView(private val mContext: Context,
     }
 
     private fun initPdfPage(crop: Boolean) {
-        pdfPage = APDFPage(this, pageSize, mCore, crop);
+        pdfPage = APDFPage(this, pageSize, mupdfDocument, crop);
         pdfPage.setBounds(RectF(0f, 0f, this.pageSize.cropScaleWidth.toFloat(), this.pageSize.cropScaleHeight.toFloat()))
     }
 

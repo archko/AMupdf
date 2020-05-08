@@ -79,7 +79,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         try {
             progressDialog.setMessage("Loading menu")
 
-            val pos = pdfBookmarkManager?.restoreBookmark(mDocument!!.countPages())!!
+            val pos = pdfBookmarkManager?.restoreBookmark(mMupdfDocument!!.countPages())!!
             if (pos > 0) {
                 mRecyclerView.scrollToPosition(pos)
             }
@@ -91,7 +91,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             if (null != pdfBookmarkManager!!.getBookmarkToRestore()) {
                 zoomModel?.setZoom(pdfBookmarkManager!!.getBookmarkToRestore().zoomLevel / 1000f)
             }
-            outlineHelper = OutlineHelper(mDocument, this);
+            outlineHelper = OutlineHelper(mMupdfDocument, this);
 
             mMenuHelper = MenuHelper(mLeftDrawer, outlineHelper, supportFragmentManager)
             mMenuHelper?.setupMenu(mPath, this@AMuPDFRecyclerViewActivity, menuListener)
@@ -133,31 +133,28 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
     override fun preparePageSize(cp: Int) {
         val width = mRecyclerView.width
-        doAsync {
-            var start = SystemClock.uptimeMillis()
-            var pageSizeBean: APageSizeLoader.PageSizeBean? = null
-            if (pdfBookmarkManager != null && pdfBookmarkManager!!.bookmarkToRestore != null) {
-                pageSizeBean = APageSizeLoader.loadPageSizeFromFile(width,
-                        pdfBookmarkManager!!.bookmarkToRestore.pageCount,
-                        pdfBookmarkManager!!.bookmarkToRestore.size,
-                        FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
-                                pdfBookmarkManager?.bookmarkToRestore?.name))
-            }
-            Logcat.d("open3:" + (SystemClock.uptimeMillis() - start))
+        var start = SystemClock.uptimeMillis()
+        var pageSizeBean: APageSizeLoader.PageSizeBean? = null
+        if (pdfBookmarkManager != null && pdfBookmarkManager!!.bookmarkToRestore != null) {
+            pageSizeBean = APageSizeLoader.loadPageSizeFromFile(width,
+                    pdfBookmarkManager!!.bookmarkToRestore.pageCount,
+                    pdfBookmarkManager!!.bookmarkToRestore.size,
+                    FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
+                            pdfBookmarkManager?.bookmarkToRestore?.name))
+        }
+        Logcat.d("open3:" + (SystemClock.uptimeMillis() - start))
 
-            uiThread {
-                var pageSizes: SparseArray<APage>? = null;
-                if (pageSizeBean != null) {
-                    pageSizes = pageSizeBean.sparseArray;
-                }
-                if (pageSizes != null && pageSizes.size() > 0) {
-                    mPageSizes = pageSizes
-                } else {
-                    start = SystemClock.uptimeMillis()
-                    super.preparePageSize(cp)
-                    Logcat.d("open2:" + (SystemClock.uptimeMillis() - start))
-                }
-            }
+        var pageSizes: SparseArray<APage>? = null;
+        if (pageSizeBean != null) {
+            pageSizes = pageSizeBean.sparseArray;
+        }
+        if (pageSizes != null && pageSizes.size() > 0) {
+            Logcat.d("open3:pageSizes>0:" + pageSizes.size())
+            mPageSizes = pageSizes
+        } else {
+            start = SystemClock.uptimeMillis()
+            super.preparePageSize(cp)
+            Logcat.d("open2:" + (SystemClock.uptimeMillis() - start))
         }
     }
 
@@ -221,7 +218,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             if (null == mStyleHelper) {
                 mStyleHelper = StyleHelper()
             }
-            mRecyclerView.adapter = MuPDFReflowAdapter(this, mDocument, mStyleHelper)
+            mRecyclerView.adapter = MuPDFReflowAdapter(this, mMupdfDocument, mStyleHelper)
             mPageSeekBarControls?.reflowButton!!.setColorFilter(Color.argb(0xFF, 172, 114, 37))
 
             addGesture()
@@ -275,7 +272,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             }
 
             override fun getPageCount(): Int {
-                return mDocument!!.countPages()
+                return mMupdfDocument!!.countPages()
             }
 
             override fun getCurrentPageIndex(): Int {
@@ -412,7 +409,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             pdfBookmarkManager?.bookmarkToRestore?.reflow = 0
         }
         val position = getCurrentPos()
-        pdfBookmarkManager?.saveCurrentPage(mPath, mDocument!!.countPages(), position, zoomModel!!.zoom * 1000.0f, -1, 0)
+        pdfBookmarkManager?.saveCurrentPage(mPath, mMupdfDocument!!.countPages(), position, zoomModel!!.zoom * 1000.0f, -1, 0)
         if (null != mRecyclerView.adapter && mRecyclerView.adapter is MuPDFReflowAdapter) {
             (mRecyclerView.adapter as MuPDFReflowAdapter).clearCacheViews()
         }

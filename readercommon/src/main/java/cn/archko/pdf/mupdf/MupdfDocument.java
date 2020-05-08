@@ -87,16 +87,14 @@ public class MupdfDocument {
         this.context = context;
     }
 
-    public Document newDocument(String pfd, String password) {
+    public void newDocument(String pfd, String password) {
         document = Document.openDocument(pfd);
         initDocument();
-        return document;
     }
 
-    public Document newDocument(byte[] data, String password) {
+    public void newDocument(byte[] data, String password) {
         document = Document.openDocument(data, "magic");
         initDocument();
-        return document;
     }
 
     private void initDocument() {
@@ -165,15 +163,18 @@ public class MupdfDocument {
         return new PointF(pageWidth, pageHeight);
     }
 
-    public void onDestroy() {
-        if (displayList != null)
+    public void destroy() {
+        if (displayList != null) {
             displayList.destroy();
+        }
         displayList = null;
-        if (page != null)
+        if (page != null) {
             page.destroy();
+        }
         page = null;
-        if (document != null)
+        if (document != null) {
             document.destroy();
+        }
         document = null;
     }
 
@@ -316,6 +317,9 @@ public class MupdfDocument {
     }
 
     public static void render(Page page, Matrix ctm, Bitmap bitmap, int xOrigin, int leftBound, int topBound) {
+        if (page == null) {
+            return;
+        }
         AndroidDrawDevice dev = new AndroidDrawDevice(bitmap, xOrigin + leftBound, topBound);
         page.run(dev, ctm, null);
         dev.close();
@@ -336,5 +340,24 @@ public class MupdfDocument {
     public static RectF getJavaCropRect(Bitmap bitmap) {
         return PageCropper.getCropBounds(bitmap, new android.graphics.Rect(0, 0, bitmap.getWidth(), bitmap.getHeight()),
                 new RectF(0, 0, bitmap.getWidth(), bitmap.getHeight()));
+    }
+
+    public Page loadPage(int pageIndex) {
+        return document == null ? null : document.loadPage(pageIndex);
+    }
+
+    public Outline[] loadOutline() {
+        if (outline == null) {
+            try {
+                outline = document.loadOutline();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        return outline;
+    }
+
+    public int pageNumberFromLocation(Outline node) {
+        return document.pageNumberFromLocation(document.resolveLink(node));
     }
 }

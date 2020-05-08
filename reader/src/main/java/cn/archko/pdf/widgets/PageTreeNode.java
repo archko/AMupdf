@@ -246,16 +246,18 @@ class PageTreeNode {
 
                 Bitmap bitmap = BitmapPool.getInstance().acquire(width, height);
 
-                com.artifex.mupdf.fitz.Page mPage = apdfPage.mDocument.loadPage(pageSize.index);
+                com.artifex.mupdf.fitz.Page page = apdfPage.mupdfDocument.loadPage(pageSize.index);
                 com.artifex.mupdf.fitz.Matrix ctm = new com.artifex.mupdf.fitz.Matrix(pageSize.getScaleZoom() * scale);
-                MupdfDocument.render(mPage, ctm, bitmap, xOrigin, leftBound, topBound);
+                MupdfDocument.render(page, ctm, bitmap, xOrigin, leftBound, topBound);
+                if (null != page) {
+                    page.destroy();
+                }
 
                 if (Logcat.loggable && pageType == PAGE_TYPE_LEFT_TOP) {
                     Logcat.d(String.format("decode bitmap:rect:%s-%s, width-height:%s-%s,xOrigin:%s, bound:%s-%s, page:%s",
                             getTargetRect(), rect,
                             width, height, xOrigin, leftBound, topBound, pageSize));
                 }
-                mPage.destroy();
 
                 //BitmapUtils.saveBitmapToFile(bitmap, new File(FileUtils.getStoragePath(pageType + "xx.png")));
                 return bitmap;
@@ -286,7 +288,7 @@ class PageTreeNode {
                 int topBound = 0;
                 int pageW = pageSize.getZoomPoint().x;
                 int pageH = pageSize.getZoomPoint().y;
-                com.artifex.mupdf.fitz.Page page = apdfPage.mDocument.loadPage(pageSize.index);
+                com.artifex.mupdf.fitz.Page page = apdfPage.mupdfDocument.loadPage(pageSize.index);
                 com.artifex.mupdf.fitz.Matrix ctm = new com.artifex.mupdf.fitz.Matrix(MupdfDocument.ZOOM);
                 RectI bbox = new RectI(page.getBounds().transform(ctm));
                 float xscale = (float) pageW / (float) (bbox.x1 - bbox.x0);
@@ -298,6 +300,9 @@ class PageTreeNode {
                 topBound = (int) arr[1];
                 pageH = (int) arr[2];
                 float cropScale = arr[3];
+                if (null != page) {
+                    page.destroy();
+                }
 
                 pageSize.setCropWidth(pageW);
                 pageSize.setCropHeight(pageH);

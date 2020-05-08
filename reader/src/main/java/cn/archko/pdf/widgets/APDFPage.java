@@ -7,12 +7,10 @@ import android.graphics.RectF;
 import android.text.TextPaint;
 import android.view.View;
 
-import com.artifex.mupdf.fitz.Document;
-
 import java.util.Arrays;
 
-import cn.archko.pdf.common.Logcat;
 import cn.archko.pdf.entity.APage;
+import cn.archko.pdf.mupdf.MupdfDocument;
 import cn.archko.pdf.utils.Utils;
 
 class APDFPage {
@@ -22,14 +20,14 @@ class APDFPage {
     private final Paint textPaint = textPaint();
     private PageTreeNode[] children;
     View documentView;
-    Document mDocument;
+    MupdfDocument mupdfDocument;
     RectF cropBounds;
     boolean crop = false;
     boolean isDecodingCrop = false;
 
-    APDFPage(View documentView, APage aPage, Document document, boolean crop) {
+    APDFPage(View documentView, APage aPage, MupdfDocument document, boolean crop) {
         this.aPage = aPage;
-        this.mDocument = document;
+        this.mupdfDocument = document;
         this.crop = crop;
         update(documentView, aPage);
     }
@@ -109,7 +107,7 @@ class APDFPage {
 
     private TextPaint textPaint() {
         final TextPaint paint = new TextPaint();
-        paint.setColor(Color.BLACK);
+        paint.setColor(Color.BLUE);
         paint.setAntiAlias(true);
         paint.setTextSize(Utils.sp2px(30));
         paint.setTextAlign(Paint.Align.CENTER);

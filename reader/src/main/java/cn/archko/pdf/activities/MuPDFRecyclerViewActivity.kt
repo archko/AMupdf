@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView
 import cn.archko.pdf.R
 import cn.archko.pdf.common.*
 import cn.archko.pdf.entity.APage
+import cn.archko.pdf.mupdf.MupdfDocument
 import cn.archko.pdf.utils.Utils
 import cn.archko.pdf.widgets.APDFPageView
 import cn.archko.pdf.widgets.ViewerDividerItemDecoration
@@ -48,7 +49,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
 
     protected var pdfBookmarkManager: PDFBookmarkManager? = null
     protected var sensorHelper: SensorHelper? = null
-    protected var mDocument: Document? = null
+    protected var mMupdfDocument: MupdfDocument? = null
     protected var mPageSizes = SparseArray<APage>()
     protected var zoomModel: ZoomModel? = null
     protected var multiTouchZoom: MultiTouchZoom? = null
@@ -173,7 +174,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
                 .get(Event.ACTION_STOPPED)
                 .post(null)
         mRecyclerView.adapter = null
-        mDocument?.destroy()
+        mMupdfDocument?.destroy()
         progressDialog.dismiss()
         BitmapCache.getInstance().clear()
     }
@@ -310,7 +311,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
             return
         }
         val pos = getCurrentPos()
-        val pageText = (pos + 1).toString() + "/" + mDocument!!.countPages()
+        val pageText = (pos + 1).toString() + "/" + mMupdfDocument!!.countPages()
         if (pageNumberToast != null) {
             pageNumberToast!!.setText(pageText)
         } else {
@@ -401,7 +402,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
                     pageSize.targetWidth = parent.width;
                 }
             }
-            val view = APDFPageView(parent.context, mDocument, pageSize!!, mCrop)
+            val view = APDFPageView(this@MuPDFRecyclerViewActivity, mMupdfDocument, pageSize!!, mCrop)
             var lp: RecyclerView.LayoutParams? = view.layoutParams as RecyclerView.LayoutParams?
             var width: Int = ViewGroup.LayoutParams.MATCH_PARENT
             var height: Int = ViewGroup.LayoutParams.MATCH_PARENT
@@ -436,7 +437,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         }
 
         override fun getItemCount(): Int {
-            return mDocument!!.countPages()
+            return mMupdfDocument!!.countPages()
         }
 
         inner class PdfHolder(internal var view: APDFPageView) : RecyclerView.ViewHolder(view) {
@@ -473,14 +474,16 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
             var result = false
             try {
                 var start = SystemClock.uptimeMillis();
-                mDocument = Document.openDocument(mPath)
-                val cp = mDocument!!.countPages();
-                Logcat.d(TAG, "open:" + (SystemClock.uptimeMillis() - start))
+                mMupdfDocument = MupdfDocument(this@MuPDFRecyclerViewActivity);
+                mMupdfDocument?.newDocument(mPath, null)
+                val cp = mMupdfDocument!!.countPages();
+                Logcat.d(TAG, "open:" + (SystemClock.uptimeMillis() - start) + " cp:" + cp)
 
                 //val loc = mDocument!!.layout(mLayoutW, mLayoutH, mLayoutEM)
 
                 preparePageSize(cp)
                 result = true
+                Logcat.d(TAG, "open:end." + mPageSizes.size())
                 val mill = SystemClock.uptimeMillis() - start
                 if (mill < 500L) {
                     Thread.sleep(500L - mill)
@@ -501,7 +504,9 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
     }
 
     open fun getPageSize(pageNum: Int): APage {
-        val p = mDocument?.loadPage(pageNum)
+        val p = mMupdfDocument?.loadPage(pageNum)
+
+        Logcat.d(TAG, "open:getPageSize." + pageNum + " page:" + p)
         val b = p!!.getBounds()
         val w = b.x1 - b.x0
         val h = b.y1 - b.y0

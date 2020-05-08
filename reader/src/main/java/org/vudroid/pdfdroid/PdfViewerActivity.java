@@ -15,6 +15,7 @@ import cn.archko.pdf.common.Event;
 import cn.archko.pdf.common.MenuHelper;
 import cn.archko.pdf.common.OutlineHelper;
 import cn.archko.pdf.listeners.OutlineListener;
+import cn.archko.pdf.mupdf.MupdfDocument;
 
 public class PdfViewerActivity extends BaseViewerActivity implements OutlineListener {
 
@@ -38,7 +39,9 @@ public class PdfViewerActivity extends BaseViewerActivity implements OutlineList
         AKDecodeService service = (AKDecodeService) getDecodeService();
         PdfDocument document = (PdfDocument) service.getDocument();
         if (null == mOutlineHelper) {
-            mOutlineHelper = new OutlineHelper(document.getCore(), this);
+            MupdfDocument mupdfDocument = new MupdfDocument(this);
+            mupdfDocument.setDocument(document.getCore());
+            mOutlineHelper = new OutlineHelper(mupdfDocument, this);
         }
         //mOutlineHelper.openOutline(getDocumentView().getCurrentPage(), OUTLINE_REQUEST);
         if (mMenuHelper == null) {
