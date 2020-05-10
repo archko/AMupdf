@@ -37,6 +37,7 @@ class PageTreeNode {
     private Rect cropTargetRect;
     private AsyncTask<String, String, Bitmap> bitmapAsyncTask;
     private boolean isRecycle = false;
+    private AsyncTask<String, String, RectF> boundsAsyncTask;
 
     PageTreeNode(RectF localPageSliceBounds, APDFPage page, int pageType) {
         this.pageSliceBounds = evaluatePageSliceBounds(localPageSliceBounds, null);
@@ -159,6 +160,10 @@ class PageTreeNode {
             bitmapAsyncTask.cancel(true);
             bitmapAsyncTask = null;
         }
+        if (null != boundsAsyncTask) {
+            boundsAsyncTask.cancel(true);
+            boundsAsyncTask = null;
+        }
         //Bitmap bitmap = BitmapCache.getInstance().removeBitmap(getKey());
         //if (bitmap != null) {
         //    BitmapPool.getInstance().release(bitmap);
@@ -273,7 +278,14 @@ class PageTreeNode {
 
     @SuppressLint("StaticFieldLeak")
     private void decodeCropBounds(APage pageSize) {
-        Utils.execute(true, new AsyncTask<String, String, RectF>() {
+        if (boundsAsyncTask != null) {
+            boundsAsyncTask.cancel(true);
+        }
+        if (isRecycle) {
+            return;
+        }
+        apdfPage.isDecodingCrop = true;
+        boundsAsyncTask = new AsyncTask<String, String, RectF>() {
             @Override
             protected RectF doInBackground(String... params) {
                 if (isCancelled() || isRecycle) {
@@ -313,11 +325,11 @@ class PageTreeNode {
 
             @Override
             protected void onPostExecute(RectF rectF) {
-                apdfPage.isDecodingCrop = true;
                 if (null != rectF) {
                     apdfPage.setCropBounds(rectF);
                 }
             }
-        });
+        };
+        Utils.execute(true, boundsAsyncTask);
     }
 }
