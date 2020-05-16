@@ -1,6 +1,5 @@
 package cn.archko.pdf.activities
 
-import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.app.ProgressDialog
 import android.content.Intent
@@ -14,34 +13,27 @@ import android.preference.PreferenceManager
 import android.text.TextUtils
 import android.util.SparseArray
 import android.view.*
+import android.widget.FrameLayout
 import android.widget.Toast
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import cn.archko.pdf.R
 import cn.archko.pdf.common.*
 import cn.archko.pdf.entity.APage
+import cn.archko.pdf.listeners.AViewController
 import cn.archko.pdf.mupdf.MupdfDocument
 import cn.archko.pdf.utils.Utils
-import cn.archko.pdf.widgets.APDFPageView
-import cn.archko.pdf.widgets.ViewerDividerItemDecoration
-import com.artifex.mupdf.fitz.Document
 import com.jeremyliao.liveeventbus.LiveEventBus
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.toast
 import org.jetbrains.anko.uiThread
-import org.vudroid.core.events.ZoomListener
-import org.vudroid.core.models.ZoomModel
-import org.vudroid.core.multitouch.MultiTouchZoom
 
 /**
  * @author: archko 2016/5/9 :12:43
  */
-abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
+abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
 
     protected val OUTLINE_REQUEST = 0
     protected var mPath: String? = null
 
-    protected lateinit var mRecyclerView: RecyclerView
     protected lateinit var progressDialog: ProgressDialog
 
     protected var gestureDetector: GestureDetector? = null
@@ -51,18 +43,17 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
     protected var sensorHelper: SensorHelper? = null
     protected var mMupdfDocument: MupdfDocument? = null
     protected var mPageSizes = SparseArray<APage>()
-    protected var zoomModel: ZoomModel? = null
-    protected var multiTouchZoom: MultiTouchZoom? = null
 
     protected var mReflow = false
     protected var mCrop: Boolean = true
     protected var isDocLoaded: Boolean = false
-    protected val START_PROGRESS = 15
+
+    protected var mDocumentView: FrameLayout? = null
+    protected var viewController: AViewController? = null
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        initView()
         progressDialog = ProgressDialog(this)
 
         if (null != savedInstanceState) {
@@ -79,22 +70,24 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         }
         sensorHelper = SensorHelper(this)
 
-        mCrop = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(PdfOptionsActivity.PREF_AUTOCROP, true)
-
         loadBookmark()
+        initView()
+
         loadDoc()
     }
 
     open fun loadBookmark() {
+        mCrop = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(PdfOptionsActivity.PREF_AUTOCROP, true)
+
         pdfBookmarkManager = PDFBookmarkManager()
-        var autoCrop = 0;
+        var autoCrop = 0
         if (!mCrop) {
-            autoCrop = 1;
+            autoCrop = 1
         }
         pdfBookmarkManager!!.setStartBookmark(mPath, autoCrop)
-        val progress = pdfBookmarkManager?.bookmarkToRestore;
-        progress?.let {
-            mCrop = it.autoCrop == 0;
+        val bookmark = pdfBookmarkManager?.bookmarkToRestore
+        bookmark?.let {
+            mCrop = it.autoCrop == 0
             mReflow = it.reflow == 1
         }
     }
@@ -102,9 +95,6 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
     open fun doLoadDoc() {
         try {
             progressDialog.setMessage("Loading menu")
-
-            mRecyclerView.adapter = PDFRecyclerAdapter()
-            addGesture()
 
             isDocLoaded = true
         } catch (e: Exception) {
@@ -173,7 +163,6 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         LiveEventBus
                 .get(Event.ACTION_STOPPED)
                 .post(null)
-        mRecyclerView.adapter = null
         mMupdfDocument?.destroy()
         progressDialog.dismiss()
         BitmapCache.getInstance().clear()
@@ -182,128 +171,10 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
     open fun initView() {
         window.requestFeature(Window.FEATURE_NO_TITLE)
         setContentView(R.layout.reader)
-
-        mRecyclerView = findViewById(R.id.recycler_view)//RecyclerView(this)
-        with(mRecyclerView) {
-            descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
-            isNestedScrollingEnabled = false
-            layoutManager = LinearLayoutManager(this@MuPDFRecyclerViewActivity, LinearLayoutManager.VERTICAL, false)
-            setItemViewCacheSize(0)
-
-            addItemDecoration(ViewerDividerItemDecoration(this@MuPDFRecyclerViewActivity, LinearLayoutManager.VERTICAL))
-            addOnScrollListener(object : RecyclerView.OnScrollListener() {
-                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                        updateProgress(getCurrentPos())
-                    }
-                }
-
-                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                }
-            })
-        }
-
-        initTouchParams()
-
-        zoomModel = ZoomModel()
-        //initMultiTouchZoomIfAvailable(zoomModel)
-
-        zoomModel?.toggleZoomControls()
     }
 
-    @SuppressLint("ClickableViewAccessibility")
-    open fun addGesture() {
-        mRecyclerView.setOnTouchListener { v, event ->
-            gestureDetector!!.onTouchEvent(event)
-            /*multiTouchZoom?.run {
-                if (onTouchEvent(event)) {
-                    return@setOnTouchListener true
-                }
-
-                if (isResetLastPointAfterZoom()) {
-                    //setLastPosition(ev)
-                    setResetLastPointAfterZoom(false)
-                }
-            }*/
-            false
-        }
-    }
-
-    private fun initMultiTouchZoomIfAvailable(zoomModel: ZoomModel?) {
-        try {
-            multiTouchZoom = Class.forName("org.vudroid.core.multitouch.MultiTouchZoomImpl").getConstructor(ZoomModel::class.java).newInstance(zoomModel) as MultiTouchZoom
-        } catch (e: Exception) {
-            Logcat.d("Multi touch zoom is not available: $e")
-        }
-
-    }
-
-    protected fun initTouchParams() {
-        var margin = mRecyclerView.height
-        if (margin <= 0) {
-            margin = ViewConfiguration.get(this).scaledTouchSlop * 2
-        } else {
-            margin = (margin * 0.03).toInt()
-        }
-        gestureDetector = GestureDetector(this, object : GestureDetector.OnGestureListener {
-
-            override fun onDown(e: MotionEvent): Boolean {
-                return false
-            }
-
-            override fun onShowPress(e: MotionEvent) {
-
-            }
-
-            override fun onSingleTapUp(e: MotionEvent): Boolean {
-                return false
-            }
-
-            override fun onScroll(e1: MotionEvent, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
-                return false
-            }
-
-            override fun onLongPress(e: MotionEvent) {
-
-            }
-
-            override fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
-                return false
-            }
-        })
-
-        val finalMargin = margin
-        gestureDetector!!.setOnDoubleTapListener(object : GestureDetector.OnDoubleTapListener {
-
-            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                val top = mRecyclerView.height / 4
-                val bottom = mRecyclerView.height * 3 / 4
-
-                if (e.y.toInt() < top) {
-                    var scrollY = mRecyclerView.scrollY
-                    scrollY -= mRecyclerView.height
-                    mRecyclerView.scrollBy(0, scrollY + finalMargin)
-                    return true
-                } else if (e.y.toInt() > bottom) {
-                    var scrollY = mRecyclerView.scrollY
-                    scrollY += mRecyclerView.height
-                    mRecyclerView.scrollBy(0, scrollY - finalMargin)
-                    return true
-                } else {
-                    onSingleTap()
-                }
-                return true
-            }
-
-            override fun onDoubleTap(e: MotionEvent): Boolean {
-                onDoubleTap()
-                return true
-            }
-
-            override fun onDoubleTapEvent(e: MotionEvent): Boolean {
-                return false
-            }
-        })
+    open fun getDocumentView(): View? {
+        return null
     }
 
     open fun onSingleTap() {
@@ -327,16 +198,6 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         }
     }
 
-    override fun zoomChanged(newZoom: Float, oldZoom: Float) {
-        if (mCrop) {
-            return
-        }
-        mRecyclerView.adapter?.notifyItemChanged(getCurrentPos())
-    }
-
-    override fun commitZoom() {
-    }
-
     open fun updateProgress(index: Int) {
     }
     //--------------------------------------
@@ -353,7 +214,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         }
 
         if (options.getBoolean(PdfOptionsActivity.PREF_FULLSCREEN, true)) {
-            //getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            //getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
             window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
@@ -381,90 +242,20 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
     }
 
     open fun getCurrentPos(): Int {
-        var position = (mRecyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
-        if (position < 0) {
-            position = 0
-        }
-        return position;
+        return viewController?.getCurrentPos()!!
     }
 
     //===========================================
 
-    protected inner class PDFRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-
-        var pos: Int = 0
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-            var pageSize: APage? = null
-            if (mPageSizes.size() > pos) {
-                pageSize = mPageSizes.get(pos)
-                if (pageSize.targetWidth <= 0) {
-                    Logcat.d(String.format("create:%s", mRecyclerView.measuredWidth));
-                    pageSize.targetWidth = parent.width;
-                }
-            }
-            val view = APDFPageView(this@MuPDFRecyclerViewActivity, mMupdfDocument, pageSize!!, mCrop)
-            var lp: RecyclerView.LayoutParams? = view.layoutParams as RecyclerView.LayoutParams?
-            var width: Int = ViewGroup.LayoutParams.MATCH_PARENT
-            var height: Int = ViewGroup.LayoutParams.MATCH_PARENT
-            pageSize?.let {
-                width = it.effectivePagesWidth
-                height = it.effectivePagesHeight
-            }
-            //Logcat.d("create width:" + width + "==>" + mRecyclerView.measuredWidth + "==>" + pageSize!!.targetWidth);
-            if (null == lp) {
-                lp = RecyclerView.LayoutParams(width, height)
-                view.layoutParams = lp
-            } else {
-                lp.width = width;
-                lp.height = height;
-            }
-            val holder = PdfHolder(view)
-            return holder
-        }
-
-        override fun onBindViewHolder(viewHolder: RecyclerView.ViewHolder, position: Int) {
-            pos = viewHolder.adapterPosition
-            val pdfHolder = viewHolder as PdfHolder
-
-            pdfHolder.onBind(position)
-        }
-
-        override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
-            super.onViewRecycled(holder)
-            val pdfHolder = holder as PdfHolder?
-
-            pdfHolder?.view?.recycle()
-        }
-
-        override fun getItemCount(): Int {
-            return mMupdfDocument!!.countPages()
-        }
-
-        inner class PdfHolder(internal var view: APDFPageView) : RecyclerView.ViewHolder(view) {
-            fun onBind(position: Int) {
-                val pageSize = mPageSizes.get(position)
-                //Logcat.d(String.format("bind:position:%s,width:%s,%s", position, pageSize.targetWidth, mRecyclerView.measuredWidth));
-                if (pageSize.targetWidth != mRecyclerView.measuredWidth) {
-                    pageSize.targetWidth = mRecyclerView.measuredWidth
-                }
-                if (pageSize.targetWidth <= 0) {
-                    return
-                }
-                view.updatePage(pageSize, 1.0f/*zoomModel!!.zoom*/, mCrop)
-            }
-        }
-
-    }
-
     companion object {
 
-        private const val TAG = "MuPDFRecyclerViewActivity"
-        public const val TYPE_TITLE = 0
-        public const val TYPE_PROGRESS = 1
-        public const val TYPE_ZOOM = 2
-        public const val TYPE_CLOSE = 3
-        public const val TYPE_FONT = 4
-        public const val TYPE_SETTINGS = 5
+        const val TAG = "MuPDFRecyclerViewActivity"
+        const val TYPE_TITLE = 0
+        const val TYPE_PROGRESS = 1
+        const val TYPE_ZOOM = 2
+        const val TYPE_CLOSE = 3
+        const val TYPE_FONT = 4
+        const val TYPE_SETTINGS = 5
     }
 
     open fun loadDoc() {
@@ -473,10 +264,10 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity(), ZoomListener {
         doAsync {
             var result = false
             try {
-                var start = SystemClock.uptimeMillis();
-                mMupdfDocument = MupdfDocument(this@MuPDFRecyclerViewActivity);
+                var start = SystemClock.uptimeMillis()
+                mMupdfDocument = MupdfDocument(this@MuPDFRecyclerViewActivity)
                 mMupdfDocument?.newDocument(mPath, null)
-                val cp = mMupdfDocument!!.countPages();
+                val cp = mMupdfDocument!!.countPages()
                 Logcat.d(TAG, "open:" + (SystemClock.uptimeMillis() - start) + " cp:" + cp)
 
                 //val loc = mDocument!!.layout(mLayoutW, mLayoutH, mLayoutEM)

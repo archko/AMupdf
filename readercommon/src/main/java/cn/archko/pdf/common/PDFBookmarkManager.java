@@ -26,7 +26,7 @@ public class PDFBookmarkManager {
             bookmarkToRestore = new BookProgress(FileUtils.getRealPath(absolutePath));
             bookmarkToRestore.autoCrop = autoCrop;
         }
-        bookmarkToRestore.readTimes = bookmarkToRestore.readTimes + 1;
+        bookmarkToRestore.readTimes = bookmarkToRestore.readTimes;
         bookmarkToRestore.inRecent = 0;
     }
 
@@ -64,7 +64,7 @@ public class PDFBookmarkManager {
             bookmarkToRestore = new BookProgress(FileUtils.getRealPath(absolutePath));
         } else {
             bookmarkToRestore.path = FileUtils.getRealPath(absolutePath);
-            bookmarkToRestore.readTimes = bookmarkToRestore.readTimes++;
+            bookmarkToRestore.readTimes = bookmarkToRestore.readTimes + 1;
         }
         bookmarkToRestore.inRecent = 0;
         bookmarkToRestore.pageCount = pageCount;

@@ -9,14 +9,20 @@
     tools:openDrawer="end">
 
     <RelativeLayout
+        android:id="@+id/content"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.recyclerview.widget.RecyclerView
+        <!--<androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scrollbars="none" />
+            android:scrollbars="none" />-->
+
+        <FrameLayout
+            android:id="@+id/document_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
 
         <RelativeLayout
             android:id="@+id/layout"
