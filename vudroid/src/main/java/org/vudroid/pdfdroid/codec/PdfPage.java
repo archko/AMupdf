@@ -18,7 +18,7 @@ import org.vudroid.core.codec.CodecPage;
 
 public class PdfPage implements CodecPage {
 
-    private long pageHandle;
+    private long pageHandle = -1;
     Page page;
     int pdfPageWidth;
     int pdfPageHeight;
@@ -49,6 +49,10 @@ public class PdfPage implements CodecPage {
             pdfPageHeight = (int) (page.getBounds().y1 - page.getBounds().y0);
         }
         return pdfPageHeight;
+    }
+
+    public void setPage(Page page) {
+        this.page = page;
     }
 
     public Bitmap renderBitmap(int width, int height, RectF pageSliceBounds) {
@@ -91,6 +95,7 @@ public class PdfPage implements CodecPage {
 
         com.artifex.mupdf.fitz.Matrix ctm = new com.artifex.mupdf.fitz.Matrix(scale);
         AndroidDrawDevice dev = new AndroidDrawDevice(bitmap, patchX, patchY, 0, 0, width, height);
+
         page.run(dev, ctm, (Cookie) null);
         dev.close();
         dev.destroy();
@@ -112,10 +117,14 @@ public class PdfPage implements CodecPage {
     }
 
     public synchronized void recycle() {
-        if (pageHandle != 0) {
-            pageHandle = 0;
+        if (pageHandle >= 0) {
+            pageHandle = -1;
             page.destroy();
         }
+    }
+
+    public long getPageHandle() {
+        return pageHandle;
     }
 
     public Bitmap render(Rect viewbox, Matrix matrix) {
@@ -152,6 +161,6 @@ public class PdfPage implements CodecPage {
     static void add(long start) {
         count++;
         time += (SystemClock.uptimeMillis() - start);
-        Logcat.d("decode time:" + time/count);
+        Logcat.d("decode time:" + time / count);
     }
 }

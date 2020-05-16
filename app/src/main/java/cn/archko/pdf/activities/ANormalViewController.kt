@@ -6,21 +6,29 @@ import android.content.Context
 import android.content.res.Configuration
 import android.util.SparseArray
 import android.view.GestureDetector
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.RelativeLayout
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import cn.archko.pdf.adapters.MuPDFReflowAdapter
+import android.widget.Toast
+import cn.archko.pdf.common.BitmapCache
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.common.PDFBookmarkManager
 import cn.archko.pdf.entity.APage
 import cn.archko.pdf.listeners.AViewController
 import cn.archko.pdf.listeners.OutlineListener
+import cn.archko.pdf.listeners.SimpleGestureListener
 import cn.archko.pdf.mupdf.MupdfDocument
-import cn.archko.pdf.widgets.APDFPageView
 import cn.archko.pdf.widgets.APageSeekBarControls
-import cn.archko.pdf.widgets.ViewerDividerItemDecoration
+import org.vudroid.core.AKDecodeService
+import org.vudroid.core.DecodeService
+import org.vudroid.core.DocumentView
+import org.vudroid.core.models.CurrentPageModel
+import org.vudroid.core.models.DecodingProgressModel
+import org.vudroid.core.models.ZoomModel
+import org.vudroid.core.views.PageViewZoomControls
+import org.vudroid.pdfdroid.codec.PdfDocument
 
 /**
  * @author: archko 2020/5/15 :12:43
@@ -34,7 +42,13 @@ class ANormalViewController(private var context: Context,
                             private var gestureDetector: GestureDetector?) :
         OutlineListener, AViewController {
 
-    private lateinit var mRecyclerView: RecyclerView
+    private lateinit var documentView: DocumentView
+    private lateinit var frameLayout: FrameLayout
+    private var decodeService: DecodeService? = null
+
+    private var currentPageModel: CurrentPageModel? = null
+    private var mPageControls: PageViewZoomControls? = null
+
     private var mMupdfDocument: MupdfDocument? = null
     private lateinit var mPageSizes: SparseArray<APage>
     private var init: Boolean = false
@@ -44,26 +58,32 @@ class ANormalViewController(private var context: Context,
     }
 
     private fun initView() {
-        mRecyclerView = RecyclerView(context)//contentView.findViewById(R.id.recycler_view)
-        with(mRecyclerView) {
-            descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
-            isNestedScrollingEnabled = false
-            layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
-            setItemViewCacheSize(0)
+        BitmapCache.getInstance().resize(BitmapCache.CAPACITY_FOR_VUDROID)
+        initDecodeService()
+        val zoomModel = ZoomModel()
 
-            addItemDecoration(ViewerDividerItemDecoration(context, LinearLayoutManager.VERTICAL))
-            addOnScrollListener(object : RecyclerView.OnScrollListener() {
-                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                        updateProgress(getCurrentPos())
-                    }
-                }
-
-                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                }
-            })
+        if (null != pdfBookmarkManager.bookmarkToRestore) {
+            zoomModel.zoom = pdfBookmarkManager.bookmarkToRestore.zoomLevel / 1000
         }
+        val progressModel = DecodingProgressModel()
+        progressModel.addEventListener(this)
+        currentPageModel = CurrentPageModel()
+        currentPageModel?.addEventListener(this)
+        documentView = DocumentView(context, zoomModel, progressModel, currentPageModel, simpleGestureListener)
+        zoomModel.addEventListener(documentView)
+        documentView.setLayoutParams(ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        decodeService?.setContainerView(documentView)
+        documentView.setDecodeService(decodeService)
 
+        frameLayout = createMainContainer()
+        frameLayout.addView(documentView)
+        mPageControls = createZoomControls(zoomModel)
+        //frameLayout.addView(mPageControls)
+        zoomModel.addEventListener(this)
+
+        val lp = RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        lp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
+        mControllerLayout.addView(mPageControls, lp)
     }
 
     override fun init(pageSizes: SparseArray<APage>, mupdfDocument: MupdfDocument?, pos: Int) {
@@ -73,7 +93,7 @@ class ANormalViewController(private var context: Context,
                 this.mPageSizes = pageSizes
                 this.mMupdfDocument = mupdfDocument
 
-                setCropMode(pos)
+                setNormalMode(pos)
             }
             addGesture()
         } catch (e: Exception) {
@@ -88,7 +108,7 @@ class ANormalViewController(private var context: Context,
             this.mPageSizes = pageSizes
             this.mMupdfDocument = mupdfDocument
 
-            setCropMode(pos)
+            setNormalMode(pos)
             addGesture()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -96,30 +116,51 @@ class ANormalViewController(private var context: Context,
         }
     }
 
+    private fun createZoomControls(zoomModel: ZoomModel): PageViewZoomControls? {
+        val controls = PageViewZoomControls(context, zoomModel)
+        controls.gravity = Gravity.RIGHT or Gravity.BOTTOM
+        zoomModel.addEventListener(controls)
+        return controls
+    }
+
+    private fun createMainContainer(): FrameLayout {
+        return FrameLayout(context)
+    }
+
+    private fun initDecodeService() {
+        if (decodeService == null) {
+            decodeService = createDecodeService()
+        }
+    }
+
+    protected fun createDecodeService(): DecodeService? {
+        return AKDecodeService()
+    }
+
     override fun getDocumentView(): View {
-        return mRecyclerView
+        return frameLayout
     }
 
     @SuppressLint("ClickableViewAccessibility")
     fun addGesture() {
-        mRecyclerView.setOnTouchListener { v, event ->
-            gestureDetector!!.onTouchEvent(event)
-            false
+        documentView.setOnTouchListener { v, event ->
+            val res: Boolean? = gestureDetector?.onTouchEvent(event)
+            return@setOnTouchListener res!!
         }
     }
 
-    private fun setCropMode(pos: Int) {
-        if (null == mRecyclerView.adapter) {
-            mRecyclerView.adapter = PDFRecyclerAdapter()
-        }
-
+    private fun setNormalMode(pos: Int) {
+        val document = PdfDocument()
+        document.core = mMupdfDocument?.document
+        (decodeService as AKDecodeService).document = document
         if (pos > 0) {
-            mRecyclerView.scrollToPosition(pos)
+            documentView.goToPage(pos, pdfBookmarkManager.bookmarkToRestore.offsetX, pdfBookmarkManager.bookmarkToRestore.offsetY)
         }
+        documentView.showDocument()
     }
 
     override fun getCurrentPos(): Int {
-        var position = (mRecyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+        var position = documentView.getCurrentPage()
         if (position < 0) {
             position = 0
         }
@@ -127,7 +168,7 @@ class ANormalViewController(private var context: Context,
     }
 
     override fun scrollToPosition(page: Int) {
-        mRecyclerView.layoutManager?.scrollToPosition(page)
+        documentView.goToPage(page)
     }
 
     override fun onSingleTap() {
@@ -135,6 +176,7 @@ class ANormalViewController(private var context: Context,
         //    mPageSeekBarControls?.hide()
         //    return
         //}
+        mPageControls?.hide()
     }
 
     override fun onDoubleTap() {
@@ -146,13 +188,11 @@ class ANormalViewController(private var context: Context,
     }
 
     override fun onSelectedOutline(index: Int) {
-        mRecyclerView.layoutManager?.scrollToPosition(index - RESULT_FIRST_USER)
+        documentView.goToPage(index - RESULT_FIRST_USER)
         updateProgress(index - RESULT_FIRST_USER)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
-        mRecyclerView.stopScroll()
-        mRecyclerView.adapter?.notifyDataSetChanged()
     }
 
     fun updateProgress(index: Int) {
@@ -162,99 +202,35 @@ class ANormalViewController(private var context: Context,
     }
 
     override fun notifyDataSetChanged() {
-        mRecyclerView.adapter?.notifyDataSetChanged()
     }
 
     //--------------------------------------
 
     override fun onResume() {
         //mPageSeekBarControls?.hide()
-
-        mRecyclerView.postDelayed(object : Runnable {
-            override fun run() {
-                mRecyclerView.adapter?.notifyDataSetChanged()
-            }
-        }, 250L)
+        mPageControls?.hide()
     }
 
     override fun onPause() {
-        pdfBookmarkManager.bookmarkToRestore?.autoCrop = 0
-
-        val position = getCurrentPos()
-        val zoomLevel = pdfBookmarkManager.bookmarkToRestore.zoomLevel;
-        pdfBookmarkManager.saveCurrentPage(mPath, mMupdfDocument!!.countPages(), position, zoomLevel, -1, 0)
-        if (null != mRecyclerView.adapter && mRecyclerView.adapter is MuPDFReflowAdapter) {
-            (mRecyclerView.adapter as MuPDFReflowAdapter).clearCacheViews()
-        }
+        pdfBookmarkManager.saveCurrentPage(mPath, mMupdfDocument!!.countPages(), documentView.currentPage,
+                documentView.zoomModel.zoom * 1000f, documentView.scrollX, documentView.scrollY)
     }
 
     //===========================================
     override fun showController() {
+        mPageControls?.show()
     }
 
-    protected inner class PDFRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-
-        var pos: Int = 0
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-            var pageSize: APage? = null
-            if (mPageSizes.size() > pos) {
-                pageSize = mPageSizes.get(pos)
-                if (pageSize.targetWidth <= 0) {
-                    Logcat.d(String.format("create:%s", mRecyclerView.measuredWidth))
-                    pageSize.targetWidth = parent.width
-                }
-            }
-            val view = APDFPageView(context, mMupdfDocument, pageSize!!, true)
-            var lp: RecyclerView.LayoutParams? = view.layoutParams as RecyclerView.LayoutParams?
-            var width: Int = ViewGroup.LayoutParams.MATCH_PARENT
-            var height: Int = ViewGroup.LayoutParams.MATCH_PARENT
-            pageSize?.let {
-                width = it.effectivePagesWidth
-                height = it.effectivePagesHeight
-            }
-            //Logcat.d("create width:" + width + "==>" + mRecyclerView.measuredWidth + "==>" + pageSize!!.targetWidth)
-            if (null == lp) {
-                lp = RecyclerView.LayoutParams(width, height)
-                view.layoutParams = lp
-            } else {
-                lp.width = width
-                lp.height = height
-            }
-            val holder = PdfHolder(view)
-            return holder
+    var simpleGestureListener: SimpleGestureListener = object : SimpleGestureListener {
+        override fun onSingleTapConfirmed(currentPage: Int) {
+            //currentPageChanged(currentPage)
+            //gestureDetector?.onTouchEvent()
         }
 
-        override fun onBindViewHolder(viewHolder: RecyclerView.ViewHolder, position: Int) {
-            pos = viewHolder.adapterPosition
-            val pdfHolder = viewHolder as PdfHolder
-
-            pdfHolder.onBind(position)
+        override fun onDoubleTapEvent(currentPage: Int) {
+            mPageSeekBarControls!!.toggleSeekControls()
+            mPageControls!!.toggleZoomControls()
         }
-
-        override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
-            super.onViewRecycled(holder)
-            val pdfHolder = holder as PdfHolder?
-
-            pdfHolder?.view?.recycle()
-        }
-
-        override fun getItemCount(): Int {
-            return mMupdfDocument!!.countPages()
-        }
-
-        inner class PdfHolder(internal var view: APDFPageView) : RecyclerView.ViewHolder(view) {
-            fun onBind(position: Int) {
-                val pageSize = mPageSizes.get(position)
-                //Logcat.d(String.format("bind:position:%s,width:%s,%s", position, pageSize.targetWidth, mRecyclerView.measuredWidth))
-                if (pageSize.targetWidth != mRecyclerView.measuredWidth) {
-                    pageSize.targetWidth = mRecyclerView.measuredWidth
-                }
-                if (pageSize.targetWidth <= 0) {
-                    return
-                }
-                view.updatePage(pageSize, 1.0f/*zoomModel!!.zoom*/, true)
-            }
-        }
-
     }
+
 }

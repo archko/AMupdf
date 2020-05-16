@@ -10,7 +10,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import cn.archko.pdf.adapters.MuPDFReflowAdapter
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.common.PDFBookmarkManager
 import cn.archko.pdf.entity.APage
@@ -181,9 +180,6 @@ class ACropViewController(private var context: Context,
         val position = getCurrentPos()
         val zoomLevel = pdfBookmarkManager.bookmarkToRestore.zoomLevel;
         pdfBookmarkManager.saveCurrentPage(mPath, mMupdfDocument!!.countPages(), position, zoomLevel, -1, 0)
-        if (null != mRecyclerView.adapter && mRecyclerView.adapter is MuPDFReflowAdapter) {
-            (mRecyclerView.adapter as MuPDFReflowAdapter).clearCacheViews()
-        }
     }
 
     //===========================================

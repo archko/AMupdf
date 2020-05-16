@@ -16,6 +16,8 @@ import org.vudroid.core.codec.CodecContext;
 import org.vudroid.core.codec.CodecDocument;
 import org.vudroid.core.codec.CodecPage;
 import org.vudroid.core.utils.PathFromUri;
+import org.vudroid.pdfdroid.codec.PdfContext;
+import org.vudroid.pdfdroid.codec.PdfDocument;
 import org.vudroid.pdfdroid.codec.PdfPage;
 
 import java.io.IOException;
@@ -34,7 +36,7 @@ public class AKDecodeService implements DecodeService {
     private static final int PAGE_POOL_SIZE = 4;
     private static final int MSG_DECODE_START = 0;
     private static final int MSG_DECODE_FINISH = 4;
-    private final CodecContext codecContext;
+    private CodecContext codecContext;
 
     private View containerView;
     private CodecDocument document;
@@ -85,6 +87,10 @@ public class AKDecodeService implements DecodeService {
         initDecodeThread();
     }
 
+    public AKDecodeService() {
+        codecContext = new PdfContext();
+    }
+
     private void initDecodeThread() {
         HandlerThread handlerThread = new HandlerThread("decodeThread");
         handlerThread.start();
@@ -109,6 +115,15 @@ public class AKDecodeService implements DecodeService {
         return document;
     }
 
+    public void setDocument(CodecDocument document) {
+        this.document = document;
+        if (null != mHandler) {
+            mHandler.sendEmptyMessage(MSG_DECODE_FINISH);
+            mHandler.getLooper().quit();
+        }
+        initDecodeThread();
+    }
+
     public void decodePage(Object decodeKey, int pageNum, final DecodeCallback decodeCallback, float zoom, RectF pageSliceBounds) {
         final DecodeTask decodeTask = new DecodeTask(pageNum, decodeCallback, zoom, decodeKey, pageSliceBounds);
         Message message = Message.obtain();
@@ -126,6 +141,9 @@ public class AKDecodeService implements DecodeService {
 
     private void performDecode(DecodeTask currentDecodeTask)
             throws IOException {
+        if (isRecycled) {
+            return;
+        }
         if (isTaskDead(currentDecodeTask)) {
             //Log.d(DECODE_SERVICE, "Skipping decode task for page " + currentDecodeTask);
             return;
@@ -141,8 +159,12 @@ public class AKDecodeService implements DecodeService {
         //Log.d(DECODE_SERVICE, "Start converting map to bitmap");
         float scale = calculateScale(vuPage) * currentDecodeTask.zoom;
         //Log.d(DECODE_SERVICE, "scale:"+scale+" vuPage.getWidth():"+vuPage.getWidth());
-        Rect rect=getScaledSize(currentDecodeTask,vuPage, scale);
-        final Bitmap bitmap = ((PdfPage) vuPage).renderBitmap(rect.width(),rect.height(), currentDecodeTask.pageSliceBounds, scale);
+        Rect rect = getScaledSize(currentDecodeTask, vuPage, scale);
+        if (((PdfPage) vuPage).getPageHandle() < 0) {
+            PdfDocument pdfDocument = (PdfDocument) document;
+            ((PdfPage) vuPage).setPage(pdfDocument.getCore().loadPage(currentDecodeTask.pageNumber));
+        }
+        final Bitmap bitmap = ((PdfPage) vuPage).renderBitmap(rect.width(), rect.height(), currentDecodeTask.pageSliceBounds, scale);
         //Log.d(DECODE_SERVICE, "Converting map to bitmap finished");
         if (isTaskDead(currentDecodeTask)) {
             //bitmap.recycle();
