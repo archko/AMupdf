@@ -11,7 +11,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.RelativeLayout
-import android.widget.Toast
 import cn.archko.pdf.common.BitmapCache
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.common.PDFBookmarkManager
@@ -51,7 +50,6 @@ class ANormalViewController(private var context: Context,
 
     private var mMupdfDocument: MupdfDocument? = null
     private lateinit var mPageSizes: SparseArray<APage>
-    private var init: Boolean = false
 
     init {
         initView()

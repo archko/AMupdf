@@ -96,11 +96,11 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/about_title"
             android:screenOrientation="portrait"></activity>
-        <activity
+        <!--<activity
             android:name="cn.archko.pdf.activities.TestActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="test"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait"></activity>-->
 
     </application>
 </manifest> 

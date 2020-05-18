@@ -245,6 +245,10 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
         return viewController?.getCurrentPos()!!
     }
 
+    open fun getPassword(): String? {
+        return null
+    }
+
     //===========================================
 
     companion object {
@@ -266,7 +270,14 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
             try {
                 var start = SystemClock.uptimeMillis()
                 mMupdfDocument = MupdfDocument(this@MuPDFRecyclerViewActivity)
-                mMupdfDocument?.newDocument(mPath, null)
+                mMupdfDocument?.newDocument(mPath, getPassword())
+                var res = true
+                mMupdfDocument?.let {
+                    if (it.document.needsPassword()) {
+                        res = it.document.authenticatePassword(getPassword())
+                    }
+                }
+
                 val cp = mMupdfDocument!!.countPages()
                 Logcat.d(TAG, "open:" + (SystemClock.uptimeMillis() - start) + " cp:" + cp)
 

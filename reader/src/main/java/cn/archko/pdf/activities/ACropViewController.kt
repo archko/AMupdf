@@ -8,6 +8,7 @@ import android.util.SparseArray
 import android.view.GestureDetector
 import android.view.View
 import android.view.ViewGroup
+import android.widget.RelativeLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import cn.archko.pdf.common.Logcat
@@ -25,6 +26,7 @@ import cn.archko.pdf.widgets.ViewerDividerItemDecoration
  */
 class ACropViewController(private var context: Context,
                           private var contentView: View,
+                          private val mControllerLayout: RelativeLayout,
                           private var pdfBookmarkManager: PDFBookmarkManager,
                           private var mPath: String,
                           private var mPageSeekBarControls: APageSeekBarControls?,

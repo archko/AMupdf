@@ -15,7 +15,7 @@ import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import cn.archko.mupdf.R
+import cn.archko.pdf.R
 import cn.archko.pdf.adapters.MuPDFReflowAdapter
 import cn.archko.pdf.colorpicker.ColorPickerDialog
 import cn.archko.pdf.common.Logcat
