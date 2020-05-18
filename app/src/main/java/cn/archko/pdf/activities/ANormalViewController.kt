@@ -133,7 +133,7 @@ class ANormalViewController(private var context: Context,
         }
     }
 
-    protected fun createDecodeService(): DecodeService? {
+    private fun createDecodeService(): DecodeService? {
         return AKDecodeService()
     }
 
@@ -142,7 +142,7 @@ class ANormalViewController(private var context: Context,
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    fun addGesture() {
+    private fun addGesture() {
         documentView.setOnTouchListener { v, event ->
             val res: Boolean? = gestureDetector?.onTouchEvent(event)
             return@setOnTouchListener res!!
@@ -195,7 +195,7 @@ class ANormalViewController(private var context: Context,
     override fun onConfigurationChanged(newConfig: Configuration) {
     }
 
-    fun updateProgress(index: Int) {
+    private fun updateProgress(index: Int) {
         if (mMupdfDocument != null && mPageSeekBarControls?.visibility == View.VISIBLE) {
             mPageSeekBarControls?.updatePageProgress(index)
         }
@@ -221,7 +221,7 @@ class ANormalViewController(private var context: Context,
         mPageControls?.show()
     }
 
-    var simpleGestureListener: SimpleGestureListener = object : SimpleGestureListener {
+    private var simpleGestureListener: SimpleGestureListener = object : SimpleGestureListener {
         override fun onSingleTapConfirmed(currentPage: Int) {
             //currentPageChanged(currentPage)
             //gestureDetector?.onTouchEvent()

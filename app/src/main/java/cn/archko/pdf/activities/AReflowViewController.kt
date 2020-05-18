@@ -124,7 +124,7 @@ class AReflowViewController(private var context: Context,
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    fun addGesture() {
+    private fun addGesture() {
         mRecyclerView.setOnTouchListener { v, event ->
             gestureDetector?.onTouchEvent(event)
             false

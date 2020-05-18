@@ -36,7 +36,7 @@ public class BookProgress implements Serializable, Comparator<BookProgress> {
      */
     public int progress = 0;
     public int page;
-    public float zoomLevel;
+    public float zoomLevel = 1000f;
     public int rotation;
     public int offsetX;
     public int offsetY;

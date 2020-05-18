@@ -98,7 +98,7 @@ class ACropViewController(private var context: Context,
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    fun addGesture() {
+    private fun addGesture() {
         mRecyclerView.setOnTouchListener { v, event ->
             gestureDetector!!.onTouchEvent(event)
             false
@@ -152,7 +152,7 @@ class ACropViewController(private var context: Context,
         mRecyclerView.adapter?.notifyDataSetChanged()
     }
 
-    fun updateProgress(index: Int) {
+    private fun updateProgress(index: Int) {
         if (mMupdfDocument != null && mPageSeekBarControls?.visibility == View.VISIBLE) {
             mPageSeekBarControls?.updatePageProgress(index)
         }
@@ -186,7 +186,7 @@ class ACropViewController(private var context: Context,
     override fun showController() {
     }
 
-    protected inner class PDFRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    private inner class PDFRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         var pos: Int = 0
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {

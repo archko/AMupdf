@@ -49,7 +49,8 @@ public class PDFBookmarkManager {
         int currentPage = 0;
 
         if (bookmarkToRestore.pageCount != pageCount || bookmarkToRestore.page > pageCount) {
-            bookmarkToRestore = null;
+            bookmarkToRestore.pageCount = pageCount;
+            bookmarkToRestore.page = bookmarkToRestore.page >= pageCount ? 0 : bookmarkToRestore.page;
             return currentPage;
         }
 
