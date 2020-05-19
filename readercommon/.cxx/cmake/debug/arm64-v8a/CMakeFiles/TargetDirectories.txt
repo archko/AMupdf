@@ -1,0 +1,3 @@
+/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cmake/debug/arm64-v8a/CMakeFiles/edit_cache.dir
+/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cmake/debug/arm64-v8a/CMakeFiles/rebuild_cache.dir
+/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cmake/debug/arm64-v8a/CMakeFiles/crop-lib.dir

@@ -1,0 +1,15 @@
+Executable : /Users/archko/android-sdk/cmake/3.6.4111459/bin/cmake
+arguments : 
+-H/Users/archko/Projects/PDF/AMupdf/readercommon/src/main/cpp
+-B/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cmake/debug/arm64-v8a
+-DANDROID_ABI=arm64-v8a
+-DANDROID_PLATFORM=android-16
+-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/archko/Projects/PDF/AMupdf/readercommon/build/intermediates/cmake/debug/obj/arm64-v8a
+-DCMAKE_BUILD_TYPE=Debug
+-DANDROID_NDK=/Users/archko/android-sdk/ndk-bundle
+-DCMAKE_CXX_FLAGS=
+-DCMAKE_TOOLCHAIN_FILE=/Users/archko/android-sdk/ndk-bundle/build/cmake/android.toolchain.cmake
+-DCMAKE_MAKE_PROGRAM=/Users/archko/android-sdk/cmake/3.6.4111459/bin/ninja
+-GAndroid Gradle - Ninja
+jvmArgs : 
+

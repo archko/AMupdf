@@ -1,0 +1,71 @@
+{
+  "variant": {
+    "module": {
+      "rootBuildGradleFolder": "/Users/archko/Projects/PDF/AMupdf",
+      "sdkFolder": "/Users/archko/android-sdk",
+      "isNativeCompilerSettingsCacheEnabled": false,
+      "isBuildOnlyTargetAbiEnabled": true,
+      "ideBuildTargetAbi": "arm64-v8a,armeabi-v7a,armeabi",
+      "splitsAbiFilterSet": [],
+      "intermediatesFolder": "/Users/archko/Projects/PDF/AMupdf/readercommon/build/intermediates",
+      "gradleModulePathName": ":readercommon",
+      "moduleRootFolder": "/Users/archko/Projects/PDF/AMupdf/readercommon",
+      "makeFile": "/Users/archko/Projects/PDF/AMupdf/readercommon/src/main/cpp/CMakeLists.txt",
+      "buildSystem": "CMAKE",
+      "compilerSettingsCacheFolder": "/Users/archko/Projects/PDF/AMupdf/.cxx",
+      "cxxFolder": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx",
+      "ndkFolder": "/Users/archko/android-sdk/ndk-bundle",
+      "ndkVersion": "20.0.5594570",
+      "ndkSupportedAbiList": [
+        "ARMEABI_V7A",
+        "ARM64_V8A",
+        "X86",
+        "X86_64"
+      ],
+      "ndkDefaultAbiList": [
+        "ARMEABI_V7A",
+        "ARM64_V8A",
+        "X86",
+        "X86_64"
+      ],
+      "cmakeToolchainFile": "."
+    },
+    "buildSystemArgumentList": [],
+    "cFlagList": [],
+    "cppFlagsList": [
+      ""
+    ],
+    "variantName": "debug",
+    "soFolder": "/Users/archko/Projects/PDF/AMupdf/readercommon/build/intermediates/cmake/debug/lib",
+    "objFolder": "/Users/archko/Projects/PDF/AMupdf/readercommon/build/intermediates/cmake/debug/obj",
+    "jsonFolder": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cmake/debug",
+    "gradleBuildOutputFolder": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cxx/debug",
+    "isDebuggableEnabled": true,
+    "validAbiList": [
+      "ARM64_V8A",
+      "ARMEABI_V7A"
+    ],
+    "buildTargetSet": []
+  },
+  "abi": "ARM64_V8A",
+  "abiPlatformVersion": 16,
+  "cxxBuildFolder": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cmake/debug/arm64-v8a",
+  "jsonFile": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cmake/debug/arm64-v8a/android_gradle_build.json",
+  "gradleBuildOutputFolder": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cxx/debug/arm64-v8a",
+  "objFolder": "/Users/archko/Projects/PDF/AMupdf/readercommon/build/intermediates/cmake/debug/obj/arm64-v8a",
+  "buildCommandFile": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cmake/debug/arm64-v8a/build_command.txt",
+  "buildOutputFile": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cmake/debug/arm64-v8a/build_output.txt",
+  "modelOutputFile": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cmake/debug/arm64-v8a/build_model.json",
+  "cmake": {
+    "cmakeListsWrapperFile": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cxx/debug/arm64-v8a/CMakeLists.txt",
+    "toolchainWrapperFile": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cxx/debug/arm64-v8a/android_gradle_build.toolchain.cmake",
+    "buildGenerationStateFile": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cxx/debug/arm64-v8a/build_generation_state.json",
+    "cacheKeyFile": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cxx/debug/arm64-v8a/compiler_cache_key.json",
+    "compilerCacheUseFile": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cxx/debug/arm64-v8a/compiler_cache_use.json",
+    "compilerCacheWriteFile": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cxx/debug/arm64-v8a/compiler_cache_write.json",
+    "toolchainSettingsFromCacheFile": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cxx/debug/arm64-v8a/compiler_settings_cache.cmake",
+    "cmakeWrappingBaseFolder": "."
+  },
+  "jsonGenerationLoggingRecordFile": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cmake/debug/arm64-v8a/json_generation_record.json",
+  "compileCommandsJsonFile": "/Users/archko/Projects/PDF/AMupdf/readercommon/.cxx/cmake/debug/arm64-v8a/compile_commands.json"
+}
