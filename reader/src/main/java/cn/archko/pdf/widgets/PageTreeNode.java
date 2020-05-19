@@ -252,6 +252,9 @@ class PageTreeNode {
                 Bitmap bitmap = BitmapPool.getInstance().acquire(width, height);
 
                 com.artifex.mupdf.fitz.Page page = apdfPage.mupdfDocument.loadPage(pageSize.index);
+                if (page == null) {
+                    return null;
+                }
                 com.artifex.mupdf.fitz.Matrix ctm = new com.artifex.mupdf.fitz.Matrix(pageSize.getScaleZoom() * scale);
                 MupdfDocument.render(page, ctm, bitmap, xOrigin, leftBound, topBound);
                 if (null != page) {
@@ -301,6 +304,9 @@ class PageTreeNode {
                 int pageW = pageSize.getZoomPoint().x;
                 int pageH = pageSize.getZoomPoint().y;
                 com.artifex.mupdf.fitz.Page page = apdfPage.mupdfDocument.loadPage(pageSize.index);
+                if (page == null) {
+                    return null;
+                }
                 com.artifex.mupdf.fitz.Matrix ctm = new com.artifex.mupdf.fitz.Matrix(MupdfDocument.ZOOM);
                 RectI bbox = new RectI(page.getBounds().transform(ctm));
                 float xscale = (float) pageW / (float) (bbox.x1 - bbox.x0);
