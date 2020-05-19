@@ -1,4 +1,0 @@
-# ninja log v5
-0	72	0	CMakeFiles/crop-lib.dir/javahelpers.c.o	e11795dc9e2fe55c
-0	97	0	CMakeFiles/crop-lib.dir/PageCropper.c.o	edc5bcbd22890a2a
-97	128	0	/Users/archko/Projects/PDF/AMupdf/readercommon/build/intermediates/cmake/debug/obj/arm64-v8a/libcrop-lib.so	24f9cc2508a7e4d9
