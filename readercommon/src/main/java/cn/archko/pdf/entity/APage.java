@@ -150,6 +150,10 @@ public class APage {
         return scale * mZoom;
     }
 
+    public float getScale() {
+        return scale;
+    }
+
     public Point getZoomPoint() {
         return getZoomPoint(getScaleZoom());
     }

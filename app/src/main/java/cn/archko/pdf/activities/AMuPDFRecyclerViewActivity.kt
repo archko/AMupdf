@@ -235,33 +235,47 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         }
     }
 
-    //override fun preparePageSize(cp: Int) {
-    //    val mRecyclerView = viewController?.getDocumentView()!!
-    //    val width = mRecyclerView.width
-    //    var start = SystemClock.uptimeMillis()
-    //    var pageSizeBean: APageSizeLoader.PageSizeBean? = null
-    //    if (pdfBookmarkManager != null && pdfBookmarkManager!!.bookmarkToRestore != null) {
-    //        pageSizeBean = APageSizeLoader.loadPageSizeFromFile(width,
-    //                pdfBookmarkManager!!.bookmarkToRestore.pageCount,
-    //                pdfBookmarkManager!!.bookmarkToRestore.size,
-    //                FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
-    //                        pdfBookmarkManager?.bookmarkToRestore?.name))
-    //    }
-    //    Logcat.d("open3:" + (SystemClock.uptimeMillis() - start))
-    //
-    //    var pageSizes: SparseArray<APage>? = null
-    //    if (pageSizeBean != null) {
-    //        pageSizes = pageSizeBean.sparseArray
-    //    }
-    //    if (pageSizes != null && pageSizes.size() > 0) {
-    //        Logcat.d("open3:pageSizes>0:" + pageSizes.size())
-    //        mPageSizes = pageSizes
-    //    } else {
-    //        start = SystemClock.uptimeMillis()
-    //        super.preparePageSize(cp)
-    //        Logcat.d("open2:" + (SystemClock.uptimeMillis() - start))
-    //    }
-    //}
+    override fun preparePageSize(cp: Int) {
+        val mRecyclerView = viewController?.getDocumentView()!!
+        val width = mRecyclerView.width
+        var start = SystemClock.uptimeMillis()
+        var pageSizeBean: APageSizeLoader.PageSizeBean? = null
+        if (pdfBookmarkManager != null && pdfBookmarkManager!!.bookmarkToRestore != null) {
+            pageSizeBean = APageSizeLoader.loadPageSizeFromFile(width,
+                    pdfBookmarkManager!!.bookmarkToRestore.pageCount,
+                    pdfBookmarkManager!!.bookmarkToRestore.size,
+                    FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
+                            pdfBookmarkManager?.bookmarkToRestore?.name))
+        }
+        Logcat.d("open3:" + (SystemClock.uptimeMillis() - start))
+
+        var pageSizes: SparseArray<APage>? = null
+        if (pageSizeBean != null) {
+            pageSizes = pageSizeBean.sparseArray
+        }
+        if (pageSizes != null && pageSizes.size() > 0) {
+            Logcat.d("open3:pageSizes>0:" + pageSizes.size())
+            mPageSizes = pageSizes
+            checkPageSize()
+        } else {
+            start = SystemClock.uptimeMillis()
+            super.preparePageSize(cp)
+            Logcat.d("open2:" + (SystemClock.uptimeMillis() - start))
+        }
+    }
+
+    /**
+     * if scale=1.0f,reload it from mupdf
+     */
+    private fun checkPageSize() {
+        for (i in 0 until mPageSizes.size()) {
+            val point = mPageSizes.valueAt(i)
+            if (point.scale == 1.0f) {
+                val pointF = getPageSize(i)
+                mPageSizes.put(i, pointF)
+            }
+        }
+    }
 
     private fun toggleReflow() {
         if (mReflow) {  //如果原来是文本重排模式,则切换为切割或普通模式
