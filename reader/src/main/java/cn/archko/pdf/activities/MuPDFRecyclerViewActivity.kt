@@ -305,11 +305,11 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
         //toast("loading:$mPath")
     }
 
-    open fun getPageSize(pageNum: Int): APage {
-        val p = mMupdfDocument?.loadPage(pageNum)
+    open fun getPageSize(pageNum: Int): APage? {
+        val p = mMupdfDocument?.loadPage(pageNum) ?: return null
 
-        Logcat.d(TAG, "open:getPageSize." + pageNum + " page:" + p)
-        val b = p!!.getBounds()
+        Logcat.d(TAG, "open:getPageSize.$pageNum page:$p")
+        val b = p.bounds
         val w = b.x1 - b.x0
         val h = b.y1 - b.y0
         val pointf = PointF(w, h)

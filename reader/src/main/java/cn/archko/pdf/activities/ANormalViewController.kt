@@ -155,6 +155,7 @@ class ANormalViewController(private var context: Context,
             documentView.goToPage(pos, pdfBookmarkManager.bookmarkToRestore.offsetX, pdfBookmarkManager.bookmarkToRestore.offsetY)
         }
         documentView.showDocument()
+        mPageControls?.hide()
     }
 
     override fun getCurrentPos(): Int {
