@@ -10,14 +10,15 @@ index 5b3f3961c..a55bb78c0 100644
  
  LOCAL_CPPFLAGS += \
  	$(MUPDF_EXTRA_CPPFLAGS)
-diff --git a/platform/java/mupdf_native.c b/platform/java/mupdf_native.c
-index 67c9ea6c1..dfdbbed39 100644
---- a/platform/java/mupdf_native.c
-+++ b/platform/java/mupdf_native.c
-@@ -6452,6 +6452,328 @@ FUN(Page_textAsHtml)(JNIEnv *env, jobject self)
+diff --git a/platform/java/jni/page.c b/platform/java/jni/page.c
+index e571aa904..010c4f26a 100644
+--- a/platform/java/jni/page.c
++++ b/platform/java/jni/page.c
+@@ -377,3 +377,313 @@ FUN(Page_textAsHtml)(JNIEnv *env, jobject self)
+
  	return arr;
  }
- 
++
 +JNIEXPORT jbyteArray JNICALL
 +FUN(Page_textAsHtml2)(JNIEnv *env, jobject self, jstring joptions)
 +{
@@ -91,10 +92,7 @@ index 67c9ea6c1..dfdbbed39 100644
 +        fz_drop_stext_page(ctx, text);
 +    }
 +    fz_catch(ctx)
-+    {
-+        jni_rethrow(env, ctx);
-+        return NULL;
-+    }
++		return jni_rethrow(env, ctx), NULL;
 +
 +    return arr;
 +}
@@ -172,10 +170,7 @@ index 67c9ea6c1..dfdbbed39 100644
 +        fz_drop_stext_page(ctx, text);
 +    }
 +    fz_catch(ctx)
-+    {
-+        jni_rethrow(env, ctx);
-+        return NULL;
-+    }
++		return jni_rethrow(env, ctx), NULL;
 +
 +    return arr;
 +}
@@ -251,10 +246,7 @@ index 67c9ea6c1..dfdbbed39 100644
 +        fz_drop_stext_page(ctx, text);
 +    }
 +    fz_catch(ctx)
-+    {
-+        jni_rethrow(env, ctx);
-+        return NULL;
-+    }
++		return jni_rethrow(env, ctx), NULL;
 +
 +    return arr;
 +}
@@ -332,30 +324,21 @@ index 67c9ea6c1..dfdbbed39 100644
 +        fz_drop_stext_page(ctx, text);
 +    }
 +    fz_catch(ctx)
-+    {
-+        jni_rethrow(env, ctx);
-+        return NULL;
-+    }
++		return jni_rethrow(env, ctx), NULL;
 +
 +	return arr;
 +}
-+
- /* Cookie interface */
- 
- JNIEXPORT void JNICALL
 diff --git a/platform/java/src/com/artifex/mupdf/fitz/Page.java b/platform/java/src/com/artifex/mupdf/fitz/Page.java
-index f31ce6930..b1fd8b8d0 100644
+index 2742c0308..cdf27512b 100644
 --- a/platform/java/src/com/artifex/mupdf/fitz/Page.java
 +++ b/platform/java/src/com/artifex/mupdf/fitz/Page.java
-@@ -50,6 +50,9 @@ public class Page
+@@ -49,4 +49,7 @@ public class Page
  	public native Quad[] search(String needle);
 
  	public native byte[] textAsHtml();
 +	public native byte[] textAsHtml2(String options);
 +	public native byte[] textAsXHtml(String options);
 +	public native byte[] textAsText(String options);
-
- 	public native Separations getSeparations();
  }
 diff --git a/source/fitz/stext-output.c b/source/fitz/stext-output.c
 index 69d6f5c84..1d5baf5b0 100644
@@ -372,3 +355,10 @@ index 69d6f5c84..1d5baf5b0 100644
  	}
  }
 
+diff --git a/thirdparty/lcms2 b/thirdparty/lcms2
+index a8e636545..05db680de 160000
+--- a/thirdparty/lcms2
++++ b/thirdparty/lcms2
+@@ -1 +1 @@
+-Subproject commit a8e6365459383c25453c57025ca593cc93f8b51a
++Subproject commit 05db680de2d7178be21450bc0cc909460c7d4aeb
