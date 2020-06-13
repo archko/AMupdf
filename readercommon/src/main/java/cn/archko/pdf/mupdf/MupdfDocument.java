@@ -48,9 +48,9 @@ public class MupdfDocument {
     public static float ZOOM = 160f / 72;
 
     /* Default to "A Format" pocket book size. */
-    private int layoutW = 312;
-    private int layoutH = 504;
-    private int layoutEM = 8;
+    private int layoutW = 720;
+    private int layoutH = 1080;
+    private int layoutEM = 16;
 
     public Document getDocument() {
         return document;
@@ -345,7 +345,7 @@ public class MupdfDocument {
     }
 
     public Page loadPage(int pageIndex) {
-        return document == null ? null : document.loadPage(pageIndex);
+        return (document == null || pageIndex >= pageCount) ? null : document.loadPage(pageIndex);
     }
 
     public Outline[] loadOutline() {

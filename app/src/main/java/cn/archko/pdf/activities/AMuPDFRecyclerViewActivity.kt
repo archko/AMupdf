@@ -256,7 +256,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         if (pageSizes != null && pageSizes.size() > 0) {
             Logcat.d("open3:pageSizes>0:" + pageSizes.size())
             mPageSizes = pageSizes
-            checkPageSize()
+            checkPageSize(cp)
         } else {
             start = SystemClock.uptimeMillis()
             super.preparePageSize(cp)
@@ -267,11 +267,16 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     /**
      * if scale=1.0f,reload it from mupdf
      */
-    private fun checkPageSize() {
+    private fun checkPageSize(cp: Int) {
         for (i in 0 until mPageSizes.size()) {
             val point = mPageSizes.valueAt(i)
             if (point.scale == 1.0f) {
                 val pointF = getPageSize(i)
+                if (null == point) {
+                    mPageSizes.clear()
+                    super.preparePageSize(cp)
+                    break
+                }
                 mPageSizes.put(i, pointF)
             }
         }
