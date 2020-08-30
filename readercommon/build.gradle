@@ -47,7 +47,7 @@ android {
 }
 dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
-    api "androidx.core:core:${X_SUPPORT_COMPAT}"
+    api "androidx.core:core:${X_SUPPORT_CORE_UI}"
     api "androidx.fragment:fragment-ktx:${X_SUPPORT_FRAGMENT_KTX}"
     api "androidx.appcompat:appcompat:${X_SUPPORT_COMPAT}"
 
