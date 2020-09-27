@@ -1,8 +1,8 @@
 diff --git a/platform/java/Android.mk b/platform/java/Android.mk
-index 5b3f3961c..a55bb78c0 100644
+index 5cd6f7f63..5e7eba8ae 100644
 --- a/platform/java/Android.mk
 +++ b/platform/java/Android.mk
-@@ -107,6 +107,7 @@ LOCAL_CPPFLAGS := \
+@@ -109,6 +109,7 @@ LOCAL_CPPFLAGS := \
  	-Dhb_calloc_impl=fz_hb_calloc \
  	-Dhb_realloc_impl=fz_hb_realloc \
  	-Dhb_free_impl=fz_hb_free \
@@ -11,7 +11,7 @@ index 5b3f3961c..a55bb78c0 100644
  LOCAL_CPPFLAGS += \
  	$(MUPDF_EXTRA_CPPFLAGS)
 diff --git a/platform/java/jni/page.c b/platform/java/jni/page.c
-index e571aa904..010c4f26a 100644
+index fedb1ac8b..0971dce5d 100644
 --- a/platform/java/jni/page.c
 +++ b/platform/java/jni/page.c
 @@ -377,3 +377,313 @@ FUN(Page_textAsHtml)(JNIEnv *env, jobject self)
@@ -92,7 +92,7 @@ index e571aa904..010c4f26a 100644
 +        fz_drop_stext_page(ctx, text);
 +    }
 +    fz_catch(ctx)
-+		return jni_rethrow(env, ctx), NULL;
++		jni_rethrow(env, ctx);
 +
 +    return arr;
 +}
@@ -170,7 +170,7 @@ index e571aa904..010c4f26a 100644
 +        fz_drop_stext_page(ctx, text);
 +    }
 +    fz_catch(ctx)
-+		return jni_rethrow(env, ctx), NULL;
++		jni_rethrow(env, ctx);
 +
 +    return arr;
 +}
@@ -246,7 +246,7 @@ index e571aa904..010c4f26a 100644
 +        fz_drop_stext_page(ctx, text);
 +    }
 +    fz_catch(ctx)
-+		return jni_rethrow(env, ctx), NULL;
++		jni_rethrow(env, ctx);
 +
 +    return arr;
 +}
@@ -324,7 +324,7 @@ index e571aa904..010c4f26a 100644
 +        fz_drop_stext_page(ctx, text);
 +    }
 +    fz_catch(ctx)
-+		return jni_rethrow(env, ctx), NULL;
++		jni_rethrow(env, ctx);
 +
 +	return arr;
 +}
@@ -341,17 +341,15 @@ index 2742c0308..cdf27512b 100644
 +	public native byte[] textAsText(String options);
  }
 diff --git a/source/fitz/stext-output.c b/source/fitz/stext-output.c
-index 69d6f5c84..1d5baf5b0 100644
+index d0b80d8aa..d9c665320 100644
 --- a/source/fitz/stext-output.c
 +++ b/source/fitz/stext-output.c
-@@ -473,7 +473,9 @@ fz_print_stext_page_as_text(fz_context *ctx, fz_output *out, fz_stext_page *page
+@@ -559,6 +559,8 @@ fz_print_stext_page_as_text(fz_context *ctx, fz_output *out, fz_stext_page *page
  				fz_write_string(ctx, out, "\n");
  			}
  			fz_write_string(ctx, out, "\n");
--		}
 +		} else {
 +			fz_print_stext_image_as_xhtml(ctx, out, block);
-+        }
  	}
  }
 

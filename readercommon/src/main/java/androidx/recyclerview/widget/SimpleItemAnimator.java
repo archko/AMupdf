@@ -27,10 +27,10 @@ import androidx.annotation.Nullable;
  * move, change, add or remove animations. This class also replicates the original ItemAnimator
  * API.
  * <p>
- * It uses {@link RecyclerView.ItemAnimator.ItemHolderInfo} to track the bounds information of the Views. If you would like
+ * It uses {@link ItemHolderInfo} to track the bounds information of the Views. If you would like
  * to
  * extend this class, you can override {@link #obtainHolderInfo()} method to provide your own info
- * class that extends {@link RecyclerView.ItemAnimator.ItemHolderInfo}.
+ * class that extends {@link ItemHolderInfo}.
  */
 public abstract class SimpleItemAnimator extends RecyclerView.ItemAnimator {
 

@@ -1,7 +1,7 @@
 ### This is a pdf reader base on mupdf.
 
 how to use it.
-clone AMupdf.git.
+git clone https://github.com/archko/AMupdf.git.
 cd to AMupdf dir:
 
 ```
@@ -10,9 +10,17 @@ git clone https://github.com/archko/viewer.git
 import AMupdf into android studio.
 > only support ndk.abiFilters 'armeabi-v7a', 'arm64-v8a',you can modify reader/build.gradle
 > from 4.5.0 remove native cropper,don't need ndk to compile it
-
+> add keystore.properties to Amupdf,key content is :
+```
+keyAlias=xx_key
+storeFile=../xx.jks
+keyPassword=your pass
+storePassword=your pass 
+```
 the viewer has been modified for textreflow with image.
 the git patch is archko.patch
+
+AMupdf 4.6.2 dependence on https://github.com/archko/viewer.git mupdf_1.18 branch
 
 ### features:
 * textreflow

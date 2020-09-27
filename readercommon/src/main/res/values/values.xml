@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <attr format="reference" name="recyclerViewStyle"/>
     <declare-styleable name="RecyclerView">
         <!-- Class name of the Layout Manager to be used.
         <p/>
@@ -19,6 +20,7 @@
 
         <attr name="android:orientation"/>
         <attr name="android:descendantFocusability"/>
+        <attr name="android:clipToPadding"/>
         <attr format="integer" name="spanCount"/>
         <attr format="boolean" name="reverseLayout"/>
         <attr format="boolean" name="stackFromEnd"/>

@@ -17,8 +17,8 @@
 package androidx.recyclerview.widget;
 
 import static androidx.annotation.RestrictTo.Scope.LIBRARY;
-import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.PointF;
 import android.graphics.Rect;
@@ -1289,13 +1289,11 @@ public class StaggeredGridLayoutManager extends RecyclerView.LayoutManager imple
         if (mOrientation == HORIZONTAL) {
             info.setCollectionItemInfo(AccessibilityNodeInfoCompat.CollectionItemInfoCompat.obtain(
                     sglp.getSpanIndex(), sglp.mFullSpan ? mSpanCount : 1,
-                    -1, -1,
-                    sglp.mFullSpan, false));
+                    -1, -1, false, false));
         } else { // VERTICAL
             info.setCollectionItemInfo(AccessibilityNodeInfoCompat.CollectionItemInfoCompat.obtain(
                     -1, -1,
-                    sglp.getSpanIndex(), sglp.mFullSpan ? mSpanCount : 1,
-                    sglp.mFullSpan, false));
+                    sglp.getSpanIndex(), sglp.mFullSpan ? mSpanCount : 1, false, false));
         }
     }
 
@@ -3071,6 +3069,7 @@ public class StaggeredGridLayoutManager extends RecyclerView.LayoutManager imple
         /**
          * We keep information about full span items because they may create gaps in the UI.
          */
+        @SuppressLint("BanParcelableUsage")
         static class FullSpanItem implements Parcelable {
 
             int mPosition;
@@ -3127,8 +3126,8 @@ public class StaggeredGridLayoutManager extends RecyclerView.LayoutManager imple
                         + '}';
             }
 
-            public static final Parcelable.Creator<FullSpanItem> CREATOR =
-                    new Parcelable.Creator<FullSpanItem>() {
+            public static final Creator<FullSpanItem> CREATOR =
+                    new Creator<FullSpanItem>() {
                         @Override
                         public FullSpanItem createFromParcel(Parcel in) {
                             return new FullSpanItem(in);
@@ -3145,7 +3144,8 @@ public class StaggeredGridLayoutManager extends RecyclerView.LayoutManager imple
     /**
      * @hide
      */
-    @RestrictTo(LIBRARY_GROUP)
+    @RestrictTo(LIBRARY)
+    @SuppressLint("BanParcelableUsage")
     public static class SavedState implements Parcelable {
 
         int mAnchorPosition;
@@ -3179,9 +3179,10 @@ public class StaggeredGridLayoutManager extends RecyclerView.LayoutManager imple
             mReverseLayout = in.readInt() == 1;
             mAnchorLayoutFromEnd = in.readInt() == 1;
             mLastLayoutRTL = in.readInt() == 1;
-            //noinspection unchecked
-            mFullSpanItems = in.readArrayList(
-                    LazySpanLookup.FullSpanItem.class.getClassLoader());
+            @SuppressWarnings("unchecked")
+            List<LazySpanLookup.FullSpanItem> fullSpanItems =
+                    in.readArrayList(LazySpanLookup.FullSpanItem.class.getClassLoader());
+            mFullSpanItems = fullSpanItems;
         }
 
         public SavedState(SavedState other) {
@@ -3235,8 +3236,8 @@ public class StaggeredGridLayoutManager extends RecyclerView.LayoutManager imple
             dest.writeList(mFullSpanItems);
         }
 
-        public static final Parcelable.Creator<SavedState> CREATOR =
-                new Parcelable.Creator<SavedState>() {
+        public static final Creator<SavedState> CREATOR =
+                new Creator<SavedState>() {
                     @Override
                     public SavedState createFromParcel(Parcel in) {
                         return new SavedState(in);

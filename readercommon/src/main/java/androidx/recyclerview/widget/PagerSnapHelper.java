@@ -29,8 +29,8 @@ import androidx.annotation.Nullable;
  *
  * <p>
  *
- * PagerSnapHelper can help achieve a similar behavior to {@link ViewPager}.
- * Set both {@link RecyclerView} and the items of the
+ * PagerSnapHelper can help achieve a similar behavior to
+ * {@link androidx.viewpager.widget.ViewPager}. Set both {@link RecyclerView} and the items of the
  * {@link RecyclerView.Adapter} to have
  * {@link android.view.ViewGroup.LayoutParams#MATCH_PARENT} height and width and then attach
  * PagerSnapHelper to the {@link RecyclerView} using {@link #attachToRecyclerView(RecyclerView)}.
@@ -84,39 +84,84 @@ public class PagerSnapHelper extends SnapHelper {
             return RecyclerView.NO_POSITION;
         }
 
-        View mStartMostChildView = null;
-        if (layoutManager.canScrollVertically()) {
-            mStartMostChildView = findStartView(layoutManager, getVerticalHelper(layoutManager));
-        } else if (layoutManager.canScrollHorizontally()) {
-            mStartMostChildView = findStartView(layoutManager, getHorizontalHelper(layoutManager));
-        }
-
-        if (mStartMostChildView == null) {
-            return RecyclerView.NO_POSITION;
-        }
-        final int centerPosition = layoutManager.getPosition(mStartMostChildView);
-        if (centerPosition == RecyclerView.NO_POSITION) {
+        final OrientationHelper orientationHelper = getOrientationHelper(layoutManager);
+        if (orientationHelper == null) {
             return RecyclerView.NO_POSITION;
         }
 
-        final boolean forwardDirection;
+        // A child that is exactly in the center is eligible for both before and after
+        View closestChildBeforeCenter = null;
+        int distanceBefore = Integer.MIN_VALUE;
+        View closestChildAfterCenter = null;
+        int distanceAfter = Integer.MAX_VALUE;
+
+        // Find the first view before the center, and the first view after the center
+        final int childCount = layoutManager.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            final View child = layoutManager.getChildAt(i);
+            if (child == null) {
+                continue;
+            }
+            final int distance = distanceToCenter(layoutManager, child, orientationHelper);
+
+            if (distance <= 0 && distance > distanceBefore) {
+                // Child is before the center and closer then the previous best
+                distanceBefore = distance;
+                closestChildBeforeCenter = child;
+            }
+            if (distance >= 0 && distance < distanceAfter) {
+                // Child is after the center and closer then the previous best
+                distanceAfter = distance;
+                closestChildAfterCenter = child;
+            }
+        }
+
+        // Return the position of the first child from the center, in the direction of the fling
+        final boolean forwardDirection = isForwardFling(layoutManager, velocityX, velocityY);
+        if (forwardDirection && closestChildAfterCenter != null) {
+            return layoutManager.getPosition(closestChildAfterCenter);
+        } else if (!forwardDirection && closestChildBeforeCenter != null) {
+            return layoutManager.getPosition(closestChildBeforeCenter);
+        }
+
+        // There is no child in the direction of the fling. Either it doesn't exist (start/end of
+        // the list), or it is not yet attached (very rare case when children are larger then the
+        // viewport). Extrapolate from the child that is visible to get the position of the view to
+        // snap to.
+        View visibleView = forwardDirection ? closestChildBeforeCenter : closestChildAfterCenter;
+        if (visibleView == null) {
+            return RecyclerView.NO_POSITION;
+        }
+        int visiblePosition = layoutManager.getPosition(visibleView);
+        int snapToPosition = visiblePosition
+                + (isReverseLayout(layoutManager) == forwardDirection ? -1 : +1);
+
+        if (snapToPosition < 0 || snapToPosition >= itemCount) {
+            return RecyclerView.NO_POSITION;
+        }
+        return snapToPosition;
+    }
+
+    private boolean isForwardFling(RecyclerView.LayoutManager layoutManager, int velocityX,
+            int velocityY) {
         if (layoutManager.canScrollHorizontally()) {
-            forwardDirection = velocityX > 0;
+            return velocityX > 0;
         } else {
-            forwardDirection = velocityY > 0;
+            return velocityY > 0;
         }
-        boolean reverseLayout = false;
+    }
+
+    private boolean isReverseLayout(RecyclerView.LayoutManager layoutManager) {
+        final int itemCount = layoutManager.getItemCount();
         if ((layoutManager instanceof RecyclerView.SmoothScroller.ScrollVectorProvider)) {
             RecyclerView.SmoothScroller.ScrollVectorProvider vectorProvider =
                     (RecyclerView.SmoothScroller.ScrollVectorProvider) layoutManager;
             PointF vectorForEnd = vectorProvider.computeScrollVectorForPosition(itemCount - 1);
             if (vectorForEnd != null) {
-                reverseLayout = vectorForEnd.x < 0 || vectorForEnd.y < 0;
+                return vectorForEnd.x < 0 || vectorForEnd.y < 0;
             }
         }
-        return reverseLayout
-                ? (forwardDirection ? centerPosition - 1 : centerPosition)
-                : (forwardDirection ? centerPosition + 1 : centerPosition);
+        return false;
     }
 
     @Override
@@ -153,12 +198,7 @@ public class PagerSnapHelper extends SnapHelper {
             @NonNull View targetView, OrientationHelper helper) {
         final int childCenter = helper.getDecoratedStart(targetView)
                 + (helper.getDecoratedMeasurement(targetView) / 2);
-        final int containerCenter;
-        if (layoutManager.getClipToPadding()) {
-            containerCenter = helper.getStartAfterPadding() + helper.getTotalSpace() / 2;
-        } else {
-            containerCenter = helper.getEnd() / 2;
-        }
+        final int containerCenter = helper.getStartAfterPadding() + helper.getTotalSpace() / 2;
         return childCenter - containerCenter;
     }
 
@@ -180,12 +220,7 @@ public class PagerSnapHelper extends SnapHelper {
         }
 
         View closestChild = null;
-        final int center;
-        if (layoutManager.getClipToPadding()) {
-            center = helper.getStartAfterPadding() + helper.getTotalSpace() / 2;
-        } else {
-            center = helper.getEnd() / 2;
-        }
+        final int center = helper.getStartAfterPadding() + helper.getTotalSpace() / 2;
         int absClosest = Integer.MAX_VALUE;
 
         for (int i = 0; i < childCount; i++) {
@@ -194,7 +229,7 @@ public class PagerSnapHelper extends SnapHelper {
                     + (helper.getDecoratedMeasurement(child) / 2);
             int absDistance = Math.abs(childCenter - center);
 
-            /** if child center is closer than previous closest, set it as closest  **/
+            /* if child center is closer than previous closest, set it as closest  */
             if (absDistance < absClosest) {
                 absClosest = absDistance;
                 closestChild = child;
@@ -203,37 +238,15 @@ public class PagerSnapHelper extends SnapHelper {
         return closestChild;
     }
 
-    /**
-     * Return the child view that is currently closest to the start of this parent.
-     *
-     * @param layoutManager The {@link RecyclerView.LayoutManager} associated with the attached
-     *                      {@link RecyclerView}.
-     * @param helper The relevant {@link OrientationHelper} for the attached {@link RecyclerView}.
-     *
-     * @return the child view that is currently closest to the start of this parent.
-     */
     @Nullable
-    private View findStartView(RecyclerView.LayoutManager layoutManager,
-            OrientationHelper helper) {
-        int childCount = layoutManager.getChildCount();
-        if (childCount == 0) {
+    private OrientationHelper getOrientationHelper(RecyclerView.LayoutManager layoutManager) {
+        if (layoutManager.canScrollVertically()) {
+            return getVerticalHelper(layoutManager);
+        } else if (layoutManager.canScrollHorizontally()) {
+            return getHorizontalHelper(layoutManager);
+        } else {
             return null;
         }
-
-        View closestChild = null;
-        int startest = Integer.MAX_VALUE;
-
-        for (int i = 0; i < childCount; i++) {
-            final View child = layoutManager.getChildAt(i);
-            int childStart = helper.getDecoratedStart(child);
-
-            /** if child is more to start than previous closest, set it as closest  **/
-            if (childStart < startest) {
-                startest = childStart;
-                closestChild = child;
-            }
-        }
-        return closestChild;
     }
 
     @NonNull
