@@ -32,6 +32,7 @@ import cn.archko.pdf.mupdf.MupdfDocument
 import cn.archko.pdf.utils.Utils
 import com.jeremyliao.liveeventbus.LiveEventBus
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -120,7 +121,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
 
             if (Intent.ACTION_VIEW == intent.action) {
                 var uri = intent.data
-                Logcat.d("URI to open is: " + uri)
+                Logcat.d("URI to open is: $uri")
                 if (uri.toString().startsWith("content://")) {
                     var reason: String? = null
                     var cursor: Cursor? = null
@@ -138,9 +139,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
                         Logcat.d("Exception in Transformer Prime file manager code: " + e2)
                         reason = e2.toString()
                     } finally {
-                        if (null != cursor) {
-                            cursor.close()
-                        }
+                        cursor?.close()
                     }
                 }
                 var path: String? = Uri.decode(uri?.encodedPath)
@@ -290,7 +289,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
         progressDialog.setMessage(mPath)
         progressDialog.show()
         lifecycleScope.launch {
-            var result = withContext(Dispatchers.IO) {
+            val result = withContext(Dispatchers.IO) {
                 try {
                     var start = SystemClock.uptimeMillis()
                     mMupdfDocument = MupdfDocument(this@MuPDFRecyclerViewActivity)
@@ -311,7 +310,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
                     Logcat.d(TAG, "open:end." + mPageSizes.size())
                     val mill = SystemClock.uptimeMillis() - start
                     if (mill < 500L) {
-                        Thread.sleep(500L - mill)
+                        delay(500L - mill)
                     }
                     return@withContext true
                 } catch (e: Exception) {
@@ -325,44 +324,6 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
                 finish()
             }
         }
-        //doAsync {
-        //    var result = false
-        //    try {
-        //        var start = SystemClock.uptimeMillis()
-        //        mMupdfDocument = MupdfDocument(this@MuPDFRecyclerViewActivity)
-        //        mMupdfDocument?.newDocument(mPath, getPassword())
-        //        var res = true
-        //        mMupdfDocument?.let {
-        //            if (it.document.needsPassword()) {
-        //                res = it.document.authenticatePassword(getPassword())
-        //            }
-        //        }
-//
-        //        val cp = mMupdfDocument!!.countPages()
-        //        Logcat.d(TAG, "open:" + (SystemClock.uptimeMillis() - start) + " cp:" + cp)
-//
-        //        //val loc = mDocument!!.layout(mLayoutW, mLayoutH, mLayoutEM)
-//
-        //        preparePageSize(cp)
-        //        result = true
-        //        Logcat.d(TAG, "open:end." + mPageSizes.size())
-        //        val mill = SystemClock.uptimeMillis() - start
-        //        if (mill < 500L) {
-        //            Thread.sleep(500L - mill)
-        //        }
-        //    } catch (e: Exception) {
-        //        e.printStackTrace()
-        //    }
-        //    uiThread {
-        //        if (result) {
-        //            doLoadDoc()
-        //        } else {
-        //            finish()
-        //        }
-        //    }
-        //}
-
-        //toast("loading:$mPath")
     }
 
     open fun getPageSize(pageNum: Int): APage? {

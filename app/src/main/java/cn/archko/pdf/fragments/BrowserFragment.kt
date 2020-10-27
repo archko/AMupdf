@@ -113,18 +113,18 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
 
     override fun onPause() {
         super.onPause()
-        Logcat.i(TAG, ".onPause." + this)
+        Logcat.i(TAG, ".onPause.$this")
         MobclickAgent.onPageEnd("BrowserFragment")
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Logcat.i(TAG, ".onDestroy." + this)
+        Logcat.i(TAG, ".onDestroy.$this")
     }
 
     override fun onDetach() {
         super.onDetach()
-        Logcat.i(TAG, ".onDetach." + this)
+        Logcat.i(TAG, ".onDetach.$this")
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -171,25 +171,23 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
                     try {
                         val recentManager = RecentManager.getInstance()
                         val progress = recentManager.readRecentFromDb(file.absolutePath, BookProgress.ALL);
-                        if (null != progress) {
+                        if (null != progress && null != fileListAdapter) {
                             Logcat.d(TAG, "refresh entry:${progress}")
-                            if (null != fileListAdapter) {
-                                for (fb in fileListAdapter!!.data) {
-                                    if (null != fb.bookProgress && fb.bookProgress.name.equals(progress.name)) {
-                                        if (fb.bookProgress._id == 0) {
-                                            fb.bookProgress = progress
-                                            Logcat.d(TAG, "update new entry:${fb.bookProgress}")
-                                            recentManager.recentTableManager.updateProgress(fb.bookProgress)
-                                        } else {
-                                            fb.bookProgress.page = progress.page
-                                            fb.bookProgress.isFavorited = progress.isFavorited
-                                            fb.bookProgress.readTimes = progress.readTimes
-                                            fb.bookProgress.pageCount = progress.pageCount
-                                            fb.bookProgress.inRecent = progress.inRecent
-                                            Logcat.d(TAG, "add new entry:${fb.bookProgress}")
-                                        }
-                                        break
+                            for (fb in fileListAdapter!!.data) {
+                                if (null != fb.bookProgress && fb.bookProgress.name.equals(progress.name)) {
+                                    if (fb.bookProgress._id == 0) {
+                                        fb.bookProgress = progress
+                                        Logcat.d(TAG, "update new entry:${fb.bookProgress}")
+                                        recentManager.recentTableManager.updateProgress(fb.bookProgress)
+                                    } else {
+                                        fb.bookProgress.page = progress.page
+                                        fb.bookProgress.isFavorited = progress.isFavorited
+                                        fb.bookProgress.readTimes = progress.readTimes
+                                        fb.bookProgress.pageCount = progress.pageCount
+                                        fb.bookProgress.inRecent = progress.inRecent
+                                        Logcat.d(TAG, "add new entry:${fb.bookProgress}")
                                     }
+                                    break
                                 }
                             }
                         }
@@ -199,39 +197,6 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
                 }
                 fileListAdapter?.notifyDataSetChanged()
             }
-            //doAsync {
-            //    try {
-            //        val recentManager = RecentManager.getInstance()
-            //        val progress = recentManager.readRecentFromDb(file.absolutePath, BookProgress.ALL);
-            //        if (null != progress) {
-            //            Logcat.d(TAG, "refresh entry:${progress}")
-            //            if (null != fileListAdapter) {
-            //                for (fb in fileListAdapter!!.data) {
-            //                    if (null != fb.bookProgress && fb.bookProgress.name.equals(progress.name)) {
-            //                        if (fb.bookProgress._id == 0) {
-            //                            fb.bookProgress = progress
-            //                            Logcat.d(TAG, "update new entry:${fb.bookProgress}")
-            //                            recentManager.recentTableManager.updateProgress(fb.bookProgress)
-            //                        } else {
-            //                            fb.bookProgress.page = progress.page
-            //                            fb.bookProgress.isFavorited = progress.isFavorited
-            //                            fb.bookProgress.readTimes = progress.readTimes
-            //                            fb.bookProgress.pageCount = progress.pageCount
-            //                            fb.bookProgress.inRecent = progress.inRecent
-            //                            Logcat.d(TAG, "add new entry:${fb.bookProgress}")
-            //                        }
-            //                        break
-            //                    }
-            //                }
-            //            }
-            //        }
-            //    } catch (e: Exception) {
-            //        e.printStackTrace()
-            //    }
-            //    uiThread {
-            //        fileListAdapter?.notifyDataSetChanged()
-            //    }
-            //}
         }
         currentBean = null
     }
@@ -242,7 +207,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
                 //return (file.isDirectory() || file.getName().toLowerCase().endsWith(".pdf"));
                 if (file.isDirectory)
                     return@FileFilter true
-                val fname = file.name.toLowerCase()
+                val fname = file.name.toLowerCase(Locale.ROOT)
 
                 if (fname.endsWith(".pdf"))
                     return@FileFilter true
@@ -580,37 +545,6 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
             fileListAdapter?.notifyDataSetChanged()
             postFavoriteEvent(entry, isFavorited)
         }
-        //doAsync {
-        //    try {
-        //        val recentManager = RecentManager.getInstance().recentTableManager
-        //        val filepath = FileUtils.getStoragePath(entry.bookProgress.path)
-        //        val file = File(filepath)
-        //        var bookProgress = recentManager.getProgress(file.name, BookProgress.ALL)
-        //        if (null == bookProgress) {
-        //            if (isFavorited == 0) {
-        //                Logcat.w(TAG, "some error:$entry")
-        //                return@doAsync
-        //            }
-        //            bookProgress = BookProgress(FileUtils.getRealPath(file.absolutePath))
-        //            entry.bookProgress = bookProgress
-        //            entry.bookProgress.inRecent = BookProgress.NOT_IN_RECENT
-        //            entry.bookProgress.isFavorited = isFavorited
-        //            Logcat.d(TAG, "add favorite entry:${entry.bookProgress}")
-        //            recentManager.addProgress(entry.bookProgress)
-        //        } else {
-        //            entry.bookProgress = bookProgress
-        //            entry.bookProgress.isFavorited = isFavorited
-        //            Logcat.d(TAG, "update favorite entry:${entry.bookProgress}")
-        //            recentManager.updateProgress(entry.bookProgress)
-        //        }
-        //    } catch (e: Exception) {
-        //        e.printStackTrace()
-        //    }
-        //    uiThread {
-        //        fileListAdapter?.notifyDataSetChanged()
-        //        postFavoriteEvent(entry, isFavorited)
-        //    }
-        //}
     }
 
     private fun postFavoriteEvent(entry: FileBean, isFavorited: Int) {

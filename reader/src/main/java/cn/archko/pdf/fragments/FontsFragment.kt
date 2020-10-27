@@ -113,7 +113,7 @@ open class FontsFragment : DialogFragment() {
 
     private fun loadFonts() {
         lifecycleScope.launch {
-            var list: MutableList<FontBean> = withContext(Dispatchers.IO) {
+            val list: MutableList<FontBean> = withContext(Dispatchers.IO) {
                 val fontDir = FileUtils.getStorageDir(FontHelper.FONT_DIR)
                 val list = ArrayList<FontBean>()
 
@@ -124,7 +124,7 @@ open class FontsFragment : DialogFragment() {
                 fontDir.listFiles(FileFilter { file ->
                     if (file.isDirectory)
                         return@FileFilter false
-                    var fname: String = file.name.toLowerCase()
+                    val fname: String = file.name.toLowerCase(Locale.ROOT)
 
                     if (fname.endsWith(".ttf", true))
                         return@FileFilter true
@@ -144,37 +144,6 @@ open class FontsFragment : DialogFragment() {
                 Toast.makeText(this@FontsFragment.activity, R.string.dialog_sub_title_font, Toast.LENGTH_LONG).show()
             }
         }
-        /*doAsync {
-            val fontDir = FileUtils.getStorageDir(FontHelper.FONT_DIR)
-            val list = ArrayList<FontBean>()
-
-            list.add(FontBean(FontHelper.DEFAULT, FontHelper.SYSTEM_FONT, null))
-            list.add(FontBean(FontHelper.SANS_SERIF, FontHelper.SYSTEM_FONT_SAN, null))
-            list.add(FontBean(FontHelper.SERIF, FontHelper.SYSTEM_FONT_SERIF, null))
-            list.add(FontBean(FontHelper.MONOSPACE, FontHelper.SYSTEM_FONT_MONO, null))
-            fontDir.listFiles(FileFilter { file ->
-                if (file.isDirectory)
-                    return@FileFilter false
-                val fname = file.name.toLowerCase()
-
-                if (fname.endsWith(".ttf", true))
-                    return@FileFilter true
-                if (fname.endsWith(".ttc", true))
-                    return@FileFilter true
-                false
-            })?.map {
-                list.add(FontBean(FontHelper.CUSTOM, it.name, it))
-            }
-
-            uiThread {
-                if (list.size > 0) {
-                    adapter.data = list
-                    adapter.notifyDataSetChanged()
-                } else {
-                    Toast.makeText(this@FontsFragment.activity, R.string.dialog_sub_title_font, Toast.LENGTH_LONG).show()
-                }
-            }
-        }*/
     }
 
     inner class FontHolder(itemView: View?) : BaseViewHolder<FontBean>(itemView) {
@@ -186,7 +155,7 @@ open class FontsFragment : DialogFragment() {
         }
 
         override fun onBind(data: FontBean?, position: Int) {
-            title.setText(data?.fontName + ":测试字体 test font")
+            title.setText(String.format(getString(R.string.dialog_item_title_font), data?.fontName))
             if (data?.fontType == FontHelper.CUSTOM) {
                 if (null != data.file) {
                     val typeface = mStyleHelper?.fontHelper?.createFontByPath(data.file?.absolutePath!!)

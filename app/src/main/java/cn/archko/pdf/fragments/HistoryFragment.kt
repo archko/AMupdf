@@ -327,63 +327,23 @@ class HistoryFragment : BrowserFragment() {
                 return@withContext entryList
             }
             mSwipeRefreshWidget!!.isRefreshing = false
-            if (entryList.size > 0) {
-                if (curPage == 0) {
-                    fileListAdapter!!.setData(entryList)
-                    //submitList(fileListAdapter!!.data, entryList, fileListAdapter!!, totalCount)
-                    //return@uiThread
-                    fileListAdapter!!.notifyDataSetChanged()
-                } else {
-                    val index = fileListAdapter!!.itemCount;
-                    fileListAdapter!!.addData(entryList)
-                    fileListAdapter!!.notifyItemRangeInserted(index, entryList.size)
-                }
-
-                curPage++
-            }
-            updateLoadingStatus(totalCount)
-        }
-        /*doAsync {
-            //final long now=System.currentTimeMillis();
-            val recent = RecentManager.getInstance()
-            val totalCount = recent.progressCount
-            val progresses = recent.readRecentFromDb(PAGE_SIZE * (curPage), PAGE_SIZE)
-
-            val entryList = ArrayList<FileBean>()
-
-            var entry: FileBean
-            var file: File
-            val path = Environment.getExternalStorageDirectory().path
-            progresses?.map {
-                try {
-                    file = File(path + "/" + it.path)
-                    entry = FileBean(FileBean.RECENT, file, showExtension)
-                    entry.bookProgress = it
-                    entryList.add(entry)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-
-            uiThread {
-                mSwipeRefreshWidget!!.isRefreshing = false
+            fileListAdapter?.apply {
                 if (entryList.size > 0) {
                     if (curPage == 0) {
-                        fileListAdapter!!.setData(entryList)
+                        data = entryList
                         //submitList(fileListAdapter!!.data, entryList, fileListAdapter!!, totalCount)
-                        //return@uiThread
-                        fileListAdapter!!.notifyDataSetChanged()
+                        notifyDataSetChanged()
                     } else {
-                        val index = fileListAdapter!!.itemCount;
-                        fileListAdapter!!.addData(entryList)
-                        fileListAdapter!!.notifyItemRangeInserted(index, entryList.size)
+                        val index = itemCount;
+                        addData(entryList)
+                        notifyItemRangeInserted(index, entryList.size)
                     }
 
                     curPage++
                 }
-                updateLoadingStatus(totalCount)
             }
-        }*/
+            updateLoadingStatus(totalCount)
+        }
     }
 
     private fun updateLoadingStatus(totalCount: Int) {

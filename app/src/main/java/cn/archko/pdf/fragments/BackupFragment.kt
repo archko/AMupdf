@@ -61,7 +61,7 @@ open class BackupFragment : DialogFragment() {
         val view = inflater.inflate(R.layout.item_font, container, false)
         view.findViewById<View>(R.id.layout_search).visibility = View.GONE
         val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
-        toolbar.setNavigationOnClickListener(View.OnClickListener { dismiss() })
+        toolbar.setNavigationOnClickListener({ dismiss() })
 
         toolbar?.setTitle(R.string.dialog_title_backup)
         toolbar?.setSubtitle(R.string.dialog_sub_title_backup)
@@ -97,16 +97,6 @@ open class BackupFragment : DialogFragment() {
                 adapter.notifyDataSetChanged()
             }
         }
-        //doAsync {
-        //    val files = RecentManager.getInstance().getBackupFiles();
-//
-        //    uiThread {
-        //        if (files.size > 0) {
-        //            adapter.data = files
-        //            adapter.notifyDataSetChanged()
-        //        }
-        //    }
-        //}
     }
 
     inner class ItemHolder(itemView: View?) : BaseViewHolder<File>(itemView) {

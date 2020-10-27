@@ -123,43 +123,6 @@ class FavoriteFragment : BrowserFragment() {
             }
             updateLoadingStatus(totalCount)
         }
-        /*doAsync {
-            val recent = RecentManager.getInstance()
-            val totalCount = recent.favoriteProgressCount
-            val progresses = recent.readFavoriteFromDb(PAGE_SIZE * (curPage), PAGE_SIZE)
-            val entryList = ArrayList<FileBean>()
-
-            var entry: FileBean
-            var file: File
-            val path = Environment.getExternalStorageDirectory().path
-            progresses?.map {
-                try {
-                    file = File(path + "/" + it.path)
-                    entry = FileBean(FileBean.FAVORITE, file, showExtension)
-                    entry.bookProgress = it
-                    entryList.add(entry)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-
-            uiThread {
-                mSwipeRefreshWidget!!.isRefreshing = false
-                if (entryList.size > 0) {
-                    if (curPage == 0) {
-                        fileListAdapter!!.setData(entryList)
-                        fileListAdapter!!.notifyDataSetChanged()
-                    } else {
-                        val index = fileListAdapter!!.itemCount;
-                        fileListAdapter!!.addData(entryList)
-                        fileListAdapter!!.notifyItemRangeInserted(index, entryList.size)
-                    }
-
-                    curPage++
-                }
-                updateLoadingStatus(totalCount)
-            }
-        }*/
     }
 
     private fun updateLoadingStatus(totalCount: Int) {
