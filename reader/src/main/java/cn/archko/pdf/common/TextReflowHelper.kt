@@ -2,7 +2,6 @@ package cn.archko.pdf.common
 
 import cn.archko.pdf.utils.FileUtils
 import com.artifex.mupdf.fitz.Document
-import org.jetbrains.anko.doAsync
 import java.io.File
 import java.io.FileWriter
 
@@ -12,15 +11,15 @@ import java.io.FileWriter
 class TextReflowHelper(var mCore: Document?) {
 
     fun export() {
-        doAsync {
-            Logcat.d("exportToText")
-            exportToText()
-            Logcat.d("exportToHtml")
-            exportToHtml()
-            Logcat.d("exportToXHtml")
-            exportToXHtml()
-            Logcat.d("end")
-        }
+        //doAsync {
+        //    Logcat.d("exportToText")
+        //    exportToText()
+        //    Logcat.d("exportToHtml")
+        //    exportToHtml()
+        //    Logcat.d("exportToXHtml")
+        //    exportToXHtml()
+        //    Logcat.d("end")
+        //}
     }
 
     fun exportToText() {

@@ -4,13 +4,10 @@ buildscript {
     apply from: 'versions.gradle'
     addRepos(repositories)
 
-    ext.kotlin_version = '1.4.0'
-    ext.anko_version = '0.10.8'
     dependencies {
-        classpath "com.android.tools.build:gradle:${GRADLE_PLUGIN_VERSION}"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
-        //classpath "com.antfortune.freeline:gradle:${FREELINE_VERSION}"
+        classpath deps.android_gradle_plugin
+        classpath deps.kotlin.plugin
+        classpath deps.kotlin.allopen
     }
 }
 
@@ -28,3 +25,8 @@ allprojects {
         }
     }
 }
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+

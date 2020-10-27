@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -20,19 +21,21 @@ import cn.archko.pdf.App
 import cn.archko.pdf.activities.PdfOptionsActivity
 import cn.archko.pdf.adapters.BookAdapter
 import cn.archko.pdf.common.Event
-import cn.archko.pdf.common.Event.*
+import cn.archko.pdf.common.Event.ACTION_FAVORITED
+import cn.archko.pdf.common.Event.ACTION_STOPPED
+import cn.archko.pdf.common.Event.ACTION_UNFAVORITED
 import cn.archko.pdf.common.ImageLoader
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.common.RecentManager
 import cn.archko.pdf.entity.FileBean
-import cn.archko.pdf.entity.FontBean
 import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.utils.LengthUtils
 import cn.archko.pdf.widgets.IMoreView
 import cn.archko.pdf.widgets.ListMoreView
 import com.jeremyliao.liveeventbus.LiveEventBus
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
 
@@ -134,7 +137,35 @@ class HistoryFragment : BrowserFragment() {
         progressDialog.setTitle("Waiting...")
         progressDialog.setMessage("Waiting...")
         val now = System.currentTimeMillis()
-        doAsync {
+        lifecycleScope.launch {
+            progressDialog.setCancelable(false)
+            progressDialog.show()
+            val filepath = withContext(Dispatchers.IO) {
+                val filepath = RecentManager.getInstance().backupFromDb()
+                var newTime = System.currentTimeMillis() - now
+                if (newTime < 1500L) {
+                    newTime = 1500L - newTime
+                } else {
+                    newTime = 0
+                }
+
+                try {
+                    Thread.sleep(newTime)
+                } catch (e: InterruptedException) {
+                    e.printStackTrace()
+                }
+                return@withContext filepath
+            }
+            progressDialog.dismiss()
+
+            if (!LengthUtils.isEmpty(filepath)) {
+                Logcat.d("", "file:" + filepath)
+                Toast.makeText(App.getInstance(), "备份成功:$filepath", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(App.getInstance(), "备份失败", Toast.LENGTH_LONG).show()
+            }
+        }
+        /*doAsync {
             uiThread {
                 progressDialog.setCancelable(false)
                 progressDialog.show()
@@ -162,7 +193,7 @@ class HistoryFragment : BrowserFragment() {
                     Toast.makeText(App.getInstance(), "备份失败", Toast.LENGTH_LONG).show()
                 }
             }
-        }
+        }*/
     }
 
     private fun restore() {
@@ -176,7 +207,33 @@ class HistoryFragment : BrowserFragment() {
                 progressDialog.show()
                 val now = System.currentTimeMillis()
 
-                doAsync {
+                lifecycleScope.launch {
+                    val flag = withContext(Dispatchers.IO) {
+                        val flag = RecentManager.getInstance().restoreToDb(file)
+                        var newTime = System.currentTimeMillis() - now
+                        if (newTime < 1300L) {
+                            newTime = 1300L - newTime
+                        } else {
+                            newTime = 0
+                        }
+
+                        try {
+                            Thread.sleep(newTime)
+                        } catch (e: InterruptedException) {
+                            e.printStackTrace()
+                        }
+                        return@withContext flag
+                    }
+                    progressDialog.dismiss()
+
+                    if (flag) {
+                        Toast.makeText(App.getInstance(), "恢复成功:$flag", Toast.LENGTH_LONG).show()
+                        loadData()
+                    } else {
+                        Toast.makeText(App.getInstance(), "恢复失败", Toast.LENGTH_LONG).show()
+                    }
+                }
+                /*doAsync {
                     val flag = RecentManager.getInstance().restoreToDb(file)
                     var newTime = System.currentTimeMillis() - now
                     if (newTime < 1300L) {
@@ -201,7 +258,7 @@ class HistoryFragment : BrowserFragment() {
                             Toast.makeText(App.getInstance(), "恢复失败", Toast.LENGTH_LONG).show()
                         }
                     }
-                }
+                }*/
             }
 
             override fun onFailed(vararg args: Any?) {
@@ -245,7 +302,48 @@ class HistoryFragment : BrowserFragment() {
 
     private fun getHistory() {
         mListMoreView?.onLoadingStateChanged(IMoreView.STATE_LOADING)
-        doAsync {
+        lifecycleScope.launch {
+            var totalCount = 0;
+            val entryList = withContext(Dispatchers.IO) {
+                val recent = RecentManager.getInstance()
+                totalCount = recent.progressCount
+                val progresses = recent.readRecentFromDb(PAGE_SIZE * (curPage), PAGE_SIZE)
+
+                val entryList = ArrayList<FileBean>()
+
+                var entry: FileBean
+                var file: File
+                val path = Environment.getExternalStorageDirectory().path
+                progresses?.map {
+                    try {
+                        file = File(path + "/" + it.path)
+                        entry = FileBean(FileBean.RECENT, file, showExtension)
+                        entry.bookProgress = it
+                        entryList.add(entry)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+                return@withContext entryList
+            }
+            mSwipeRefreshWidget!!.isRefreshing = false
+            if (entryList.size > 0) {
+                if (curPage == 0) {
+                    fileListAdapter!!.setData(entryList)
+                    //submitList(fileListAdapter!!.data, entryList, fileListAdapter!!, totalCount)
+                    //return@uiThread
+                    fileListAdapter!!.notifyDataSetChanged()
+                } else {
+                    val index = fileListAdapter!!.itemCount;
+                    fileListAdapter!!.addData(entryList)
+                    fileListAdapter!!.notifyItemRangeInserted(index, entryList.size)
+                }
+
+                curPage++
+            }
+            updateLoadingStatus(totalCount)
+        }
+        /*doAsync {
             //final long now=System.currentTimeMillis();
             val recent = RecentManager.getInstance()
             val totalCount = recent.progressCount
@@ -285,7 +383,7 @@ class HistoryFragment : BrowserFragment() {
                 }
                 updateLoadingStatus(totalCount)
             }
-        }
+        }*/
     }
 
     private fun updateLoadingStatus(totalCount: Int) {
@@ -352,8 +450,10 @@ class HistoryFragment : BrowserFragment() {
         const val PREF_BROWSER = "pref_browser"
         const val PREF_BROWSER_KEY_FIRST = "pref_browser_key_first"
         const val PAGE_SIZE = 21
+
         @JvmField
         val STYLE_LIST = 0;
+
         @JvmField
         val STYLE_GRID = 1;
     }

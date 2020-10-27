@@ -6,10 +6,15 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.preference.PreferenceManager
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -18,7 +23,12 @@ import cn.archko.pdf.App
 import cn.archko.pdf.activities.ChooseFileFragmentActivity
 import cn.archko.pdf.activities.PdfOptionsActivity
 import cn.archko.pdf.adapters.BookAdapter
-import cn.archko.pdf.common.*
+import cn.archko.pdf.common.AnalysticsHelper
+import cn.archko.pdf.common.Event
+import cn.archko.pdf.common.Logcat
+import cn.archko.pdf.common.PDFViewerHelper
+import cn.archko.pdf.common.ProgressScaner
+import cn.archko.pdf.common.RecentManager
 import cn.archko.pdf.entity.BookProgress
 import cn.archko.pdf.entity.FileBean
 import cn.archko.pdf.listeners.DataListener
@@ -26,12 +36,12 @@ import cn.archko.pdf.listeners.OnItemClickListener
 import cn.archko.pdf.utils.FileUtils
 import com.jeremyliao.liveeventbus.LiveEventBus
 import com.umeng.analytics.MobclickAgent
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileFilter
 import java.util.*
-import kotlin.collections.ArrayList
 
 /**
  * @description:file browser
@@ -93,7 +103,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     override fun onResume() {
         super.onResume()
         Logcat.d(TAG, ".onResume.$this")
-        MobclickAgent.onPageStart(javaClass.name)
+        MobclickAgent.onPageStart("BrowserFragment")
         val options = PreferenceManager.getDefaultSharedPreferences(App.getInstance())
         showExtension = options.getBoolean(PdfOptionsActivity.PREF_SHOW_EXTENSION, true)
         currentBean?.let {
@@ -104,7 +114,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     override fun onPause() {
         super.onPause()
         Logcat.i(TAG, ".onPause." + this)
-        MobclickAgent.onPageEnd(javaClass.name)
+        MobclickAgent.onPageEnd("BrowserFragment")
     }
 
     override fun onDestroy() {
@@ -156,39 +166,72 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         val file = currentBean!!.file
 
         file?.let {
-            doAsync {
-                try {
-                    val recentManager = RecentManager.getInstance()
-                    val progress = recentManager.readRecentFromDb(file.absolutePath, BookProgress.ALL);
-                    if (null != progress) {
-                        Logcat.d(TAG, "refresh entry:${progress}")
-                        if (null != fileListAdapter) {
-                            for (fb in fileListAdapter!!.data) {
-                                if (null != fb.bookProgress && fb.bookProgress.name.equals(progress.name)) {
-                                    if (fb.bookProgress._id == 0) {
-                                        fb.bookProgress = progress
-                                        Logcat.d(TAG, "update new entry:${fb.bookProgress}")
-                                        recentManager.recentTableManager.updateProgress(fb.bookProgress)
-                                    } else {
-                                        fb.bookProgress.page = progress.page
-                                        fb.bookProgress.isFavorited = progress.isFavorited
-                                        fb.bookProgress.readTimes = progress.readTimes
-                                        fb.bookProgress.pageCount = progress.pageCount
-                                        fb.bookProgress.inRecent = progress.inRecent
-                                        Logcat.d(TAG, "add new entry:${fb.bookProgress}")
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+                    try {
+                        val recentManager = RecentManager.getInstance()
+                        val progress = recentManager.readRecentFromDb(file.absolutePath, BookProgress.ALL);
+                        if (null != progress) {
+                            Logcat.d(TAG, "refresh entry:${progress}")
+                            if (null != fileListAdapter) {
+                                for (fb in fileListAdapter!!.data) {
+                                    if (null != fb.bookProgress && fb.bookProgress.name.equals(progress.name)) {
+                                        if (fb.bookProgress._id == 0) {
+                                            fb.bookProgress = progress
+                                            Logcat.d(TAG, "update new entry:${fb.bookProgress}")
+                                            recentManager.recentTableManager.updateProgress(fb.bookProgress)
+                                        } else {
+                                            fb.bookProgress.page = progress.page
+                                            fb.bookProgress.isFavorited = progress.isFavorited
+                                            fb.bookProgress.readTimes = progress.readTimes
+                                            fb.bookProgress.pageCount = progress.pageCount
+                                            fb.bookProgress.inRecent = progress.inRecent
+                                            Logcat.d(TAG, "add new entry:${fb.bookProgress}")
+                                        }
+                                        break
                                     }
-                                    break
                                 }
                             }
                         }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
                 }
-                uiThread {
-                    fileListAdapter?.notifyDataSetChanged()
-                }
+                fileListAdapter?.notifyDataSetChanged()
             }
+            //doAsync {
+            //    try {
+            //        val recentManager = RecentManager.getInstance()
+            //        val progress = recentManager.readRecentFromDb(file.absolutePath, BookProgress.ALL);
+            //        if (null != progress) {
+            //            Logcat.d(TAG, "refresh entry:${progress}")
+            //            if (null != fileListAdapter) {
+            //                for (fb in fileListAdapter!!.data) {
+            //                    if (null != fb.bookProgress && fb.bookProgress.name.equals(progress.name)) {
+            //                        if (fb.bookProgress._id == 0) {
+            //                            fb.bookProgress = progress
+            //                            Logcat.d(TAG, "update new entry:${fb.bookProgress}")
+            //                            recentManager.recentTableManager.updateProgress(fb.bookProgress)
+            //                        } else {
+            //                            fb.bookProgress.page = progress.page
+            //                            fb.bookProgress.isFavorited = progress.isFavorited
+            //                            fb.bookProgress.readTimes = progress.readTimes
+            //                            fb.bookProgress.pageCount = progress.pageCount
+            //                            fb.bookProgress.inRecent = progress.inRecent
+            //                            Logcat.d(TAG, "add new entry:${fb.bookProgress}")
+            //                        }
+            //                        break
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    } catch (e: Exception) {
+            //        e.printStackTrace()
+            //    }
+            //    uiThread {
+            //        fileListAdapter?.notifyDataSetChanged()
+            //    }
+            //}
         }
         currentBean = null
     }
@@ -295,7 +338,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         mScanner!!.startScan(fileList, currentPath, object : DataListener {
             override fun onSuccess(vararg args: Any?) {
                 val path = args[0] as String
-                if (!mCurrentPath.equals(path)) {
+                if (!mCurrentPath!!.equals(path)) {
                     return
                 }
 
@@ -359,10 +402,14 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
             this@BrowserFragment.mCurrentPath = clickedFile.absolutePath
             loadData()
 
-            val map = mapOf("type" to "dir", "name" to clickedFile.name)
+            val map = HashMap<String, String>()
+            map.put("type", "dir")
+            map.put("name", clickedFile.name)
             MobclickAgent.onEvent(activity, AnalysticsHelper.A_FILE, map)
         } else {
-            val map = mapOf("type" to "file", "name" to clickedFile.name)
+            val map = HashMap<String, String>()
+            map.put("type", "file")
+            map.put("name", clickedFile.name)
             MobclickAgent.onEvent(activity, AnalysticsHelper.A_FILE, map)
 
             currentBean = clickedEntry
@@ -476,14 +523,18 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
 
             if (clickedFile.exists()) {
                 if (item.itemId == infoContextMenuItem) {
-                    val map = mapOf("type" to "info", "name" to clickedFile.name)
+                    val map = HashMap<String, String>()
+                    map.put("type", "info")
+                    map.put("name", clickedFile.name)
                     MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
 
                     showFileInfoDiaLog(entry)
                     return true
                 }
                 if (item.itemId == addToFavoriteContextMenuItem) {
-                    val map = mapOf("type" to "addToFavorite", "name" to clickedFile.name)
+                    val map = HashMap<String, String>()
+                    map.put("type", "addToFavorite")
+                    map.put("name", clickedFile.name)
                     MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
 
                     favorite(entry, 1)
@@ -498,37 +549,68 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     }
 
     private fun favorite(entry: FileBean, isFavorited: Int) {
-        doAsync {
-            try {
-                val recentManager = RecentManager.getInstance().recentTableManager
-                val filepath = FileUtils.getStoragePath(entry.bookProgress.path)
-                val file = File(filepath)
-                var bookProgress = recentManager.getProgress(file.name, BookProgress.ALL)
-                if (null == bookProgress) {
-                    if (isFavorited == 0) {
-                        Logcat.w(TAG, "some error:$entry")
-                        return@doAsync
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    val recentManager = RecentManager.getInstance().recentTableManager
+                    val filepath = FileUtils.getStoragePath(entry.bookProgress.path)
+                    val file = File(filepath)
+                    var bookProgress = recentManager.getProgress(file.name, BookProgress.ALL)
+                    if (null == bookProgress) {
+                        if (isFavorited == 0) {
+                            Logcat.w(TAG, "some error:$entry")
+                            return@withContext
+                        }
+                        bookProgress = BookProgress(FileUtils.getRealPath(file.absolutePath))
+                        entry.bookProgress = bookProgress
+                        entry.bookProgress.inRecent = BookProgress.NOT_IN_RECENT
+                        entry.bookProgress.isFavorited = isFavorited
+                        Logcat.d(TAG, "add favorite entry:${entry.bookProgress}")
+                        recentManager.addProgress(entry.bookProgress)
+                    } else {
+                        entry.bookProgress = bookProgress
+                        entry.bookProgress.isFavorited = isFavorited
+                        Logcat.d(TAG, "update favorite entry:${entry.bookProgress}")
+                        recentManager.updateProgress(entry.bookProgress)
                     }
-                    bookProgress = BookProgress(FileUtils.getRealPath(file.absolutePath))
-                    entry.bookProgress = bookProgress
-                    entry.bookProgress.inRecent = BookProgress.NOT_IN_RECENT
-                    entry.bookProgress.isFavorited = isFavorited
-                    Logcat.d(TAG, "add favorite entry:${entry.bookProgress}")
-                    recentManager.addProgress(entry.bookProgress)
-                } else {
-                    entry.bookProgress = bookProgress
-                    entry.bookProgress.isFavorited = isFavorited
-                    Logcat.d(TAG, "update favorite entry:${entry.bookProgress}")
-                    recentManager.updateProgress(entry.bookProgress)
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
-            uiThread {
-                fileListAdapter?.notifyDataSetChanged()
-                postFavoriteEvent(entry, isFavorited)
-            }
+            fileListAdapter?.notifyDataSetChanged()
+            postFavoriteEvent(entry, isFavorited)
         }
+        //doAsync {
+        //    try {
+        //        val recentManager = RecentManager.getInstance().recentTableManager
+        //        val filepath = FileUtils.getStoragePath(entry.bookProgress.path)
+        //        val file = File(filepath)
+        //        var bookProgress = recentManager.getProgress(file.name, BookProgress.ALL)
+        //        if (null == bookProgress) {
+        //            if (isFavorited == 0) {
+        //                Logcat.w(TAG, "some error:$entry")
+        //                return@doAsync
+        //            }
+        //            bookProgress = BookProgress(FileUtils.getRealPath(file.absolutePath))
+        //            entry.bookProgress = bookProgress
+        //            entry.bookProgress.inRecent = BookProgress.NOT_IN_RECENT
+        //            entry.bookProgress.isFavorited = isFavorited
+        //            Logcat.d(TAG, "add favorite entry:${entry.bookProgress}")
+        //            recentManager.addProgress(entry.bookProgress)
+        //        } else {
+        //            entry.bookProgress = bookProgress
+        //            entry.bookProgress.isFavorited = isFavorited
+        //            Logcat.d(TAG, "update favorite entry:${entry.bookProgress}")
+        //            recentManager.updateProgress(entry.bookProgress)
+        //        }
+        //    } catch (e: Exception) {
+        //        e.printStackTrace()
+        //    }
+        //    uiThread {
+        //        fileListAdapter?.notifyDataSetChanged()
+        //        postFavoriteEvent(entry, isFavorited)
+        //    }
+        //}
     }
 
     private fun postFavoriteEvent(entry: FileBean, isFavorited: Int) {

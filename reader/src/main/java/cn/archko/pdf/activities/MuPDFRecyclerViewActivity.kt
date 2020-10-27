@@ -12,19 +12,28 @@ import android.os.SystemClock
 import android.preference.PreferenceManager
 import android.text.TextUtils
 import android.util.SparseArray
-import android.view.*
+import android.view.GestureDetector
+import android.view.Gravity
+import android.view.View
+import android.view.Window
+import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import cn.archko.pdf.R
-import cn.archko.pdf.common.*
+import cn.archko.pdf.common.BitmapCache
+import cn.archko.pdf.common.Event
+import cn.archko.pdf.common.Logcat
+import cn.archko.pdf.common.PDFBookmarkManager
+import cn.archko.pdf.common.SensorHelper
 import cn.archko.pdf.entity.APage
 import cn.archko.pdf.listeners.AViewController
 import cn.archko.pdf.mupdf.MupdfDocument
 import cn.archko.pdf.utils.Utils
 import com.jeremyliao.liveeventbus.LiveEventBus
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.toast
-import org.jetbrains.anko.uiThread
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * @author: archko 2016/5/9 :12:43
@@ -65,7 +74,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
         Logcat.d("path:" + mPath!!)
 
         if (TextUtils.isEmpty(mPath)) {
-            toast("error file path:$mPath")
+            Toast.makeText(this@MuPDFRecyclerViewActivity, "error file path:$mPath", Toast.LENGTH_SHORT).show()
             return
         }
         sensorHelper = SensorHelper(this)
@@ -280,42 +289,78 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
     open fun loadDoc() {
         progressDialog.setMessage(mPath)
         progressDialog.show()
-        doAsync {
-            var result = false
-            try {
-                var start = SystemClock.uptimeMillis()
-                mMupdfDocument = MupdfDocument(this@MuPDFRecyclerViewActivity)
-                mMupdfDocument?.newDocument(mPath, getPassword())
-                var res = true
-                mMupdfDocument?.let {
-                    if (it.document.needsPassword()) {
-                        res = it.document.authenticatePassword(getPassword())
+        lifecycleScope.launch {
+            var result = withContext(Dispatchers.IO) {
+                try {
+                    var start = SystemClock.uptimeMillis()
+                    mMupdfDocument = MupdfDocument(this@MuPDFRecyclerViewActivity)
+                    mMupdfDocument?.newDocument(mPath, getPassword())
+                    var res = true
+                    mMupdfDocument?.let {
+                        if (it.document.needsPassword()) {
+                            res = it.document.authenticatePassword(getPassword())
+                        }
                     }
+
+                    val cp = mMupdfDocument!!.countPages()
+                    Logcat.d(TAG, "open:" + (SystemClock.uptimeMillis() - start) + " cp:" + cp)
+
+                    //val loc = mDocument!!.layout(mLayoutW, mLayoutH, mLayoutEM)
+
+                    preparePageSize(cp)
+                    Logcat.d(TAG, "open:end." + mPageSizes.size())
+                    val mill = SystemClock.uptimeMillis() - start
+                    if (mill < 500L) {
+                        Thread.sleep(500L - mill)
+                    }
+                    return@withContext true
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-
-                val cp = mMupdfDocument!!.countPages()
-                Logcat.d(TAG, "open:" + (SystemClock.uptimeMillis() - start) + " cp:" + cp)
-
-                //val loc = mDocument!!.layout(mLayoutW, mLayoutH, mLayoutEM)
-
-                preparePageSize(cp)
-                result = true
-                Logcat.d(TAG, "open:end." + mPageSizes.size())
-                val mill = SystemClock.uptimeMillis() - start
-                if (mill < 500L) {
-                    Thread.sleep(500L - mill)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
+                return@withContext false
             }
-            uiThread {
-                if (result) {
-                    doLoadDoc()
-                } else {
-                    finish()
-                }
+            if (result) {
+                doLoadDoc()
+            } else {
+                finish()
             }
         }
+        //doAsync {
+        //    var result = false
+        //    try {
+        //        var start = SystemClock.uptimeMillis()
+        //        mMupdfDocument = MupdfDocument(this@MuPDFRecyclerViewActivity)
+        //        mMupdfDocument?.newDocument(mPath, getPassword())
+        //        var res = true
+        //        mMupdfDocument?.let {
+        //            if (it.document.needsPassword()) {
+        //                res = it.document.authenticatePassword(getPassword())
+        //            }
+        //        }
+//
+        //        val cp = mMupdfDocument!!.countPages()
+        //        Logcat.d(TAG, "open:" + (SystemClock.uptimeMillis() - start) + " cp:" + cp)
+//
+        //        //val loc = mDocument!!.layout(mLayoutW, mLayoutH, mLayoutEM)
+//
+        //        preparePageSize(cp)
+        //        result = true
+        //        Logcat.d(TAG, "open:end." + mPageSizes.size())
+        //        val mill = SystemClock.uptimeMillis() - start
+        //        if (mill < 500L) {
+        //            Thread.sleep(500L - mill)
+        //        }
+        //    } catch (e: Exception) {
+        //        e.printStackTrace()
+        //    }
+        //    uiThread {
+        //        if (result) {
+        //            doLoadDoc()
+        //        } else {
+        //            finish()
+        //        }
+        //    }
+        //}
 
         //toast("loading:$mPath")
     }

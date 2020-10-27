@@ -5,11 +5,11 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-allopen'
 
 android {
-    compileSdkVersion ANDROID_BUILD_SDK_VERSION as int
-    buildToolsVersion ANDROID_BUILD_TOOLS_VERSION
+    compileSdkVersion build_versions.compile_sdk
+    buildToolsVersion build_versions.build_tools
     defaultConfig {
-        minSdkVersion ANDROID_BUILD_MIN_SDK_VERSION
-        targetSdkVersion ANDROID_BUILD_TARGET_SDK_VERSION
+        minSdkVersion build_versions.min_sdk
+        targetSdkVersion build_versions.target_sdk
     }
 
     compileOptions {
@@ -27,24 +27,22 @@ android {
         main {
             jni.srcDirs = []
             jniLibs.srcDirs = ['libs']
+            main.java.srcDirs += 'src/main/kotlin'
         }
     }
 }
 dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
-    api "androidx.vectordrawable:vectordrawable:${X_SUPPORT_VECTOR_DRAWABLE}"
-    api "androidx.swiperefreshlayout:swiperefreshlayout:${X_SUPPORT_SWIPEREFRESHLAYOUT}"
+    api deps.vectordrawable
+    api deps.swiperefreshlayout
 
-    api ("androidx.viewpager2:viewpager2:${X_SUPPORT_VIEWPAGER2}") {
+    api(deps.viewpager2) {
         exclude group: 'androidx.recyclerview'
     }
 
-    api ("com.google.android.material:material:${GOOGLE_METERIAL}") {
+    api(deps.material) {
         exclude group: 'androidx.recyclerview'
     }
-
-    api "androidx.fragment:fragment-ktx:${X_SUPPORT_FRAGMENT_KTX}"
-    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     api project(":readercommon")
     api project(":viewer")

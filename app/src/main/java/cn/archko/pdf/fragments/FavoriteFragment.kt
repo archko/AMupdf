@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -17,8 +18,9 @@ import cn.archko.pdf.entity.FileBean
 import cn.archko.pdf.widgets.IMoreView
 import cn.archko.pdf.widgets.ListMoreView
 import com.jeremyliao.liveeventbus.LiveEventBus
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
 
@@ -83,7 +85,45 @@ class FavoriteFragment : BrowserFragment() {
 
     private fun getFavorities() {
         mListMoreView?.onLoadingStateChanged(IMoreView.STATE_LOADING)
-        doAsync {
+        lifecycleScope.launch {
+            var totalCount = 0;
+            val entryList = withContext(Dispatchers.IO) {
+                val recent = RecentManager.getInstance()
+                totalCount = recent.favoriteProgressCount
+                val progresses = recent.readFavoriteFromDb(PAGE_SIZE * (curPage), PAGE_SIZE)
+                val entryList = ArrayList<FileBean>()
+
+                var entry: FileBean
+                var file: File
+                val path = Environment.getExternalStorageDirectory().path
+                progresses?.map {
+                    try {
+                        file = File(path + "/" + it.path)
+                        entry = FileBean(FileBean.FAVORITE, file, showExtension)
+                        entry.bookProgress = it
+                        entryList.add(entry)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+                return@withContext entryList
+            }
+            mSwipeRefreshWidget!!.isRefreshing = false
+            if (entryList.size > 0) {
+                if (curPage == 0) {
+                    fileListAdapter!!.setData(entryList)
+                    fileListAdapter!!.notifyDataSetChanged()
+                } else {
+                    val index = fileListAdapter!!.itemCount;
+                    fileListAdapter!!.addData(entryList)
+                    fileListAdapter!!.notifyItemRangeInserted(index, entryList.size)
+                }
+
+                curPage++
+            }
+            updateLoadingStatus(totalCount)
+        }
+        /*doAsync {
             val recent = RecentManager.getInstance()
             val totalCount = recent.favoriteProgressCount
             val progresses = recent.readFavoriteFromDb(PAGE_SIZE * (curPage), PAGE_SIZE)
@@ -119,7 +159,7 @@ class FavoriteFragment : BrowserFragment() {
                 }
                 updateLoadingStatus(totalCount)
             }
-        }
+        }*/
     }
 
     private fun updateLoadingStatus(totalCount: Int) {

@@ -12,6 +12,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import cn.archko.pdf.App
@@ -26,9 +27,13 @@ import cn.archko.pdf.utils.FileUtils
 import cn.archko.pdf.utils.Utils
 import com.google.android.material.appbar.MaterialToolbar
 import com.umeng.analytics.MobclickAgent
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.FileFilter
+import java.util.*
 
 /**
  * 字体列表
@@ -107,7 +112,39 @@ open class FontsFragment : DialogFragment() {
     }
 
     private fun loadFonts() {
-        doAsync {
+        lifecycleScope.launch {
+            var list: MutableList<FontBean> = withContext(Dispatchers.IO) {
+                val fontDir = FileUtils.getStorageDir(FontHelper.FONT_DIR)
+                val list = ArrayList<FontBean>()
+
+                list.add(FontBean(FontHelper.DEFAULT, FontHelper.SYSTEM_FONT, null))
+                list.add(FontBean(FontHelper.SANS_SERIF, FontHelper.SYSTEM_FONT_SAN, null))
+                list.add(FontBean(FontHelper.SERIF, FontHelper.SYSTEM_FONT_SERIF, null))
+                list.add(FontBean(FontHelper.MONOSPACE, FontHelper.SYSTEM_FONT_MONO, null))
+                fontDir.listFiles(FileFilter { file ->
+                    if (file.isDirectory)
+                        return@FileFilter false
+                    var fname: String = file.name.toLowerCase()
+
+                    if (fname.endsWith(".ttf", true))
+                        return@FileFilter true
+                    if (fname.endsWith(".ttc", true))
+                        return@FileFilter true
+                    false
+                })?.asFlow()?.map {
+                    list.add(FontBean(FontHelper.CUSTOM, it.name, it))
+                }
+                return@withContext list
+            }
+
+            if (list.size > 0) {
+                adapter.data = list
+                adapter.notifyDataSetChanged()
+            } else {
+                Toast.makeText(this@FontsFragment.activity, R.string.dialog_sub_title_font, Toast.LENGTH_LONG).show()
+            }
+        }
+        /*doAsync {
             val fontDir = FileUtils.getStorageDir(FontHelper.FONT_DIR)
             val list = ArrayList<FontBean>()
 
@@ -137,7 +174,7 @@ open class FontsFragment : DialogFragment() {
                     Toast.makeText(this@FontsFragment.activity, R.string.dialog_sub_title_font, Toast.LENGTH_LONG).show()
                 }
             }
-        }
+        }*/
     }
 
     inner class FontHolder(itemView: View?) : BaseViewHolder<FontBean>(itemView) {
@@ -164,7 +201,7 @@ open class FontsFragment : DialogFragment() {
                 }
             }
 
-            if (selectedFontName.equals(data?.fontName)) {
+            if (selectedFontName!!.equals(data?.fontName)) {
                 itemView.setBackgroundResource(R.color.button_pressed)
             } else {
                 itemView.setBackgroundResource(R.color.transparent)

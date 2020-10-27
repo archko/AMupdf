@@ -1,15 +1,16 @@
 apply plugin: 'com.android.library'
 
+apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-allopen'
 
 android {
-    compileSdkVersion ANDROID_BUILD_SDK_VERSION as int
-    buildToolsVersion ANDROID_BUILD_TOOLS_VERSION
+    compileSdkVersion build_versions.compile_sdk
+    buildToolsVersion build_versions.build_tools
     defaultConfig {
-        minSdkVersion ANDROID_BUILD_MIN_SDK_VERSION
-        targetSdkVersion ANDROID_BUILD_TARGET_SDK_VERSION
+        minSdkVersion build_versions.min_sdk
+        targetSdkVersion build_versions.target_sdk
         // jni cropper
         ndk.abiFilters 'armeabi-v7a', 'arm64-v8a'
         externalNativeBuild {
@@ -21,9 +22,6 @@ android {
 
     compileOptions {
         encoding "UTF-8"
-    }
-
-    compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
@@ -44,21 +42,30 @@ android {
             path "src/main/cpp/CMakeLists.txt"
         }
     }
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
 }
 dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
-    api "androidx.core:core:${X_SUPPORT_CORE_UI}"
-    api "androidx.fragment:fragment-ktx:${X_SUPPORT_FRAGMENT_KTX}"
-    api "androidx.appcompat:appcompat:${X_SUPPORT_COMPAT}"
+    api deps.arch_core.runtime
+    api deps.core_ktx
+    api deps.fragment.runtime
+    api deps.fragment.runtime_ktx
+    api deps.app_compat
 
-    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    api "org.jetbrains.anko:anko-common:$anko_version"
-    //api "org.ccil.cowan.tagsoup:tagsoup:${TAGSOUP}"
+    //api deps.lifecycle.livedata_ktx
+    //api deps.lifecycle.runtime
+    //api deps.lifecycle.java8
+    //api "org.jetbrains.anko:anko-common:$anko_version"
 
-    api 'com.jeremyliao:live-event-bus-x:1.5.0'
+    api deps.kotlin.stdlib
+    api deps.coroutines.android
 
-    api "com.umeng.umsdk:analytics:${UMENG_ANALYTICS}"
-    api "com.umeng.umsdk:common:${UMENG_COMMON}"
+    api deps.live_event_bus_x
+
+    api deps.umeng.analytics
+    api deps.umeng.umeng_common
 
     api project(":viewer")
 }

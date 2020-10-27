@@ -6,23 +6,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import cn.archko.mupdf.R
-import cn.archko.pdf.App
 import cn.archko.pdf.adapters.BaseRecyclerAdapter
 import cn.archko.pdf.adapters.BaseViewHolder
 import cn.archko.pdf.common.RecentManager
-import cn.archko.pdf.entity.FontBean
 import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.utils.Utils
 import com.google.android.material.appbar.MaterialToolbar
 import com.umeng.analytics.MobclickAgent
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
@@ -89,16 +88,25 @@ open class BackupFragment : DialogFragment() {
     }
 
     private fun loadBackups() {
-        doAsync {
-            val files = RecentManager.getInstance().getBackupFiles();
-
-            uiThread {
-                if (files.size > 0) {
-                    adapter.data = files
-                    adapter.notifyDataSetChanged()
-                }
+        lifecycleScope.launch {
+            val files = withContext(Dispatchers.IO) {
+                RecentManager.getInstance().getBackupFiles();
+            }
+            if (files.size > 0) {
+                adapter.data = files
+                adapter.notifyDataSetChanged()
             }
         }
+        //doAsync {
+        //    val files = RecentManager.getInstance().getBackupFiles();
+//
+        //    uiThread {
+        //        if (files.size > 0) {
+        //            adapter.data = files
+        //            adapter.notifyDataSetChanged()
+        //        }
+        //    }
+        //}
     }
 
     inner class ItemHolder(itemView: View?) : BaseViewHolder<File>(itemView) {

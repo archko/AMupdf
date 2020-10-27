@@ -1,18 +1,12 @@
 apply plugin: 'com.android.application'
-//apply plugin: 'com.antfortune.freeline'
 
+apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-allopen'
 
-// Create a variable called keystorePropertiesFile, and initialize it to your
-// keystore.properties file, in the rootProject folder.
 def keystorePropertiesFile = rootProject.file("keystore.properties")
-
-// Initialize a new Properties() object called keystoreProperties.
 def keystoreProperties = new Properties()
-
-// Load your keystore.properties file into the keystoreProperties object.
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
 android {
@@ -26,12 +20,12 @@ android {
             storePassword keystoreProperties['storePassword']
         }
     }
-    compileSdkVersion ANDROID_BUILD_SDK_VERSION as int
-    buildToolsVersion ANDROID_BUILD_TOOLS_VERSION
+    compileSdkVersion build_versions.compile_sdk
+    buildToolsVersion build_versions.build_tools
     defaultConfig {
         applicationId 'cn.archko.mupdf'
-        minSdkVersion ANDROID_BUILD_MIN_SDK_VERSION
-        targetSdkVersion ANDROID_BUILD_TARGET_SDK_VERSION
+        minSdkVersion build_versions.min_sdk
+        targetSdkVersion build_versions.target_sdk
         versionCode VERSION_CODE as int
         versionName VERSION_NAME
         signingConfig signingConfigs.release
@@ -73,6 +67,7 @@ android {
         main {
             jni.srcDirs = []
             jniLibs.srcDirs = ['libs']
+            main.java.srcDirs += 'src/main/kotlin'
         }
     }
     externalNativeBuild {
@@ -83,11 +78,9 @@ android {
 }
 dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
-    api "androidx.multidex:multidex:${X_SUPPORT_MULTIDEX}"
-    api "androidx.vectordrawable:vectordrawable:${X_SUPPORT_VECTOR_DRAWABLE}"
-    api "androidx.swiperefreshlayout:swiperefreshlayout:${X_SUPPORT_SWIPEREFRESHLAYOUT}"
-    api "androidx.constraintlayout:constraintlayout:${X_SUPPORT_CONSTRAINT_LAYOUT}"
-    api "androidx.constraintlayout:constraintlayout-solver:${X_SUPPORT_CONSTRAINT_LAYOUT}"
+    api deps.multidex
+    api deps.constraint_layout
+    api deps.constraintlayout_solver
 
     api project(':reader')
     api project(':viewer')
