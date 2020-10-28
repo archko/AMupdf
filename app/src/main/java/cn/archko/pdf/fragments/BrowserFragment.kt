@@ -54,9 +54,9 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     protected val mHandler = Handler()
     private var mCurrentPath: String? = null
 
-    protected var mSwipeRefreshWidget: SwipeRefreshLayout? = null
-    protected var pathTextView: TextView? = null
-    protected var filesListView: RecyclerView? = null
+    protected lateinit var mSwipeRefreshWidget: SwipeRefreshLayout
+    protected lateinit var pathTextView: TextView
+    protected lateinit var filesListView: RecyclerView
     private var fileFilter: FileFilter? = null
     protected var fileListAdapter: BookAdapter? = null
 
@@ -130,14 +130,16 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.list_book_choose, container, false)
 
-        this.pathTextView = view.findViewById<TextView>(R.id.path)
+        this.pathTextView = view.findViewById(R.id.path)
         this.filesListView = view.findViewById(R.id.files)
-        filesListView!!.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+        filesListView.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
 
-        mSwipeRefreshWidget = view.findViewById<SwipeRefreshLayout>(R.id.swipe_refresh_widget) as SwipeRefreshLayout
-        mSwipeRefreshWidget!!.setColorSchemeResources(R.color.text_border_pressed, R.color.text_border_pressed,
-                R.color.text_border_pressed, R.color.text_border_pressed)
-        mSwipeRefreshWidget!!.setOnRefreshListener(this)
+        mSwipeRefreshWidget = view.findViewById(R.id.swipe_refresh_widget) as SwipeRefreshLayout
+        mSwipeRefreshWidget.apply {
+            setColorSchemeResources(R.color.text_border_pressed, R.color.text_border_pressed,
+                    R.color.text_border_pressed, R.color.text_border_pressed)
+            setOnRefreshListener(this@BrowserFragment)
+        }
         fileListAdapter = BookAdapter(activity as Context, itemClickListener)
 
         return view
@@ -150,7 +152,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        this.filesListView?.adapter = this.fileListAdapter
+        this.filesListView.adapter = this.fileListAdapter
         mHandler.postDelayed({ loadData() }, 80L)
     }
 
@@ -196,9 +198,9 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
                     }
                 }
                 fileListAdapter?.notifyDataSetChanged()
+                currentBean = null
             }
         }
-        currentBean = null
     }
 
     open fun loadData() {
@@ -239,7 +241,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
             }
         }
         val fileList: ArrayList<FileBean> = ArrayList()
-        this.pathTextView!!.text = this.mCurrentPath
+        this.pathTextView.text = this.mCurrentPath
         var entry: FileBean
 
         entry = FileBean(FileBean.HOME, resources.getString(R.string.go_home))
@@ -286,34 +288,30 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
             val pos = mPathMap[mCurrentPath!!]
             if (pos!! < fileList.size) {
                 //(filesListView!!.layoutManager as LinearLayoutManager).scrollToPosition(pos)
-                (filesListView!!.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(pos, 0);
+                (filesListView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(pos, 0);
             }
         } else {
-            (filesListView!!.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(0, 0)
+            (filesListView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(0, 0)
         }
-        mSwipeRefreshWidget!!.isRefreshing = false
+        mSwipeRefreshWidget.isRefreshing = false
 
         startGetProgress(fileList, mCurrentPath)
     }
 
-    private fun startGetProgress(fileList: ArrayList<FileBean>?, currentPath: String?) {
+    private fun startGetProgress(fileList: List<FileBean>, currentPath: String?) {
         if (null == mScanner) {
             mScanner = ProgressScaner()
         }
-        mScanner!!.startScan(fileList, currentPath, object : DataListener {
-            override fun onSuccess(vararg args: Any?) {
-                val path = args[0] as String
-                if (!mCurrentPath!!.equals(path)) {
-                    return
-                }
-
+        lifecycleScope.launch {
+            val args = withContext(Dispatchers.IO) {
+                return@withContext mScanner!!.startScan(fileList, currentPath)
+            }
+            val path = args[0] as String
+            if (currentPath.equals(path)) {
                 fileListAdapter!!.setData(args[1] as ArrayList<FileBean>)
                 fileListAdapter!!.notifyDataSetChanged()
             }
-
-            override fun onFailed(vararg args: Any?) {
-            }
-        })
+        }
     }
 
     private fun getHome(): String {
@@ -359,7 +357,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
             return
 
         if (clickedFile.isDirectory) {
-            var pos: Int = (filesListView!!.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+            var pos: Int = (filesListView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
             if (pos < 0) {
                 pos = 0
             }
@@ -563,7 +561,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         FileInfoFragment.showInfoDialog(activity, entry, object : DataListener {
             override fun onSuccess(vararg args: Any?) {
                 val fileEntry = args[0] as FileBean
-                filesListView?.let { prepareMenu(it, fileEntry) }
+                filesListView.let { prepareMenu(it, fileEntry) }
             }
 
             override fun onFailed(vararg args: Any?) {

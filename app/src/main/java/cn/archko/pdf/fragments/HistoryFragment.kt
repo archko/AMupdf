@@ -34,6 +34,7 @@ import cn.archko.pdf.widgets.IMoreView
 import cn.archko.pdf.widgets.ListMoreView
 import com.jeremyliao.liveeventbus.LiveEventBus
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -47,8 +48,8 @@ import java.util.*
 class HistoryFragment : BrowserFragment() {
 
     private var curPage = 0
-    internal var mListMoreView: ListMoreView? = null
-    private var mStyle: Int = STYLE_GRID;
+    private lateinit var mListMoreView: ListMoreView
+    private var mStyle: Int = STYLE_GRID
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -117,7 +118,7 @@ class HistoryFragment : BrowserFragment() {
             R.id.action_restore -> restore()
             R.id.action_style -> {
                 if (mStyle == STYLE_LIST) {
-                    mStyle = STYLE_GRID;
+                    mStyle = STYLE_GRID
                 } else {
                     mStyle = STYLE_LIST
                 }
@@ -149,11 +150,7 @@ class HistoryFragment : BrowserFragment() {
                     newTime = 0
                 }
 
-                try {
-                    Thread.sleep(newTime)
-                } catch (e: InterruptedException) {
-                    e.printStackTrace()
-                }
+                delay(newTime)
                 return@withContext filepath
             }
             progressDialog.dismiss()
@@ -165,35 +162,6 @@ class HistoryFragment : BrowserFragment() {
                 Toast.makeText(App.getInstance(), "备份失败", Toast.LENGTH_LONG).show()
             }
         }
-        /*doAsync {
-            uiThread {
-                progressDialog.setCancelable(false)
-                progressDialog.show()
-            }
-            val filepath = RecentManager.getInstance().backupFromDb()
-            var newTime = System.currentTimeMillis() - now
-            if (newTime < 1500L) {
-                newTime = 1500L - newTime
-            } else {
-                newTime = 0
-            }
-
-            try {
-                Thread.sleep(newTime)
-            } catch (e: InterruptedException) {
-                e.printStackTrace()
-            }
-            uiThread {
-                progressDialog.dismiss()
-
-                if (!LengthUtils.isEmpty(filepath)) {
-                    Logcat.d("", "file:" + filepath)
-                    Toast.makeText(App.getInstance(), "备份成功:$filepath", Toast.LENGTH_LONG).show()
-                } else {
-                    Toast.makeText(App.getInstance(), "备份失败", Toast.LENGTH_LONG).show()
-                }
-            }
-        }*/
     }
 
     private fun restore() {
@@ -217,11 +185,7 @@ class HistoryFragment : BrowserFragment() {
                             newTime = 0
                         }
 
-                        try {
-                            Thread.sleep(newTime)
-                        } catch (e: InterruptedException) {
-                            e.printStackTrace()
-                        }
+                        delay(newTime)
                         return@withContext flag
                     }
                     progressDialog.dismiss()
@@ -233,32 +197,6 @@ class HistoryFragment : BrowserFragment() {
                         Toast.makeText(App.getInstance(), "恢复失败", Toast.LENGTH_LONG).show()
                     }
                 }
-                /*doAsync {
-                    val flag = RecentManager.getInstance().restoreToDb(file)
-                    var newTime = System.currentTimeMillis() - now
-                    if (newTime < 1300L) {
-                        newTime = 1300L - newTime
-                    } else {
-                        newTime = 0
-                    }
-
-                    try {
-                        Thread.sleep(newTime)
-                    } catch (e: InterruptedException) {
-                        e.printStackTrace()
-                    }
-
-                    uiThread {
-                        progressDialog.dismiss()
-
-                        if (flag) {
-                            Toast.makeText(App.getInstance(), "恢复成功:$flag", Toast.LENGTH_LONG).show()
-                            loadData()
-                        } else {
-                            Toast.makeText(App.getInstance(), "恢复失败", Toast.LENGTH_LONG).show()
-                        }
-                    }
-                }*/
             }
 
             override fun onFailed(vararg args: Any?) {
@@ -269,10 +207,10 @@ class HistoryFragment : BrowserFragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = super.onCreateView(inflater, container, savedInstanceState)
 
-        this.pathTextView!!.visibility = View.GONE
-        filesListView!!.setOnScrollListener(onScrollListener)
+        this.pathTextView.visibility = View.GONE
+        filesListView.setOnScrollListener(onScrollListener)
         mListMoreView = ListMoreView(filesListView)
-        fileListAdapter!!.addFootView(mListMoreView?.loadMoreView)
+        fileListAdapter!!.addFootView(mListMoreView.loadMoreView)
 
         return view
     }
@@ -280,12 +218,12 @@ class HistoryFragment : BrowserFragment() {
     private fun applyStyle() {
         if (mStyle == STYLE_LIST) {
             fileListAdapter!!.setMode(BookAdapter.TYPE_RENCENT)
-            filesListView!!.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+            filesListView.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
             fileListAdapter!!.notifyDataSetChanged()
         } else {
             fileListAdapter!!.setMode(BookAdapter.TYPE_GRID)
 
-            filesListView!!.layoutManager = GridLayoutManager(activity, 3)
+            filesListView.layoutManager = GridLayoutManager(activity, 3)
             fileListAdapter!!.notifyDataSetChanged()
         }
     }
@@ -301,9 +239,9 @@ class HistoryFragment : BrowserFragment() {
     }
 
     private fun getHistory() {
-        mListMoreView?.onLoadingStateChanged(IMoreView.STATE_LOADING)
+        mListMoreView.onLoadingStateChanged(IMoreView.STATE_LOADING)
         lifecycleScope.launch {
-            var totalCount = 0;
+            var totalCount = 0
             val entryList = withContext(Dispatchers.IO) {
                 val recent = RecentManager.getInstance()
                 totalCount = recent.progressCount
@@ -315,18 +253,14 @@ class HistoryFragment : BrowserFragment() {
                 var file: File
                 val path = Environment.getExternalStorageDirectory().path
                 progresses?.map {
-                    try {
-                        file = File(path + "/" + it.path)
-                        entry = FileBean(FileBean.RECENT, file, showExtension)
-                        entry.bookProgress = it
-                        entryList.add(entry)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+                    file = File(path + "/" + it.path)
+                    entry = FileBean(FileBean.RECENT, file, showExtension)
+                    entry.bookProgress = it
+                    entryList.add(entry)
                 }
                 return@withContext entryList
             }
-            mSwipeRefreshWidget!!.isRefreshing = false
+            mSwipeRefreshWidget.isRefreshing = false
             fileListAdapter?.apply {
                 if (entryList.size > 0) {
                     if (curPage == 0) {
@@ -334,7 +268,7 @@ class HistoryFragment : BrowserFragment() {
                         //submitList(fileListAdapter!!.data, entryList, fileListAdapter!!, totalCount)
                         notifyDataSetChanged()
                     } else {
-                        val index = itemCount;
+                        val index = itemCount
                         addData(entryList)
                         notifyItemRangeInserted(index, entryList.size)
                     }
@@ -350,14 +284,14 @@ class HistoryFragment : BrowserFragment() {
         Logcat.d(String.format("total count:%s, adapter count:%s", totalCount, fileListAdapter!!.normalCount))
         if (fileListAdapter!!.normalCount > 0) {
             if (fileListAdapter!!.normalCount < totalCount) {
-                mListMoreView?.onLoadingStateChanged(IMoreView.STATE_NORMAL)
+                mListMoreView.onLoadingStateChanged(IMoreView.STATE_NORMAL)
             } else {
                 Logcat.d("fileListAdapter!!.normalCount < totalCount")
-                mListMoreView?.onLoadingStateChanged(IMoreView.STATE_NO_MORE)
+                mListMoreView.onLoadingStateChanged(IMoreView.STATE_NO_MORE)
             }
         } else {
             Logcat.d("fileListAdapter!!.normalCount <= 0")
-            mListMoreView?.onLoadingStateChanged(IMoreView.STATE_NO_MORE)
+            mListMoreView.onLoadingStateChanged(IMoreView.STATE_NO_MORE)
             val sp = context!!.getSharedPreferences(PREF_BROWSER, Context.MODE_PRIVATE)
             val isFirst = sp.getBoolean(PREF_BROWSER_KEY_FIRST, true)
             if (isFirst) {
@@ -373,22 +307,22 @@ class HistoryFragment : BrowserFragment() {
     private val onScrollListener: RecyclerView.OnScrollListener = object : RecyclerView.OnScrollListener() {
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                if (mListMoreView?.state == IMoreView.STATE_NORMAL
-                        || mListMoreView?.state == IMoreView.STATE_LOAD_FAIL) {
+                if (mListMoreView.state == IMoreView.STATE_NORMAL
+                        || mListMoreView.state == IMoreView.STATE_LOAD_FAIL) {
                     var isReachBottom = false
                     if (mStyle == STYLE_GRID) {
-                        val gridLayoutManager = filesListView?.layoutManager as GridLayoutManager
+                        val gridLayoutManager = filesListView.layoutManager as GridLayoutManager
                         val rowCount = fileListAdapter!!.getItemCount() / gridLayoutManager.spanCount
                         val lastVisibleRowPosition = gridLayoutManager.findLastVisibleItemPosition() / gridLayoutManager.spanCount
                         isReachBottom = lastVisibleRowPosition >= rowCount - 1
                     } else if (mStyle == STYLE_LIST) {
-                        val layoutManager: LinearLayoutManager = filesListView?.layoutManager as LinearLayoutManager
+                        val layoutManager: LinearLayoutManager = filesListView.layoutManager as LinearLayoutManager
                         val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
                         val rowCount = fileListAdapter!!.getItemCount()
                         isReachBottom = lastVisibleItemPosition >= rowCount - fileListAdapter!!.headersCount - fileListAdapter!!.footersCount
                     }
                     if (isReachBottom) {
-                        mListMoreView?.onLoadingStateChanged(IMoreView.STATE_LOADING)
+                        mListMoreView.onLoadingStateChanged(IMoreView.STATE_LOADING)
                         loadMore()
                     }
                 }
@@ -412,10 +346,10 @@ class HistoryFragment : BrowserFragment() {
         const val PAGE_SIZE = 21
 
         @JvmField
-        val STYLE_LIST = 0;
+        val STYLE_LIST = 0
 
         @JvmField
-        val STYLE_GRID = 1;
+        val STYLE_GRID = 1
     }
 
 

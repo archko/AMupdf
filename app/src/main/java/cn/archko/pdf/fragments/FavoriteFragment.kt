@@ -32,8 +32,8 @@ import java.util.*
 class FavoriteFragment : BrowserFragment() {
 
     private var curPage = 0
-    private var mListMoreView: ListMoreView? = null
-    private var mStyle: Int = HistoryFragment.STYLE_LIST;
+    private lateinit var mListMoreView: ListMoreView
+    private var mStyle: Int = HistoryFragment.STYLE_LIST
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,10 +66,10 @@ class FavoriteFragment : BrowserFragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = super.onCreateView(inflater, container, savedInstanceState)
 
-        this.pathTextView!!.visibility = View.GONE
-        filesListView!!.setOnScrollListener(onScrollListener)
+        this.pathTextView.visibility = View.GONE
+        filesListView.setOnScrollListener(onScrollListener)
         mListMoreView = ListMoreView(filesListView)
-        fileListAdapter!!.addFootView(mListMoreView?.loadMoreView)
+        fileListAdapter!!.addFootView(mListMoreView.loadMoreView)
 
         return view
     }
@@ -84,9 +84,9 @@ class FavoriteFragment : BrowserFragment() {
     }
 
     private fun getFavorities() {
-        mListMoreView?.onLoadingStateChanged(IMoreView.STATE_LOADING)
+        mListMoreView.onLoadingStateChanged(IMoreView.STATE_LOADING)
         lifecycleScope.launch {
-            var totalCount = 0;
+            var totalCount = 0
             val entryList = withContext(Dispatchers.IO) {
                 val recent = RecentManager.getInstance()
                 totalCount = recent.favoriteProgressCount
@@ -97,24 +97,20 @@ class FavoriteFragment : BrowserFragment() {
                 var file: File
                 val path = Environment.getExternalStorageDirectory().path
                 progresses?.map {
-                    try {
-                        file = File(path + "/" + it.path)
-                        entry = FileBean(FileBean.FAVORITE, file, showExtension)
-                        entry.bookProgress = it
-                        entryList.add(entry)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+                    file = File(path + "/" + it.path)
+                    entry = FileBean(FileBean.FAVORITE, file, showExtension)
+                    entry.bookProgress = it
+                    entryList.add(entry)
                 }
                 return@withContext entryList
             }
-            mSwipeRefreshWidget!!.isRefreshing = false
+            mSwipeRefreshWidget.isRefreshing = false
             if (entryList.size > 0) {
                 if (curPage == 0) {
                     fileListAdapter!!.setData(entryList)
                     fileListAdapter!!.notifyDataSetChanged()
                 } else {
-                    val index = fileListAdapter!!.itemCount;
+                    val index = fileListAdapter!!.itemCount
                     fileListAdapter!!.addData(entryList)
                     fileListAdapter!!.notifyItemRangeInserted(index, entryList.size)
                 }
@@ -129,36 +125,36 @@ class FavoriteFragment : BrowserFragment() {
         Logcat.d(String.format("$this, total count:%s, adapter count:%s", totalCount, fileListAdapter!!.normalCount))
         if (fileListAdapter!!.normalCount > 0) {
             if (fileListAdapter!!.normalCount < totalCount) {
-                mListMoreView?.onLoadingStateChanged(IMoreView.STATE_NORMAL)
+                mListMoreView.onLoadingStateChanged(IMoreView.STATE_NORMAL)
             } else {
                 Logcat.d("fileListAdapter!!.normalCount < totalCount")
-                mListMoreView?.onLoadingStateChanged(IMoreView.STATE_NO_MORE)
+                mListMoreView.onLoadingStateChanged(IMoreView.STATE_NO_MORE)
             }
         } else {
             Logcat.d("fileListAdapter!!.normalCount <= 0")
-            mListMoreView?.onLoadingStateChanged(IMoreView.STATE_NO_MORE)
+            mListMoreView.onLoadingStateChanged(IMoreView.STATE_NO_MORE)
         }
     }
 
     private val onScrollListener: RecyclerView.OnScrollListener = object : RecyclerView.OnScrollListener() {
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                if (mListMoreView?.state == IMoreView.STATE_NORMAL
-                        || mListMoreView?.state == IMoreView.STATE_LOAD_FAIL) {
+                if (mListMoreView.state == IMoreView.STATE_NORMAL
+                        || mListMoreView.state == IMoreView.STATE_LOAD_FAIL) {
                     var isReachBottom = false
                     if (mStyle == HistoryFragment.STYLE_GRID) {
-                        val gridLayoutManager = filesListView?.layoutManager as GridLayoutManager
+                        val gridLayoutManager = filesListView.layoutManager as GridLayoutManager
                         val rowCount = fileListAdapter!!.getItemCount() / gridLayoutManager.spanCount
                         val lastVisibleRowPosition = gridLayoutManager.findLastVisibleItemPosition() / gridLayoutManager.spanCount
                         isReachBottom = lastVisibleRowPosition >= rowCount - 1
                     } else if (mStyle == HistoryFragment.STYLE_LIST) {
-                        val layoutManager: LinearLayoutManager = filesListView?.layoutManager as LinearLayoutManager
+                        val layoutManager: LinearLayoutManager = filesListView.layoutManager as LinearLayoutManager
                         val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
                         val rowCount = fileListAdapter!!.getItemCount()
                         isReachBottom = lastVisibleItemPosition >= rowCount - fileListAdapter!!.headersCount - fileListAdapter!!.footersCount
                     }
                     if (isReachBottom) {
-                        mListMoreView?.onLoadingStateChanged(IMoreView.STATE_LOADING)
+                        mListMoreView.onLoadingStateChanged(IMoreView.STATE_LOADING)
                         loadMore()
                     }
                 }
