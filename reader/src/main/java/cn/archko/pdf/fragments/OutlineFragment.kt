@@ -5,14 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
-import android.widget.AdapterView
 import android.widget.ListView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import cn.archko.pdf.R
+import cn.archko.pdf.adapters.BaseRecyclerAdapter
 import cn.archko.pdf.adapters.BaseViewHolder
-import cn.archko.pdf.adapters.ListBaseAdapter
-import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.listeners.OutlineListener
 import com.artifex.mupdf.viewer.OutlineActivity
 
@@ -21,10 +21,10 @@ import com.artifex.mupdf.viewer.OutlineActivity
  */
 open class OutlineFragment : Fragment() {
 
-    private var adapter: ListBaseAdapter<OutlineActivity.Item>? = null
-    lateinit var listView: ListView
+    private lateinit var adapter: BaseRecyclerAdapter<OutlineActivity.Item>
+    private lateinit var listView: RecyclerView
     private var outline: ArrayList<OutlineActivity.Item>? = null
-    var currentPage: Int = 0
+    private var currentPage: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,12 +39,6 @@ open class OutlineFragment : Fragment() {
         if (null == outline) {
             outline = ArrayList()
         }
-        adapter = object : ListBaseAdapter<OutlineActivity.Item>(activity, outline!!) {
-            override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): BaseViewHolder<*> {
-                val view = mInflater.inflate(R.layout.item_outline, parent, false)
-                return ViewHolder(view)
-            }
-        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -52,11 +46,19 @@ open class OutlineFragment : Fragment() {
 
         listView = view.findViewById(R.id.list)
 
+        adapter = object : BaseRecyclerAdapter<OutlineActivity.Item>(activity, outline!!) {
+
+            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<OutlineActivity.Item> {
+                val view = mInflater.inflate(R.layout.item_outline, parent, false)
+                return ViewHolder(view)
+            }
+        }
+        listView.layoutManager = LinearLayoutManager(activity)
         listView.adapter = adapter
-        listView.onItemClickListener = AdapterView.OnItemClickListener { adapterView, view, i, l -> onListItemClick(adapterView as ListView, view, i, l) }
+        //listView.onItemClickListener = AdapterView.OnItemClickListener { adapterView, v, i, l -> onListItemClick(adapterView as ListView, v, i, l) }
 
         //activity?.setResult(-1)
-        if (adapter!!.count > 0) {
+        if (adapter.itemCount > 0) {
             updateSelection(currentPage)
         }
         return view
@@ -67,7 +69,7 @@ open class OutlineFragment : Fragment() {
             return
         }
         this.currentPage = currentPage;
-        if (!isResumed || adapter == null) {
+        if (!isResumed) {
             return
         }
         var found = -1
@@ -82,26 +84,27 @@ open class OutlineFragment : Fragment() {
             listView.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
                 override fun onGlobalLayout() {
                     listView.viewTreeObserver.removeGlobalOnLayoutListener(this)
-                    listView.setSelection(finalFound)
+                    listView.scrollToPosition(finalFound)
                 }
             })
         }
     }
 
-    protected fun onListItemClick(l: ListView, v: View, position: Int, id: Long) {
-        val item = adapter?.getItem(position) as OutlineActivity.Item
+    protected fun onListItemClick(item: OutlineActivity.Item) {
+        //val item = adapter.getItem(position) as OutlineActivity.Item
         val ac = activity as OutlineListener
         ac.onSelectedOutline(item.page)
     }
 
-    inner class ViewHolder(itemView: View?) : BaseViewHolder<OutlineActivity.Item>(itemView) {
+    inner class ViewHolder(itemView: View) : BaseViewHolder<OutlineActivity.Item>(itemView) {
 
-        var title: TextView = itemView!!.findViewById(R.id.title)
-        var page: TextView = itemView!!.findViewById(R.id.page)
+        var title: TextView = itemView.findViewById(R.id.title)
+        var page: TextView = itemView.findViewById(R.id.page)
 
-        override fun onBind(data: OutlineActivity.Item?, position: Int) {
-            title.text = data?.title
-            page.text = (data?.page?.plus(1)).toString()
+        override fun onBind(data: OutlineActivity.Item, position: Int) {
+            title.text = data.title
+            page.text = (data.page.plus(1)).toString()
+            itemView.setOnClickListener { onListItemClick(data) }
         }
     }
 }

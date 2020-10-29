@@ -45,7 +45,7 @@ class ANormalViewController(private var context: Context,
     private lateinit var frameLayout: FrameLayout
     private var decodeService: DecodeService? = null
 
-    private var currentPageModel: CurrentPageModel? = null
+    private lateinit var currentPageModel: CurrentPageModel
     private var mPageControls: PageViewZoomControls? = null
 
     private var mMupdfDocument: MupdfDocument? = null
@@ -66,7 +66,7 @@ class ANormalViewController(private var context: Context,
         val progressModel = DecodingProgressModel()
         progressModel.addEventListener(this)
         currentPageModel = CurrentPageModel()
-        currentPageModel?.addEventListener(this)
+        currentPageModel.addEventListener(this)
         documentView = DocumentView(context, zoomModel, progressModel, currentPageModel, simpleGestureListener)
         zoomModel.addEventListener(documentView)
         documentView.setLayoutParams(ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
