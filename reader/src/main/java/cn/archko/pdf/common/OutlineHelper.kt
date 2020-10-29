@@ -2,6 +2,7 @@ package cn.archko.pdf.common
 
 import android.app.Activity
 import cn.archko.pdf.mupdf.MupdfDocument
+import cn.archko.pdf.tree.Tree
 import com.artifex.mupdf.fitz.Outline
 import com.artifex.mupdf.viewer.OutlineActivity
 
@@ -34,6 +35,30 @@ class OutlineHelper public constructor(private var mupdfDocument: MupdfDocument?
             }
         }
     }
+
+    private var _tree: Tree = Tree("title", null, 0)
+    val tree: Tree?
+        get() {
+            _tree.child.clear();
+            _tree.level = 0;
+            addTreeNodes(_tree, outline, _tree.level + 1)
+            return _tree
+        }
+
+    private fun addTreeNodes(parent: Tree, list: Array<Outline>?, level: Int) {
+        for (node in list!!) {
+            val newNode = Tree(node.title, parent, level)
+            parent.addChild(newNode)
+            if (node.title != null) {
+                val page = mupdfDocument?.pageNumberFromLocation(node)
+                newNode.page = page.toString();
+            }
+            if (node.down != null) {
+                addTreeNodes(newNode, node.down, newNode.level + 1)
+            }
+        }
+    }
+
 
     fun hasOutline(): Boolean {
         if (outline == null) {

@@ -47,9 +47,10 @@ class MenuHelper public constructor(var mLeftDrawer: RecyclerView?,
             val bundle = Bundle()
             if (outlineHelper!!.hasOutline()) {
                 bundle.putSerializable("OUTLINE", outlineHelper?.getOutline())
+                //bundle.putSerializable("tree", outlineHelper?.tree)
             }
             bundle.putSerializable("POSITION", currentPos)
-            outlineFragment?.setArguments(bundle)
+            outlineFragment?.arguments = bundle
         }
 
         supportFragmentManager.beginTransaction()
