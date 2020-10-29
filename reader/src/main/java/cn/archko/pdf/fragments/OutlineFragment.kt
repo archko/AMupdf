@@ -53,7 +53,7 @@ open class OutlineFragment : Fragment() {
         listView = view.findViewById(R.id.list)
         listView.layoutManager = LinearLayoutManager(activity)
 
-        if (null != tree) {
+        /*if (null != tree) {
             val treeAdapter = TreeAdapter(activity, tree)
             treeAdapter.setOnItemClickListener(object : OnItemClickListener<Any?> {
                 override fun onItemClick(view: View, data: Any?, position: Int) {
@@ -65,7 +65,7 @@ open class OutlineFragment : Fragment() {
             })
             listView.adapter = treeAdapter
             return view
-        }
+        }*/
 
         adapter = object : BaseRecyclerAdapter<OutlineActivity.Item>(activity, outline!!) {
 

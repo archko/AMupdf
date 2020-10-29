@@ -19,7 +19,7 @@ class OutlineHelper public constructor(private var mupdfDocument: MupdfDocument?
             return items!!
         } else {
             items = ArrayList<OutlineActivity.Item>()
-            flattenOutlineNodes(items!!, outline, "")
+            flattenOutlineNodes(items!!, outline, " ")
         }
         return items!!
     }
@@ -31,7 +31,7 @@ class OutlineHelper public constructor(private var mupdfDocument: MupdfDocument?
                 result.add(OutlineActivity.Item(indent + node.title, page!!))
             }
             if (node.down != null) {
-                flattenOutlineNodes(result, node.down, "$indent    ")
+                flattenOutlineNodes(result, node.down, "$indent  ")
             }
         }
     }
