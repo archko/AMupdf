@@ -10,12 +10,12 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import cn.archko.pdf.R
+import cn.archko.pdf.tree.TreeAdapter
 import cn.archko.pdf.adapters.BaseRecyclerAdapter
 import cn.archko.pdf.adapters.BaseViewHolder
+import cn.archko.pdf.entity.OutlineItem
 import cn.archko.pdf.listeners.OnItemClickListener
 import cn.archko.pdf.listeners.OutlineListener
-import cn.archko.pdf.tree.Tree
-import cn.archko.pdf.tree.TreeAdapter
 import com.artifex.mupdf.viewer.OutlineActivity
 
 /**
@@ -26,7 +26,7 @@ open class OutlineFragment : Fragment() {
     private lateinit var adapter: BaseRecyclerAdapter<OutlineActivity.Item>
     private lateinit var listView: RecyclerView
     private var outline: ArrayList<OutlineActivity.Item>? = null
-    private var tree: Tree? = null
+    private var outlineItems: ArrayList<OutlineItem>? = null
     private var currentPage: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,8 +37,9 @@ open class OutlineFragment : Fragment() {
             if (arguments!!.getSerializable("OUTLINE") != null) {
                 outline = arguments!!.getSerializable("OUTLINE") as ArrayList<OutlineActivity.Item>
             }
-            if (arguments!!.getSerializable("tree") != null) {
-                tree = arguments!!.getSerializable("tree") as Tree
+
+            if (arguments!!.getSerializable("out") != null) {
+                outlineItems = arguments!!.getSerializable("out") as ArrayList<OutlineItem>
             }
         }
 
@@ -52,20 +53,21 @@ open class OutlineFragment : Fragment() {
 
         listView = view.findViewById(R.id.list)
         listView.layoutManager = LinearLayoutManager(activity)
+        listView.itemAnimator = null
 
-        /*if (null != tree) {
-            val treeAdapter = TreeAdapter(activity, tree)
-            treeAdapter.setOnItemClickListener(object : OnItemClickListener<Any?> {
+        if (null != outlineItems) {
+            val treeAdapter = TreeAdapter(activity, outlineItems)
+            treeAdapter.setListener(object : OnItemClickListener<Any?> {
                 override fun onItemClick(view: View, data: Any?, position: Int) {
                     val ac = activity as OutlineListener
-                    ac.onSelectedOutline(data as Int)
+                    ac.onSelectedOutline((data as OutlineItem).page)
                 }
 
                 override fun onItemClick2(view: View, data: Any?, position: Int) {}
             })
             listView.adapter = treeAdapter
             return view
-        }*/
+        }
 
         adapter = object : BaseRecyclerAdapter<OutlineActivity.Item>(activity, outline!!) {
 

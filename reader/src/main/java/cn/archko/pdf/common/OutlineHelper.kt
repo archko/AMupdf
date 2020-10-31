@@ -1,8 +1,8 @@
 package cn.archko.pdf.common
 
 import android.app.Activity
+import cn.archko.pdf.entity.OutlineItem
 import cn.archko.pdf.mupdf.MupdfDocument
-import cn.archko.pdf.tree.Tree
 import com.artifex.mupdf.fitz.Outline
 import com.artifex.mupdf.viewer.OutlineActivity
 
@@ -13,6 +13,7 @@ class OutlineHelper public constructor(private var mupdfDocument: MupdfDocument?
 
     private var outline: Array<Outline>? = null
     private var items: ArrayList<OutlineActivity.Item>? = null
+    private var outlineItems: ArrayList<OutlineItem>? = null
 
     fun getOutline(): ArrayList<OutlineActivity.Item> {
         if (null != items) {
@@ -36,29 +37,34 @@ class OutlineHelper public constructor(private var mupdfDocument: MupdfDocument?
         }
     }
 
-    private var _tree: Tree = Tree("title", null, 0)
-    val tree: Tree?
-        get() {
-            _tree.child.clear();
-            _tree.level = 0;
-            addTreeNodes(_tree, outline, _tree.level + 1)
-            return _tree
-        }
+    companion object {
+        var nodeId: Int = 0
+    }
 
-    private fun addTreeNodes(parent: Tree, list: Array<Outline>?, level: Int) {
+    fun getOutlineItems(): ArrayList<OutlineItem> {
+        if (null != outlineItems) {
+            return outlineItems!!
+        } else {
+            outlineItems = ArrayList()
+            nodeId = 1
+            flattenOutlineItems(OutlineItem(0, 0, "Content"), outlineItems!!, outline, " ")
+        }
+        return outlineItems!!
+    }
+
+    private fun flattenOutlineItems(parent: OutlineItem, result: ArrayList<OutlineItem>, list: Array<Outline>?, indent: String) {
         for (node in list!!) {
-            val newNode = Tree(node.title, parent, level)
-            parent.addChild(newNode)
+            val element = OutlineItem(nodeId++, parent.id, node.title)
+            result.add(element)
             if (node.title != null) {
                 val page = mupdfDocument?.pageNumberFromLocation(node)
-                newNode.page = page.toString();
+                element.page = page!!
             }
             if (node.down != null) {
-                addTreeNodes(newNode, node.down, newNode.level + 1)
+                flattenOutlineItems(element, result, node.down, "$indent  ")
             }
         }
     }
-
 
     fun hasOutline(): Boolean {
         if (outline == null) {
