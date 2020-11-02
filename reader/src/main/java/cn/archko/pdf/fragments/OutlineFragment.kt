@@ -10,12 +10,12 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import cn.archko.pdf.R
+import cn.archko.pdf.tree.TreeAdapter
 import cn.archko.pdf.adapters.BaseRecyclerAdapter
 import cn.archko.pdf.adapters.BaseViewHolder
+import cn.archko.pdf.entity.OutlineItem
 import cn.archko.pdf.listeners.OnItemClickListener
 import cn.archko.pdf.listeners.OutlineListener
-import cn.archko.pdf.tree.Tree
-import cn.archko.pdf.tree.TreeAdapter
 import com.artifex.mupdf.viewer.OutlineActivity
 
 /**
@@ -26,7 +26,7 @@ open class OutlineFragment : Fragment() {
     private lateinit var adapter: BaseRecyclerAdapter<OutlineActivity.Item>
     private lateinit var listView: RecyclerView
     private var outline: ArrayList<OutlineActivity.Item>? = null
-    private var tree: Tree? = null
+    private var outlineItems: ArrayList<OutlineItem>? = null
     private var currentPage: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,8 +37,9 @@ open class OutlineFragment : Fragment() {
             if (arguments!!.getSerializable("OUTLINE") != null) {
                 outline = arguments!!.getSerializable("OUTLINE") as ArrayList<OutlineActivity.Item>
             }
-            if (arguments!!.getSerializable("tree") != null) {
-                tree = arguments!!.getSerializable("tree") as Tree
+
+            if (arguments!!.getSerializable("out") != null) {
+                outlineItems = arguments!!.getSerializable("out") as ArrayList<OutlineItem>
             }
         }
 
@@ -52,41 +53,22 @@ open class OutlineFragment : Fragment() {
 
         listView = view.findViewById(R.id.list)
         listView.layoutManager = LinearLayoutManager(activity)
+        listView.itemAnimator = null
 
-        if (null != tree) {
-            setTreeAdapter()
+        if (null != outlineItems) {
+            val treeAdapter = TreeAdapter(activity, outlineItems)
+            treeAdapter.setListener(object : OnItemClickListener<Any?> {
+                override fun onItemClick(view: View, data: Any?, position: Int) {
+                    val ac = activity as OutlineListener
+                    ac.onSelectedOutline((data as OutlineItem).page)
+                }
+
+                override fun onItemClick2(view: View, data: Any?, position: Int) {}
+            })
+            listView.adapter = treeAdapter
             return view
         }
 
-        setNormalAdapter()
-
-        return view
-    }
-
-    private fun setTreeAdapter() {
-        val treeAdapter = TreeAdapter(activity!!, tree!!)
-        treeAdapter.setOnItemClickListener(object : OnItemClickListener<String> {
-            override fun onItemClick(view: View, data: String, position: Int) {
-                val ac = activity as OutlineListener
-                ac.onSelectedOutline(data.toInt())
-            }
-
-            override fun onItemClick2(view: View, data: String, position: Int) {}
-        })
-        listView.adapter = treeAdapter
-
-        /*lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                treeAdapter.expandAll();
-            }
-
-            if (treeAdapter.itemCount > 0) {
-                updateSelection(currentPage)
-            }
-        }*/
-    }
-
-    private fun setNormalAdapter() {
         adapter = object : BaseRecyclerAdapter<OutlineActivity.Item>(activity, outline!!) {
 
             override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<OutlineActivity.Item> {
@@ -95,17 +77,20 @@ open class OutlineFragment : Fragment() {
             }
         }
         listView.adapter = adapter
+        //listView.onItemClickListener = AdapterView.OnItemClickListener { adapterView, v, i, l -> onListItemClick(adapterView as ListView, v, i, l) }
 
+        //activity?.setResult(-1)
         if (adapter.itemCount > 0) {
             updateSelection(currentPage)
         }
+        return view
     }
 
     open fun updateSelection(currentPage: Int) {
         if (currentPage < 0) {
             return
         }
-        this.currentPage = currentPage
+        this.currentPage = currentPage;
         if (!isResumed) {
             return
         }
@@ -120,7 +105,7 @@ open class OutlineFragment : Fragment() {
             val finalFound = found
             listView.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
                 override fun onGlobalLayout() {
-                    listView.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                    listView.viewTreeObserver.removeGlobalOnLayoutListener(this)
                     listView.scrollToPosition(finalFound)
                 }
             })
