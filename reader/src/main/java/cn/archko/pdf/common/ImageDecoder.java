@@ -29,7 +29,7 @@ public class ImageDecoder extends ImageWorker {
 
     private static final class Factory {
 
-        private static final ImageDecoder instance = new ImageDecoder(App.getInstance());
+        private static final ImageDecoder instance = new ImageDecoder(App.Companion.getInstance());
     }
 
     private ImageDecoder(final Context context) {

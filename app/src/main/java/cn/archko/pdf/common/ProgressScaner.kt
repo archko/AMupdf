@@ -12,12 +12,12 @@ class ProgressScaner {
 
     fun startScan(fileListEntries: List<FileBean>, currentPath: String?): Array<Any?> {
         val entries: MutableList<FileBean> = ArrayList()
-        val recent = RecentManager.getInstance()
+        val recent = RecentManager.instance
         for (entry in fileListEntries) {
             val listEntry = entry.clone()
             entries.add(listEntry)
             if (!listEntry.isDirectory && entry.file != null) {
-                val progress = recent.readRecentFromDb(entry.file.absolutePath, BookProgress.ALL)
+                val progress = recent.readRecentFromDb(entry.file!!.absolutePath, BookProgress.ALL)
                 if (null != progress) {
                     listEntry.bookProgress = progress
                 }

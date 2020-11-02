@@ -90,9 +90,9 @@ open class BackupFragment : DialogFragment() {
     private fun loadBackups() {
         lifecycleScope.launch {
             val files = withContext(Dispatchers.IO) {
-                RecentManager.getInstance().getBackupFiles();
+                RecentManager.instance.backupFiles;
             }
-            if (files.size > 0) {
+            if (files!!.size > 0) {
                 adapter.data = files
                 adapter.notifyDataSetChanged()
             }

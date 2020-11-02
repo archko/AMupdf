@@ -61,7 +61,7 @@ class ANormalViewController(private var context: Context,
         val zoomModel = ZoomModel()
 
         if (null != pdfBookmarkManager.bookmarkToRestore) {
-            zoomModel.zoom = pdfBookmarkManager.bookmarkToRestore.zoomLevel / 1000
+            zoomModel.zoom = pdfBookmarkManager.bookmarkToRestore!!.zoomLevel / 1000
         }
         val progressModel = DecodingProgressModel()
         progressModel.addEventListener(this)
@@ -152,7 +152,7 @@ class ANormalViewController(private var context: Context,
         document.core = mMupdfDocument?.document
         (decodeService as AKDecodeService).document = document
         if (pos > 0) {
-            documentView.goToPage(pos, pdfBookmarkManager.bookmarkToRestore.offsetX, pdfBookmarkManager.bookmarkToRestore.offsetY)
+            documentView.goToPage(pos, pdfBookmarkManager.bookmarkToRestore!!.offsetX, pdfBookmarkManager.bookmarkToRestore!!.offsetY)
         }
         documentView.showDocument()
         mPageControls?.hide()

@@ -28,8 +28,8 @@ class MuPDFReflowAdapter(private val mContext: Context,
     private val reflowCache = ReflowViewCache()
 
     init {
-        screenHeight = App.getInstance().screenHeight
-        screenWidth = App.getInstance().screenWidth
+        screenHeight = App.instance!!.screenHeight
+        screenWidth = App.instance!!.screenWidth
     }
 
     override fun getItemId(position: Int): Long {

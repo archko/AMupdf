@@ -22,7 +22,7 @@ class APDFPageView(private val mContext: Context,
     private lateinit var pdfPage: APDFPage;
 
     init {
-        mZoom = pageSize.getZoom()
+        mZoom = pageSize.zoom
         initPdfPage(crop)
         updateView()
     }
@@ -67,7 +67,7 @@ class APDFPageView(private val mContext: Context,
         this.pageSize.zoom = newZoom
 
         val zoomSize = this.pageSize.zoomPoint
-        val xOrigin = (zoomSize.x - this.pageSize.targetWidth) / 2
+        val xOrigin = (zoomSize.x - this.pageSize.getTargetWidth()) / 2
 
         Logcat.d(String.format("updatePage:isNew:%s,width-height:%s-%s, mZoom: %s, aPage:%s",
                 isNew, pageSize.cropScaleWidth, pageSize.cropScaleHeight, mZoom, pageSize));

@@ -7,7 +7,11 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.SystemClock
 import android.util.SparseArray
-import android.view.*
+import android.view.GestureDetector
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewConfiguration
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.RelativeLayout
 import android.widget.Toast
@@ -15,7 +19,12 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import cn.archko.mupdf.R
-import cn.archko.pdf.common.*
+import cn.archko.pdf.common.APageSizeLoader
+import cn.archko.pdf.common.BitmapCache
+import cn.archko.pdf.common.Logcat
+import cn.archko.pdf.common.MenuHelper
+import cn.archko.pdf.common.OutlineHelper
+import cn.archko.pdf.common.PDFBookmarkManager
 import cn.archko.pdf.entity.APage
 import cn.archko.pdf.entity.MenuBean
 import cn.archko.pdf.listeners.AViewController
@@ -228,7 +237,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
                 return
             }
             APageSizeLoader.savePageSizeToFile(mCrop,
-                    pdfBookmarkManager!!.bookmarkToRestore.size,
+                    pdfBookmarkManager!!.bookmarkToRestore!!.size,
                     mPageSizes,
                     FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
                             pdfBookmarkManager?.bookmarkToRestore?.name))
@@ -242,8 +251,8 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         var pageSizeBean: APageSizeLoader.PageSizeBean? = null
         if (pdfBookmarkManager != null && pdfBookmarkManager!!.bookmarkToRestore != null) {
             pageSizeBean = APageSizeLoader.loadPageSizeFromFile(width,
-                    pdfBookmarkManager!!.bookmarkToRestore.pageCount,
-                    pdfBookmarkManager!!.bookmarkToRestore.size,
+                    pdfBookmarkManager!!.bookmarkToRestore!!.pageCount,
+                    pdfBookmarkManager!!.bookmarkToRestore!!.size,
                     FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
                             pdfBookmarkManager?.bookmarkToRestore?.name))
         }

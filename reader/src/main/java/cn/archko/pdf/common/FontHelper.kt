@@ -57,7 +57,7 @@ class FontHelper {
         }
 
     fun loadFont() {
-        val sp: SharedPreferences = App.getInstance().getSharedPreferences(FONT_SP_FILE, Context.MODE_PRIVATE)
+        val sp: SharedPreferences = App.instance!!.getSharedPreferences(FONT_SP_FILE, Context.MODE_PRIVATE)
         val fontType = sp.getInt(FONT_KEY_TYPE, DEFAULT)
         val fontName = sp.getString(FONT_KEY_NAME, SYSTEM_FONT)
         initFontBean(fontType, fontName)
@@ -88,7 +88,7 @@ class FontHelper {
                 || fBean.fontType != fontBean?.fontType) {
             initFontBean(fBean.fontType, fBean.fontName)
         }
-        val sp: SharedPreferences = App.getInstance().getSharedPreferences(FONT_SP_FILE, Context.MODE_PRIVATE)
+        val sp: SharedPreferences = App.instance!!.getSharedPreferences(FONT_SP_FILE, Context.MODE_PRIVATE)
         sp.edit()
                 .putInt(FONT_KEY_TYPE, fontBean?.fontType!!)
                 .putString(FONT_KEY_NAME, fontBean?.fontName)

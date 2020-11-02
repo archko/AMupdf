@@ -67,7 +67,7 @@ open class FontsFragment : DialogFragment() {
         }
         setStyle(DialogFragment.STYLE_NO_FRAME, themeId)
 
-        val sp: SharedPreferences = App.getInstance().getSharedPreferences(FontHelper.FONT_SP_FILE, Context.MODE_PRIVATE)
+        val sp: SharedPreferences = App.instance!!.getSharedPreferences(FontHelper.FONT_SP_FILE, Context.MODE_PRIVATE)
         selectedFontName = sp.getString(FontHelper.FONT_KEY_NAME, FontHelper.SYSTEM_FONT)
     }
 

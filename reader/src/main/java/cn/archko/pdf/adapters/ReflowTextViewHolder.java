@@ -229,7 +229,7 @@ public class ReflowTextViewHolder extends BaseViewHolder {
 
         void addImageView(String text, float systemScale, int screenHeight, int screenWidth, ReflowViewCache reflowViewCache) {
             BitmapBean bean = decodeBitmap(text, systemScale, screenHeight, screenWidth, getContext());
-            if (null != bean && bean.bitmap != null) {
+            if (null != bean && bean.getBitmap() != null) {
                 ImageView imageView = null;
                 if (null != reflowViewCache && reflowViewCache.imageViewCount() > 0) {
                     imageView = reflowViewCache.getImageView(0);
@@ -238,13 +238,13 @@ public class ReflowTextViewHolder extends BaseViewHolder {
                     imageView.setAdjustViewBounds(true);
                     imageView.setScaleType(ImageView.ScaleType.FIT_XY);
                 }
-                LayoutParams lp = new LayoutParams((int) bean.width, (int) bean.height);
+                LayoutParams lp = new LayoutParams((int) bean.getWidth(), (int) bean.getHeight());
                 lp.bottomMargin = 20;
                 lp.leftMargin = 10;
                 lp.rightMargin = 10;
                 lp.gravity = Gravity.CENTER_HORIZONTAL;
                 addView(imageView, lp);
-                imageView.setImageBitmap(bean.bitmap);
+                imageView.setImageBitmap(bean.getBitmap());
             }
         }
     }

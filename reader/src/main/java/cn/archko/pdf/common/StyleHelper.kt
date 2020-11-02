@@ -52,7 +52,7 @@ class StyleHelper {
     }
 
     fun loadStyleFromSP() {
-        val sp: SharedPreferences = App.getInstance().getSharedPreferences(STYLE_SP_FILE, Context.MODE_PRIVATE)
+        val sp: SharedPreferences = App.instance!!.getSharedPreferences(STYLE_SP_FILE, Context.MODE_PRIVATE)
         val textSize: Float = sp.getFloat(STYLE_KEY_FONT_SIZE, 16f)
         val bgColor: Int = sp.getInt(STYLE_KEY_BGCOLOR, Color.WHITE)
         val fgColor: Int = sp.getInt(STYLE_KEY_FGCOLOR, Color.BLACK)
@@ -67,7 +67,7 @@ class StyleHelper {
     fun saveStyleToSP(sBean: StyleBean?) {
         sBean?.run {
             styleBean = sBean
-            val sp: SharedPreferences = App.getInstance().getSharedPreferences(STYLE_SP_FILE, Context.MODE_PRIVATE)
+            val sp: SharedPreferences = App.instance!!.getSharedPreferences(STYLE_SP_FILE, Context.MODE_PRIVATE)
             sp.edit()
                     .putFloat(STYLE_KEY_FONT_SIZE, sBean.textSize)
                     .putInt(STYLE_KEY_BGCOLOR, sBean.bgColor)

@@ -69,7 +69,7 @@ class FavoriteFragment : BrowserFragment() {
         this.pathTextView.visibility = View.GONE
         filesListView.setOnScrollListener(onScrollListener)
         mListMoreView = ListMoreView(filesListView)
-        fileListAdapter!!.addFootView(mListMoreView.loadMoreView)
+        fileListAdapter!!.addFootView(mListMoreView.getLoadMoreView())
 
         return view
     }
@@ -88,7 +88,7 @@ class FavoriteFragment : BrowserFragment() {
         lifecycleScope.launch {
             var totalCount = 0
             val entryList = withContext(Dispatchers.IO) {
-                val recent = RecentManager.getInstance()
+                val recent = RecentManager.instance
                 totalCount = recent.favoriteProgressCount
                 val progresses = recent.readFavoriteFromDb(PAGE_SIZE * (curPage), PAGE_SIZE)
                 val entryList = ArrayList<FileBean>()

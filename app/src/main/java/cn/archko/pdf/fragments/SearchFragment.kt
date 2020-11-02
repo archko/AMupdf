@@ -208,7 +208,7 @@ open class SearchFragment : DialogFragment() {
         fileInfoFragment.setListener(object : DataListener {
             override fun onSuccess(vararg args: Any?) {
                 val fileEntry = args[0] as FileBean
-                PDFViewerHelper.openWithDefaultViewer(fileEntry.file, activity!!)
+                PDFViewerHelper.openWithDefaultViewer(fileEntry.file!!, activity!!)
             }
 
             override fun onFailed(vararg args: Any?) {

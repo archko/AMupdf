@@ -214,7 +214,7 @@ class AReflowViewController(private var context: Context,
     override fun onPause() {
         pdfBookmarkManager.bookmarkToRestore?.reflow = 1
         val position = getCurrentPos()
-        val zoomLevel = pdfBookmarkManager.bookmarkToRestore.zoomLevel;
+        val zoomLevel = pdfBookmarkManager.bookmarkToRestore!!.zoomLevel;
         pdfBookmarkManager.saveCurrentPage(mPath, mMupdfDocument!!.countPages(), position, zoomLevel, -1, 0)
         if (null != mRecyclerView.adapter && mRecyclerView.adapter is MuPDFReflowAdapter) {
             (mRecyclerView.adapter as MuPDFReflowAdapter).clearCacheViews()

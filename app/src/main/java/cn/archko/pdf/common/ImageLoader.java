@@ -35,7 +35,7 @@ public class ImageLoader extends ImageWorker {
     }
 
     private static final class Factory {
-        private static final ImageLoader instance = new ImageLoader(App.getInstance());
+        private static final ImageLoader instance = new ImageLoader(App.Companion.getInstance());
     }
 
     private ImageLoader(final Context context) {
@@ -88,7 +88,7 @@ public class ImageLoader extends ImageWorker {
     protected Bitmap processBitmap(DecodeParam decodeParam) {
         Bitmap bitmap = null;
         try {
-            File thumb = FileUtils.getDiskCacheDir(App.getInstance(), FileUtils.getRealPath(decodeParam.key));
+            File thumb = FileUtils.getDiskCacheDir(App.Companion.getInstance(), FileUtils.getRealPath(decodeParam.key));
             bitmap = decodeFromFile(thumb);
             if (null == bitmap) {
                 File file = new File(decodeParam.key);
@@ -129,7 +129,7 @@ public class ImageLoader extends ImageWorker {
             getPageLruCache().put(key, aPage);
         }
 
-        Page page = mDocument.loadPage(aPage.getIndex());
+        Page page = mDocument.loadPage(aPage.index);
         Point zoomSize = aPage.getZoomPoint();
         float scale = 1.0f;
         int leftBound = 0;

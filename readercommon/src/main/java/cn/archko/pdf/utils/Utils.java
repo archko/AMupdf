@@ -104,14 +104,14 @@ public class Utils {
     }
 
     public static float getScale() {
-        return App.getInstance().getResources().getDisplayMetrics().density;
+        return App.Companion.getInstance().getResources().getDisplayMetrics().density;
     }
 
     /**
      * 根据手机的分辨率从 dip 的单位 转成为 pixel(像素)
      */
     public static int dipToPixel(float dip) {
-        float scale = App.getInstance().getResources().getDisplayMetrics().density;
+        float scale = App.Companion.getInstance().getResources().getDisplayMetrics().density;
         return (int) (dip * scale + 0.5f);
     }
 
@@ -128,7 +128,7 @@ public class Utils {
      * 根据手机的分辨率从 pixel(像素) 的单位 转成为 dip
      */
     public static int pixelToDip(float px) {
-        float scale = App.getInstance().getResources().getDisplayMetrics().density;
+        float scale = App.Companion.getInstance().getResources().getDisplayMetrics().density;
         return (int) (px / scale + 0.5f);
     }
 
@@ -139,7 +139,7 @@ public class Utils {
      * @return
      */
     public static int px2sp(float pxValue) {
-        final float fontScale = App.getInstance().getResources().getDisplayMetrics().scaledDensity;
+        final float fontScale = App.Companion.getInstance().getResources().getDisplayMetrics().scaledDensity;
         return (int) (pxValue / fontScale + 0.5f);
     }
 
@@ -150,7 +150,7 @@ public class Utils {
      * @return
      */
     public static int sp2px(float spValue) {
-        final float fontScale = App.getInstance().getResources().getDisplayMetrics().scaledDensity;
+        final float fontScale = App.Companion.getInstance().getResources().getDisplayMetrics().scaledDensity;
         return (int) (spValue * fontScale + 0.5f);
     }
 

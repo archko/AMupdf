@@ -180,7 +180,7 @@ class ACropViewController(private var context: Context,
         pdfBookmarkManager.bookmarkToRestore?.autoCrop = 0
 
         val position = getCurrentPos()
-        val zoomLevel = pdfBookmarkManager.bookmarkToRestore.zoomLevel;
+        val zoomLevel = pdfBookmarkManager.bookmarkToRestore!!.zoomLevel
         pdfBookmarkManager.saveCurrentPage(mPath, mMupdfDocument!!.countPages(), position, zoomLevel, -1, 0)
     }
 
@@ -195,16 +195,16 @@ class ACropViewController(private var context: Context,
             var pageSize: APage? = null
             if (mPageSizes.size() > pos) {
                 pageSize = mPageSizes.get(pos)
-                if (pageSize.targetWidth <= 0) {
+                if (pageSize.getTargetWidth() <= 0) {
                     Logcat.d(String.format("create:%s", mRecyclerView.measuredWidth))
-                    pageSize.targetWidth = parent.width
+                    pageSize.setTargetWidth(parent.width)
                 }
             }
             val view = APDFPageView(context, mMupdfDocument, pageSize!!, true)
             var lp: RecyclerView.LayoutParams? = view.layoutParams as RecyclerView.LayoutParams?
             var width: Int = ViewGroup.LayoutParams.MATCH_PARENT
             var height: Int = ViewGroup.LayoutParams.MATCH_PARENT
-            pageSize?.let {
+            pageSize.let {
                 width = it.effectivePagesWidth
                 height = it.effectivePagesHeight
             }
@@ -242,10 +242,10 @@ class ACropViewController(private var context: Context,
             fun onBind(position: Int) {
                 val pageSize = mPageSizes.get(position)
                 //Logcat.d(String.format("bind:position:%s,width:%s,%s", position, pageSize.targetWidth, mRecyclerView.measuredWidth))
-                if (pageSize.targetWidth != mRecyclerView.measuredWidth) {
-                    pageSize.targetWidth = mRecyclerView.measuredWidth
+                if (pageSize.getTargetWidth() != mRecyclerView.measuredWidth) {
+                    pageSize.setTargetWidth(mRecyclerView.measuredWidth)
                 }
-                if (pageSize.targetWidth <= 0) {
+                if (pageSize.getTargetWidth() <= 0) {
                     return
                 }
                 view.updatePage(pageSize, 1.0f/*zoomModel!!.zoom*/, true)

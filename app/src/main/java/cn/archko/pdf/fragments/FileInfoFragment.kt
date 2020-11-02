@@ -111,30 +111,30 @@ class FileInfoFragment : DialogFragment() {
 
         val file = mEntry!!.file
         mLocation.text = FileUtils.getDir(file)
-        mFileName.text = file.name
+        mFileName.text = file?.name
         mFileSize.text = Utils.getFileSize(mEntry!!.fileSize)
 
         if (null == bookProgress || bookProgress?.pageCount == 0) {
-            val recentManager = RecentManager.getInstance().recentTableManager
+            val recentManager = RecentManager.instance.recentTableManager
             try {
-                bookProgress = recentManager.getProgress(file.name, BookProgress.ALL)
+                bookProgress = recentManager.getProgress(file!!.name, BookProgress.ALL)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
             if (null == bookProgress) {
-                bookProgress = BookProgress(FileUtils.getRealPath(file.absolutePath))
+                bookProgress = BookProgress(FileUtils.getRealPath(file!!.absolutePath))
             }
         }
 
         showProgress(bookProgress!!)
 
-        showIcon(file.path)
+        showIcon(file!!.path)
 
         //mLastModified.text = DateUtil.formatTime(file.lastModified(), DateUtil.TIME_FORMAT_TWO)
     }
 
     private fun showIcon(path: String) {
-        ImageLoader.getInstance().loadImage(path, 0, 1.0f, App.getInstance().screenWidth, mIcon);
+        ImageLoader.getInstance().loadImage(path, 0, 1.0f, App.instance!!.screenWidth, mIcon);
     }
 
     private fun updatePageCount() {
@@ -143,7 +143,7 @@ class FileInfoFragment : DialogFragment() {
 
     private fun loadBook() {
         try {
-            val core: Document? = Document.openDocument(mEntry!!.file.path)
+            val core: Document? = Document.openDocument(mEntry!!.file!!.path)
             bookProgress?.pageCount = core!!.countPages()
             updatePageCount()
         } catch (e: Exception) {

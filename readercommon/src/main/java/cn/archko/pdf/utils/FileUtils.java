@@ -339,7 +339,7 @@ public final class FileUtils {
 
     public static String readAssetAsString(String assetName) {
         try {
-            AssetManager assetManager = App.getInstance().getAssets();
+            AssetManager assetManager = App.Companion.getInstance().getAssets();
             InputStream is = assetManager.open(assetName);
             return StreamUtils.readStringFromInputStream(is);
         } catch (IOException e) {

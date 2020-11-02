@@ -13,6 +13,7 @@ import cn.archko.pdf.entity.FileBean
 import cn.archko.pdf.listeners.OnItemClickListener
 import cn.archko.pdf.utils.FileUtils
 import cn.archko.pdf.utils.Utils
+import java.util.*
 
 /**
  * @author: archko 2018/12/12 :15:43
@@ -30,7 +31,7 @@ class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
     constructor(context: Context, itemClickListener: OnItemClickListener<FileBean>) : super(context) {
         this.itemClickListener = itemClickListener
 
-        screenWidth = App.getInstance().screenWidth
+        screenWidth = App.instance!!.screenWidth
     }
 
     constructor(context: Context, arrayList: List<FileBean>, itemClickListener: OnItemClickListener<FileBean>) : super(context, arrayList) {
@@ -111,7 +112,7 @@ class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
                 mIcon!!.setImageResource(R.drawable.ic_explorer_fldr)
             } else {
                 if (null != bookProgress && null != bookProgress.ext) {
-                    val ext = bookProgress.ext.toLowerCase()
+                    val ext = bookProgress.ext!!.toLowerCase(Locale.ROOT)
 
                     if (ext.contains("pdf")) {
                         mIcon!!.setImageResource(R.drawable.ic_item_book)
@@ -156,13 +157,13 @@ class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
             }
             mName!!.text = entry.label
             if (null != entry.bookProgress) {
-                mSize!!.text = Utils.getFileSize(entry.bookProgress.size)
+                mSize!!.text = Utils.getFileSize(entry.bookProgress!!.size)
             }
             if (null != entry.file) {
                 mPath!!.text = FileUtils.getDir(entry.file)
             }
-            if (null != entry.bookProgress && null != entry.bookProgress.ext) {
-                val ext = entry.bookProgress.ext.toLowerCase()
+            if (null != entry.bookProgress && null != entry.bookProgress!!.ext) {
+                val ext = entry.bookProgress!!.ext!!.toLowerCase(Locale.ROOT)
 
                 if (ext.contains("pdf")) {
                     mIcon!!.setImageResource(R.drawable.ic_item_book)
@@ -221,7 +222,7 @@ class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
             }
 
             if (null != bookProgress && null != bookProgress.ext) {
-                val ext = bookProgress.ext.toLowerCase()
+                val ext = bookProgress.ext!!.toLowerCase(Locale.ROOT)
 
                 if (ext.contains("pdf")) {
                     mIcon!!.setImageResource(R.drawable.ic_item_book)
@@ -231,7 +232,7 @@ class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
                     mIcon!!.setImageResource(R.drawable.ic_explorer_any)
                 }
 
-                ImageLoader.getInstance().loadImage(entry.file.absolutePath, 0, 1.0f, screenWidth, mIcon!!);
+                ImageLoader.getInstance().loadImage(entry.file?.absolutePath, 0, 1.0f, screenWidth, mIcon!!);
             }
         }
     }

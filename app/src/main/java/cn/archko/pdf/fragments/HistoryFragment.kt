@@ -21,9 +21,9 @@ import cn.archko.pdf.App
 import cn.archko.pdf.activities.PdfOptionsActivity
 import cn.archko.pdf.adapters.BookAdapter
 import cn.archko.pdf.common.Event
-import cn.archko.pdf.common.Event.ACTION_FAVORITED
-import cn.archko.pdf.common.Event.ACTION_STOPPED
-import cn.archko.pdf.common.Event.ACTION_UNFAVORITED
+import cn.archko.pdf.common.Event.Companion.ACTION_FAVORITED
+import cn.archko.pdf.common.Event.Companion.ACTION_STOPPED
+import cn.archko.pdf.common.Event.Companion.ACTION_UNFAVORITED
 import cn.archko.pdf.common.ImageLoader
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.common.RecentManager
@@ -88,8 +88,8 @@ class HistoryFragment : BrowserFragment() {
     private fun updateItem(fileBean: FileBean?) {
         if (null != fileBean && null != fileListAdapter && null != fileBean.bookProgress) {
             for (fb in fileListAdapter!!.data) {
-                if (null != fb.bookProgress && fb.bookProgress._id == fileBean.bookProgress._id) {
-                    fb.bookProgress.isFavorited = fileBean.bookProgress.isFavorited
+                if (null != fb.bookProgress && fb.bookProgress!!._id == fileBean.bookProgress!!._id) {
+                    fb.bookProgress!!.isFavorited = fileBean.bookProgress!!.isFavorited
                     break
                 }
             }
@@ -142,7 +142,7 @@ class HistoryFragment : BrowserFragment() {
             progressDialog.setCancelable(false)
             progressDialog.show()
             val filepath = withContext(Dispatchers.IO) {
-                val filepath = RecentManager.getInstance().backupFromDb()
+                val filepath = RecentManager.instance.backupFromDb()
                 var newTime = System.currentTimeMillis() - now
                 if (newTime < 1500L) {
                     newTime = 1500L - newTime
@@ -157,9 +157,9 @@ class HistoryFragment : BrowserFragment() {
 
             if (!LengthUtils.isEmpty(filepath)) {
                 Logcat.d("", "file:" + filepath)
-                Toast.makeText(App.getInstance(), "备份成功:$filepath", Toast.LENGTH_LONG).show()
+                Toast.makeText(App.instance, "备份成功:$filepath", Toast.LENGTH_LONG).show()
             } else {
-                Toast.makeText(App.getInstance(), "备份失败", Toast.LENGTH_LONG).show()
+                Toast.makeText(App.instance, "备份失败", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -177,7 +177,7 @@ class HistoryFragment : BrowserFragment() {
 
                 lifecycleScope.launch {
                     val flag = withContext(Dispatchers.IO) {
-                        val flag = RecentManager.getInstance().restoreToDb(file)
+                        val flag = RecentManager.instance.restoreToDb(file)
                         var newTime = System.currentTimeMillis() - now
                         if (newTime < 1300L) {
                             newTime = 1300L - newTime
@@ -191,10 +191,10 @@ class HistoryFragment : BrowserFragment() {
                     progressDialog.dismiss()
 
                     if (flag) {
-                        Toast.makeText(App.getInstance(), "恢复成功:$flag", Toast.LENGTH_LONG).show()
+                        Toast.makeText(App.instance, "恢复成功:$flag", Toast.LENGTH_LONG).show()
                         loadData()
                     } else {
-                        Toast.makeText(App.getInstance(), "恢复失败", Toast.LENGTH_LONG).show()
+                        Toast.makeText(App.instance, "恢复失败", Toast.LENGTH_LONG).show()
                     }
                 }
             }
@@ -210,7 +210,7 @@ class HistoryFragment : BrowserFragment() {
         this.pathTextView.visibility = View.GONE
         filesListView.setOnScrollListener(onScrollListener)
         mListMoreView = ListMoreView(filesListView)
-        fileListAdapter!!.addFootView(mListMoreView.loadMoreView)
+        fileListAdapter!!.addFootView(mListMoreView.getLoadMoreView())
 
         return view
     }
@@ -243,7 +243,7 @@ class HistoryFragment : BrowserFragment() {
         lifecycleScope.launch {
             var totalCount = 0
             val entryList = withContext(Dispatchers.IO) {
-                val recent = RecentManager.getInstance()
+                val recent = RecentManager.instance
                 totalCount = recent.progressCount
                 val progresses = recent.readRecentFromDb(PAGE_SIZE * (curPage), PAGE_SIZE)
 
