@@ -86,8 +86,8 @@ class HistoryFragment : BrowserFragment() {
     }
 
     private fun updateItem(fileBean: FileBean?) {
-        if (null != fileBean && null != fileListAdapter && null != fileBean.bookProgress) {
-            for (fb in fileListAdapter!!.data) {
+        if (null != fileBean && null != fileBean.bookProgress) {
+            for (fb in fileListAdapter.data) {
                 if (null != fb.bookProgress && fb.bookProgress!!._id == fileBean.bookProgress!!._id) {
                     fb.bookProgress!!.isFavorited = fileBean.bookProgress!!.isFavorited
                     break
@@ -210,21 +210,21 @@ class HistoryFragment : BrowserFragment() {
         this.pathTextView.visibility = View.GONE
         filesListView.setOnScrollListener(onScrollListener)
         mListMoreView = ListMoreView(filesListView)
-        fileListAdapter!!.addFootView(mListMoreView.getLoadMoreView())
+        fileListAdapter.addFootView(mListMoreView.getLoadMoreView())
 
         return view
     }
 
     private fun applyStyle() {
         if (mStyle == STYLE_LIST) {
-            fileListAdapter!!.setMode(BookAdapter.TYPE_RENCENT)
+            fileListAdapter.setMode(BookAdapter.TYPE_RENCENT)
             filesListView.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-            fileListAdapter!!.notifyDataSetChanged()
+            fileListAdapter.notifyDataSetChanged()
         } else {
-            fileListAdapter!!.setMode(BookAdapter.TYPE_GRID)
+            fileListAdapter.setMode(BookAdapter.TYPE_GRID)
 
             filesListView.layoutManager = GridLayoutManager(activity, 3)
-            fileListAdapter!!.notifyDataSetChanged()
+            fileListAdapter.notifyDataSetChanged()
         }
     }
 
@@ -261,7 +261,7 @@ class HistoryFragment : BrowserFragment() {
                 return@withContext entryList
             }
             mSwipeRefreshWidget.isRefreshing = false
-            fileListAdapter?.apply {
+            fileListAdapter.apply {
                 if (entryList.size > 0) {
                     if (curPage == 0) {
                         data = entryList
@@ -281,9 +281,9 @@ class HistoryFragment : BrowserFragment() {
     }
 
     private fun updateLoadingStatus(totalCount: Int) {
-        Logcat.d(String.format("total count:%s, adapter count:%s", totalCount, fileListAdapter!!.normalCount))
-        if (fileListAdapter!!.normalCount > 0) {
-            if (fileListAdapter!!.normalCount < totalCount) {
+        Logcat.d(String.format("total count:%s, adapter count:%s", totalCount, fileListAdapter.normalCount))
+        if (fileListAdapter.normalCount > 0) {
+            if (fileListAdapter.normalCount < totalCount) {
                 mListMoreView.onLoadingStateChanged(IMoreView.STATE_NORMAL)
             } else {
                 Logcat.d("fileListAdapter!!.normalCount < totalCount")
@@ -312,14 +312,14 @@ class HistoryFragment : BrowserFragment() {
                     var isReachBottom = false
                     if (mStyle == STYLE_GRID) {
                         val gridLayoutManager = filesListView.layoutManager as GridLayoutManager
-                        val rowCount = fileListAdapter!!.getItemCount() / gridLayoutManager.spanCount
+                        val rowCount = fileListAdapter.getItemCount() / gridLayoutManager.spanCount
                         val lastVisibleRowPosition = gridLayoutManager.findLastVisibleItemPosition() / gridLayoutManager.spanCount
                         isReachBottom = lastVisibleRowPosition >= rowCount - 1
                     } else if (mStyle == STYLE_LIST) {
                         val layoutManager: LinearLayoutManager = filesListView.layoutManager as LinearLayoutManager
                         val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
-                        val rowCount = fileListAdapter!!.getItemCount()
-                        isReachBottom = lastVisibleItemPosition >= rowCount - fileListAdapter!!.headersCount - fileListAdapter!!.footersCount
+                        val rowCount = fileListAdapter.getItemCount()
+                        isReachBottom = lastVisibleItemPosition >= rowCount - fileListAdapter.headersCount - fileListAdapter.footersCount
                     }
                     if (isReachBottom) {
                         mListMoreView.onLoadingStateChanged(IMoreView.STATE_LOADING)

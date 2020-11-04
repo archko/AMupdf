@@ -49,7 +49,7 @@ import java.util.*
  * @author: archko 11-11-17
  */
 open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefreshListener,
-        PopupMenu.OnMenuItemClickListener {
+    PopupMenu.OnMenuItemClickListener {
 
     protected val mHandler = Handler()
     private var mCurrentPath: String? = null
@@ -57,21 +57,57 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     protected lateinit var mSwipeRefreshWidget: SwipeRefreshLayout
     protected lateinit var pathTextView: TextView
     protected lateinit var filesListView: RecyclerView
-    private var fileFilter: FileFilter? = null
-    protected var fileListAdapter: BookAdapter? = null
+    private lateinit var fileFilter: FileFilter
+    protected lateinit var fileListAdapter: BookAdapter
 
     private val dirsFirst = true
     protected var showExtension: Boolean = true
 
     private var mPathMap: MutableMap<String, Int> = HashMap()
     private var mSelectedPos = -1
-    private var mScanner: ProgressScaner? = null
-    protected var currentBean: FileBean? = null;
+    private lateinit var mScanner: ProgressScaner
+    protected var currentBean: FileBean? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         mCurrentPath = getHome()
+        mScanner = ProgressScaner()
+        fileListAdapter = BookAdapter(activity as Context, itemClickListener)
+        fileFilter = FileFilter { file ->
+            //return (file.isDirectory() || file.getName().toLowerCase().endsWith(".pdf"));
+            if (file.isDirectory)
+                return@FileFilter true
+            val fname = file.name.toLowerCase(Locale.ROOT)
+
+            if (fname.endsWith(".pdf"))
+                return@FileFilter true
+            if (fname.endsWith(".xps"))
+                return@FileFilter true
+            if (fname.endsWith(".cbz"))
+                return@FileFilter true
+            if (fname.endsWith(".png"))
+                return@FileFilter true
+            if (fname.endsWith(".jpe"))
+                return@FileFilter true
+            if (fname.endsWith(".jpeg"))
+                return@FileFilter true
+            if (fname.endsWith(".jpg"))
+                return@FileFilter true
+            if (fname.endsWith(".jfif"))
+                return@FileFilter true
+            if (fname.endsWith(".jfif-tbnl"))
+                return@FileFilter true
+            if (fname.endsWith(".tif"))
+                return@FileFilter true
+            if (fname.endsWith(".tiff"))
+                return@FileFilter true
+            if (fname.endsWith(".epub"))
+                return@FileFilter true
+            if (fname.endsWith(".txt"))
+                return@FileFilter true
+            false
+        }
     }
 
     override fun onOptionsItemSelected(menuItem: MenuItem): Boolean {
@@ -136,11 +172,12 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
 
         mSwipeRefreshWidget = view.findViewById(R.id.swipe_refresh_widget) as SwipeRefreshLayout
         mSwipeRefreshWidget.apply {
-            setColorSchemeResources(R.color.text_border_pressed, R.color.text_border_pressed,
-                    R.color.text_border_pressed, R.color.text_border_pressed)
+            setColorSchemeResources(
+                R.color.text_border_pressed, R.color.text_border_pressed,
+                R.color.text_border_pressed, R.color.text_border_pressed
+            )
             setOnRefreshListener(this@BrowserFragment)
         }
-        fileListAdapter = BookAdapter(activity as Context, itemClickListener)
 
         return view
     }
@@ -173,9 +210,9 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
                     try {
                         val recentManager = RecentManager.instance
                         val progress = recentManager.readRecentFromDb(file.absolutePath, BookProgress.ALL);
-                        if (null != progress && null != fileListAdapter) {
+                        if (null != progress) {
                             Logcat.d(TAG, "refresh entry:${progress}")
-                            for (fb in fileListAdapter!!.data) {
+                            for (fb in fileListAdapter.data) {
                                 if (null != fb.bookProgress && fb.bookProgress!!.name.equals(progress.name)) {
                                     if (fb.bookProgress!!._id == 0) {
                                         fb.bookProgress = progress
@@ -197,49 +234,13 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
                         e.printStackTrace()
                     }
                 }
-                fileListAdapter?.notifyDataSetChanged()
+                fileListAdapter.notifyDataSetChanged()
                 currentBean = null
             }
         }
     }
 
     open fun loadData() {
-        if (null == fileFilter) {
-            fileFilter = FileFilter { file ->
-                //return (file.isDirectory() || file.getName().toLowerCase().endsWith(".pdf"));
-                if (file.isDirectory)
-                    return@FileFilter true
-                val fname = file.name.toLowerCase(Locale.ROOT)
-
-                if (fname.endsWith(".pdf"))
-                    return@FileFilter true
-                if (fname.endsWith(".xps"))
-                    return@FileFilter true
-                if (fname.endsWith(".cbz"))
-                    return@FileFilter true
-                if (fname.endsWith(".png"))
-                    return@FileFilter true
-                if (fname.endsWith(".jpe"))
-                    return@FileFilter true
-                if (fname.endsWith(".jpeg"))
-                    return@FileFilter true
-                if (fname.endsWith(".jpg"))
-                    return@FileFilter true
-                if (fname.endsWith(".jfif"))
-                    return@FileFilter true
-                if (fname.endsWith(".jfif-tbnl"))
-                    return@FileFilter true
-                if (fname.endsWith(".tif"))
-                    return@FileFilter true
-                if (fname.endsWith(".tiff"))
-                    return@FileFilter true
-                if (fname.endsWith(".epub"))
-                    return@FileFilter true
-                if (fname.endsWith(".txt"))
-                    return@FileFilter true
-                false
-            }
-        }
         val fileList: ArrayList<FileBean> = ArrayList()
         this.pathTextView.text = this.mCurrentPath
         var entry: FileBean
@@ -249,7 +250,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
 
         if (this.mCurrentPath != "/") {
             val upFolder = File(this.mCurrentPath!!).parentFile
-            entry = FileBean(FileBean.NORMAL, upFolder, "..")
+            entry = FileBean(FileBean.NORMAL, upFolder!!, "..")
             fileList.add(entry)
         }
 
@@ -282,13 +283,13 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
             }
         }
 
-        fileListAdapter!!.setData(fileList)
-        fileListAdapter!!.notifyDataSetChanged()
+        fileListAdapter.setData(fileList)
+        fileListAdapter.notifyDataSetChanged()
         if (null != mPathMap[mCurrentPath!!]) {
             val pos = mPathMap[mCurrentPath!!]
             if (pos!! < fileList.size) {
                 //(filesListView!!.layoutManager as LinearLayoutManager).scrollToPosition(pos)
-                (filesListView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(pos, 0);
+                (filesListView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(pos, 0)
             }
         } else {
             (filesListView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(0, 0)
@@ -299,24 +300,22 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     }
 
     private fun startGetProgress(fileList: List<FileBean>, currentPath: String?) {
-        if (null == mScanner) {
-            mScanner = ProgressScaner()
-        }
         lifecycleScope.launch {
             val args = withContext(Dispatchers.IO) {
-                return@withContext mScanner!!.startScan(fileList, currentPath)
+                return@withContext mScanner.startScan(fileList, currentPath)
             }
             val path = args[0] as String
             if (currentPath.equals(path)) {
-                fileListAdapter!!.setData(args[1] as ArrayList<FileBean>)
-                fileListAdapter!!.notifyDataSetChanged()
+                fileListAdapter.data = args[1] as ArrayList<FileBean>
+                fileListAdapter.notifyDataSetChanged()
             }
         }
     }
 
     private fun getHome(): String {
         val defaultHome = Environment.getExternalStorageDirectory().absolutePath
-        var path: String? = activity?.getSharedPreferences(ChooseFileFragmentActivity.PREF_TAG, 0)!!.getString(ChooseFileFragmentActivity.PREF_HOME, null)
+        var path: String? = activity?.getSharedPreferences(ChooseFileFragmentActivity.PREF_TAG, 0)!!
+            .getString(ChooseFileFragmentActivity.PREF_HOME, null)
         if (null == path) {
             Toast.makeText(activity, resources.getString(R.string.toast_set_as_home), Toast.LENGTH_SHORT)
             path = defaultHome
@@ -344,7 +343,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     }
 
     private fun clickItem(position: Int) {
-        val clickedEntry = fileListAdapter!!.data[position]
+        val clickedEntry = fileListAdapter.data[position]
         val clickedFile: File?
 
         if (clickedEntry.type == FileBean.HOME) {
@@ -381,7 +380,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     }
 
     private fun clickItem2(position: Int, view: View) {
-        val entry = this.fileListAdapter!!.data.get(position) as FileBean
+        val entry = this.fileListAdapter.data.get(position) as FileBean
         if (!entry.isDirectory && entry.type != FileBean.HOME) {
             mSelectedPos = position
             prepareMenu(view, entry)
@@ -462,11 +461,11 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     }
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
-        if (fileListAdapter!!.itemCount <= 0 || mSelectedPos == -1) {
+        if (fileListAdapter.itemCount <= 0 || mSelectedPos == -1) {
             return true
         }
         val position = mSelectedPos
-        val entry = fileListAdapter!!.data[position]
+        val entry = fileListAdapter.data[position]
         if (item.itemId == deleteContextMenuItem) {
             Logcat.d(TAG, "delete:$entry")
             MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, "delete")
@@ -540,7 +539,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
                     e.printStackTrace()
                 }
             }
-            fileListAdapter?.notifyDataSetChanged()
+            fileListAdapter.notifyDataSetChanged()
             postFavoriteEvent(entry, isFavorited)
         }
     }
@@ -548,12 +547,12 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     private fun postFavoriteEvent(entry: FileBean, isFavorited: Int) {
         if (isFavorited == 1) {
             LiveEventBus
-                    .get(Event.ACTION_FAVORITED)
-                    .post(entry)
+                .get(Event.ACTION_FAVORITED)
+                .post(entry)
         } else {
             LiveEventBus
-                    .get(Event.ACTION_UNFAVORITED)
-                    .post(entry)
+                .get(Event.ACTION_UNFAVORITED)
+                .post(entry)
         }
     }
 

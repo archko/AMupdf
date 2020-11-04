@@ -67,9 +67,9 @@ class FavoriteFragment : BrowserFragment() {
         val view = super.onCreateView(inflater, container, savedInstanceState)
 
         this.pathTextView.visibility = View.GONE
-        filesListView.setOnScrollListener(onScrollListener)
+        filesListView.addOnScrollListener(onScrollListener)
         mListMoreView = ListMoreView(filesListView)
-        fileListAdapter!!.addFootView(mListMoreView.getLoadMoreView())
+        fileListAdapter.addFootView(mListMoreView.getLoadMoreView())
 
         return view
     }
@@ -107,12 +107,12 @@ class FavoriteFragment : BrowserFragment() {
             mSwipeRefreshWidget.isRefreshing = false
             if (entryList.size > 0) {
                 if (curPage == 0) {
-                    fileListAdapter!!.setData(entryList)
-                    fileListAdapter!!.notifyDataSetChanged()
+                    fileListAdapter.setData(entryList)
+                    fileListAdapter.notifyDataSetChanged()
                 } else {
-                    val index = fileListAdapter!!.itemCount
-                    fileListAdapter!!.addData(entryList)
-                    fileListAdapter!!.notifyItemRangeInserted(index, entryList.size)
+                    val index = fileListAdapter.itemCount
+                    fileListAdapter.addData(entryList)
+                    fileListAdapter.notifyItemRangeInserted(index, entryList.size)
                 }
 
                 curPage++
@@ -122,9 +122,9 @@ class FavoriteFragment : BrowserFragment() {
     }
 
     private fun updateLoadingStatus(totalCount: Int) {
-        Logcat.d(String.format("$this, total count:%s, adapter count:%s", totalCount, fileListAdapter!!.normalCount))
-        if (fileListAdapter!!.normalCount > 0) {
-            if (fileListAdapter!!.normalCount < totalCount) {
+        Logcat.d(String.format("$this, total count:%s, adapter count:%s", totalCount, fileListAdapter.normalCount))
+        if (fileListAdapter.normalCount > 0) {
+            if (fileListAdapter.normalCount < totalCount) {
                 mListMoreView.onLoadingStateChanged(IMoreView.STATE_NORMAL)
             } else {
                 Logcat.d("fileListAdapter!!.normalCount < totalCount")
@@ -144,14 +144,14 @@ class FavoriteFragment : BrowserFragment() {
                     var isReachBottom = false
                     if (mStyle == HistoryFragment.STYLE_GRID) {
                         val gridLayoutManager = filesListView.layoutManager as GridLayoutManager
-                        val rowCount = fileListAdapter!!.getItemCount() / gridLayoutManager.spanCount
+                        val rowCount = fileListAdapter.getItemCount() / gridLayoutManager.spanCount
                         val lastVisibleRowPosition = gridLayoutManager.findLastVisibleItemPosition() / gridLayoutManager.spanCount
                         isReachBottom = lastVisibleRowPosition >= rowCount - 1
                     } else if (mStyle == HistoryFragment.STYLE_LIST) {
                         val layoutManager: LinearLayoutManager = filesListView.layoutManager as LinearLayoutManager
                         val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
-                        val rowCount = fileListAdapter!!.getItemCount()
-                        isReachBottom = lastVisibleItemPosition >= rowCount - fileListAdapter!!.headersCount - fileListAdapter!!.footersCount
+                        val rowCount = fileListAdapter.getItemCount()
+                        isReachBottom = lastVisibleItemPosition >= rowCount - fileListAdapter.headersCount - fileListAdapter.footersCount
                     }
                     if (isReachBottom) {
                         mListMoreView.onLoadingStateChanged(IMoreView.STATE_LOADING)
