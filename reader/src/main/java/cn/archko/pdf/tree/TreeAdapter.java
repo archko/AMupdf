@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.List;
@@ -148,9 +149,8 @@ public class TreeAdapter<T extends RvTree> extends RecyclerView.Adapter<TreeAdap
     }
 
     class TreeViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        //private ImageView icon;
+        private ImageView icon;
         private TextView tvNode;
-        //private ImageView detail;
         TextView tvTag;
         TextView tvPage;
 
@@ -160,70 +160,80 @@ public class TreeAdapter<T extends RvTree> extends RecyclerView.Adapter<TreeAdap
             tvTag = itemView.findViewById(R.id.tag);
             tvNode = itemView.findViewById(R.id.node);
             tvPage = itemView.findViewById(R.id.page);
+            icon = itemView.findViewById(R.id.icon);
 
             itemView.setOnClickListener(this);
-            //detail.setOnClickListener(this);
+            icon.setOnClickListener(this);
             itemView.setTag(System.currentTimeMillis());
         }
 
         private void setControl(Node node) {
             tvNode.setText(node.getName());
             tvPage.setText(String.valueOf(((OutlineItem) node.getItem()).getPage()));
-            //title.setPadding(node.getLevel() * PADDING, 3, 3, 3);
-            /*detail.setImageResource(node.getResId());
-            if (node.isLeaf()) {
-                icon.setImageResource(0);
-                return;
-            }
+            tvNode.setPadding(node.getLevel() * PADDING, 0, 0, 0);
 
-            int rotateDegree = node.isExpand() ? 90 : 0;
-            icon.setRotation(0);
-            icon.setRotation(rotateDegree);
-            icon.setImageResource(R.drawable.ic_highlight);*/
-
-            StringBuilder indent = new StringBuilder();
+            /*StringBuilder indent = new StringBuilder();
             for (int i = 0; i < node.getLevel(); i++) {
                 indent.append("  ");
             }
             if (!node.getChildren().isEmpty()) {
-                tvTag.setText(String.format("%s%s", indent, node.isExpand() ? "-" : "+"));
+                //tvTag.setText(String.format("%s%s", indent, node.isExpand() ? "-" : "+"));
             } else {
                 tvTag.setText(indent);
+            }*/
+
+            if (node.isLeaf()) {
+                //icon.setImageResource(0);
+                icon.setVisibility(View.INVISIBLE);
+                return;
             }
+
+            icon.setVisibility(View.VISIBLE);
+            int rotateDegree = node.isExpand() ? 90 : 0;
+            icon.setRotation(0);
+            icon.setRotation(rotateDegree);
+            icon.setImageResource(R.drawable.ic_arrow_right_white_24dp);
         }
 
         @Override
         public void onClick(View view) {
             Node<T> node = mNodes.get(getLayoutPosition());
-            if (node.getChildren().isEmpty()) {
+            if (view.getId() == R.id.icon) {
+                /*if (node.getChildren().isEmpty()) {
+                    if (mListener != null) {
+                        mListener.onItemClick(view, node.getItem(), 0);
+                    }
+                    return;
+                }*/
+
+                if (node != null && !node.isLeaf()) {
+                    long lastClickTime = (long) itemView.getTag();
+                    // 避免过快点击
+                    if (System.currentTimeMillis() - lastClickTime < 200) {
+                        return;
+                    }
+
+                    itemView.setTag(System.currentTimeMillis());
+                    int rotateDegree = node.isExpand() ? -90 : 90;
+                    icon.animate()
+                            .setDuration(100)
+                            .rotationBy(rotateDegree)
+                            .start();
+
+                    boolean isExpand = node.isExpand();
+                    node.setExpand(!isExpand);
+                    notifyItemChanged(getLayoutPosition());
+                    if (!isExpand) {
+                        notifyItemRangeInserted(getLayoutPosition() + 1, addChildNodes(node, getLayoutPosition() + 1));
+                    } else {
+                        notifyItemRangeRemoved(getLayoutPosition() + 1, removeChildNodes(node));
+                    }
+                }
+            } else {
                 if (mListener != null) {
                     mListener.onItemClick(view, node.getItem(), 0);
                 }
                 return;
-            }
-
-            if (node != null && !node.isLeaf()) {
-                long lastClickTime = (long) itemView.getTag();
-                // 避免过快点击
-                if (System.currentTimeMillis() - lastClickTime < 200) {
-                    return;
-                }
-
-                itemView.setTag(System.currentTimeMillis());
-                /*int rotateDegree = node.isExpand() ? -90 : 90;
-                icon.animate()
-                        .setDuration(100)
-                        .rotationBy(rotateDegree)
-                        .start();*/
-
-                boolean isExpand = node.isExpand();
-                node.setExpand(!isExpand);
-                notifyItemChanged(getLayoutPosition());
-                if (!isExpand) {
-                    notifyItemRangeInserted(getLayoutPosition() + 1, addChildNodes(node, getLayoutPosition() + 1));
-                } else {
-                    notifyItemRangeRemoved(getLayoutPosition() + 1, removeChildNodes(node));
-                }
             }
         }
     }
