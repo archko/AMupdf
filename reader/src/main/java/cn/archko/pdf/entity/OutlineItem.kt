@@ -4,7 +4,7 @@ import cn.archko.pdf.tree.RvTree
 import java.io.Serializable
 
 /**
- * @author: wushuyong 2020/10/31 :11:07 AM
+ * @author: archko 2020/10/31 :11:07 AM
  */
 class OutlineItem(var id: Int, private var pid: Int, private var title: String) : RvTree, Serializable {
     var page = 0

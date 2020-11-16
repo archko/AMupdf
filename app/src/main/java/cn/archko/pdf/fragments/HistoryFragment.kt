@@ -4,7 +4,6 @@ import android.app.ProgressDialog
 import android.content.Context
 import android.content.IntentFilter
 import android.os.Bundle
-import android.os.Environment
 import android.preference.PreferenceManager
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -51,6 +50,8 @@ class HistoryFragment : BrowserFragment() {
     private lateinit var mListMoreView: ListMoreView
     private var mStyle: Int = STYLE_GRID
 
+    protected lateinit var historyViewModel: HistoryViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -59,26 +60,27 @@ class HistoryFragment : BrowserFragment() {
         filter.addAction(ACTION_FAVORITED)
         filter.addAction(ACTION_UNFAVORITED)
         LiveEventBus
-                .get(Event.ACTION_STOPPED, FileBean::class.java)
-                .observe(this, object : Observer<FileBean> {
-                    override fun onChanged(t: FileBean?) {
-                        loadData()
-                    }
-                })
+            .get(Event.ACTION_STOPPED, FileBean::class.java)
+            .observe(this, object : Observer<FileBean> {
+                override fun onChanged(t: FileBean?) {
+                    loadData()
+                }
+            })
         LiveEventBus
-                .get(Event.ACTION_FAVORITED, FileBean::class.java)
-                .observe(this, object : Observer<FileBean> {
-                    override fun onChanged(t: FileBean?) {
-                        updateItem(t)
-                    }
-                })
+            .get(Event.ACTION_FAVORITED, FileBean::class.java)
+            .observe(this, object : Observer<FileBean> {
+                override fun onChanged(t: FileBean?) {
+                    updateItem(t)
+                }
+            })
         LiveEventBus
-                .get(Event.ACTION_UNFAVORITED, FileBean::class.java)
-                .observe(this, object : Observer<FileBean> {
-                    override fun onChanged(t: FileBean?) {
-                        updateItem(t)
-                    }
-                })
+            .get(Event.ACTION_UNFAVORITED, FileBean::class.java)
+            .observe(this, object : Observer<FileBean> {
+                override fun onChanged(t: FileBean?) {
+                    updateItem(t)
+                }
+            })
+        historyViewModel = HistoryViewModel()
     }
 
     override fun updateItem() {
@@ -123,9 +125,9 @@ class HistoryFragment : BrowserFragment() {
                     mStyle = STYLE_LIST
                 }
                 PreferenceManager.getDefaultSharedPreferences(activity)
-                        .edit()
-                        .putString(PdfOptionsActivity.PREF_LIST_STYLE, mStyle.toString())
-                        .apply()
+                    .edit()
+                    .putString(PdfOptionsActivity.PREF_LIST_STYLE, mStyle.toString())
+                    .apply()
                 applyStyle()
             }
         }
@@ -240,44 +242,33 @@ class HistoryFragment : BrowserFragment() {
 
     private fun getHistory() {
         mListMoreView.onLoadingStateChanged(IMoreView.STATE_LOADING)
-        lifecycleScope.launch {
-            var totalCount = 0
-            val entryList = withContext(Dispatchers.IO) {
-                val recent = RecentManager.instance
-                totalCount = recent.progressCount
-                val progresses = recent.readRecentFromDb(PAGE_SIZE * (curPage), PAGE_SIZE)
 
-                val entryList = ArrayList<FileBean>()
+        historyViewModel.uiFileModel.observe(viewLifecycleOwner, { it ->
+            updateHistoryBeans(it)
+        })
+        historyViewModel.loadFiles(curPage, showExtension)
+    }
 
-                var entry: FileBean
-                var file: File
-                val path = Environment.getExternalStorageDirectory().path
-                progresses?.map {
-                    file = File(path + "/" + it.path)
-                    entry = FileBean(FileBean.RECENT, file, showExtension)
-                    entry.bookProgress = it
-                    entryList.add(entry)
+    private fun updateHistoryBeans(args: Array<Any?>) {
+        val totalCount = args[0] as Int
+        val entryList = args[1] as ArrayList<FileBean>
+        mSwipeRefreshWidget.isRefreshing = false
+        fileListAdapter.apply {
+            if (entryList.size > 0) {
+                if (curPage == 0) {
+                    data = entryList
+                    //submitList(fileListAdapter!!.data, entryList, fileListAdapter!!, totalCount)
+                    notifyDataSetChanged()
+                } else {
+                    val index = itemCount
+                    addData(entryList)
+                    notifyItemRangeInserted(index, entryList.size)
                 }
-                return@withContext entryList
-            }
-            mSwipeRefreshWidget.isRefreshing = false
-            fileListAdapter.apply {
-                if (entryList.size > 0) {
-                    if (curPage == 0) {
-                        data = entryList
-                        //submitList(fileListAdapter!!.data, entryList, fileListAdapter!!, totalCount)
-                        notifyDataSetChanged()
-                    } else {
-                        val index = itemCount
-                        addData(entryList)
-                        notifyItemRangeInserted(index, entryList.size)
-                    }
 
-                    curPage++
-                }
+                curPage++
             }
-            updateLoadingStatus(totalCount)
         }
+        updateLoadingStatus(totalCount)
     }
 
     private fun updateLoadingStatus(totalCount: Int) {
@@ -296,10 +287,10 @@ class HistoryFragment : BrowserFragment() {
             val isFirst = sp.getBoolean(PREF_BROWSER_KEY_FIRST, true)
             if (isFirst) {
                 LiveEventBus.get(Event.ACTION_ISFIRST)
-                        .post(true)
+                    .post(true)
                 sp.edit()
-                        .putBoolean(PREF_BROWSER_KEY_FIRST, false)
-                        .apply()
+                    .putBoolean(PREF_BROWSER_KEY_FIRST, false)
+                    .apply()
             }
         }
     }
@@ -308,18 +299,21 @@ class HistoryFragment : BrowserFragment() {
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                 if (mListMoreView.state == IMoreView.STATE_NORMAL
-                        || mListMoreView.state == IMoreView.STATE_LOAD_FAIL) {
+                    || mListMoreView.state == IMoreView.STATE_LOAD_FAIL
+                ) {
                     var isReachBottom = false
                     if (mStyle == STYLE_GRID) {
                         val gridLayoutManager = filesListView.layoutManager as GridLayoutManager
                         val rowCount = fileListAdapter.getItemCount() / gridLayoutManager.spanCount
-                        val lastVisibleRowPosition = gridLayoutManager.findLastVisibleItemPosition() / gridLayoutManager.spanCount
+                        val lastVisibleRowPosition =
+                            gridLayoutManager.findLastVisibleItemPosition() / gridLayoutManager.spanCount
                         isReachBottom = lastVisibleRowPosition >= rowCount - 1
                     } else if (mStyle == STYLE_LIST) {
                         val layoutManager: LinearLayoutManager = filesListView.layoutManager as LinearLayoutManager
                         val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
                         val rowCount = fileListAdapter.getItemCount()
-                        isReachBottom = lastVisibleItemPosition >= rowCount - fileListAdapter.headersCount - fileListAdapter.footersCount
+                        isReachBottom =
+                            lastVisibleItemPosition >= rowCount - fileListAdapter.headersCount - fileListAdapter.footersCount
                     }
                     if (isReachBottom) {
                         mListMoreView.onLoadingStateChanged(IMoreView.STATE_LOADING)
@@ -343,7 +337,6 @@ class HistoryFragment : BrowserFragment() {
         const val TAG = "HistoryFragment"
         const val PREF_BROWSER = "pref_browser"
         const val PREF_BROWSER_KEY_FIRST = "pref_browser_key_first"
-        const val PAGE_SIZE = 21
 
         @JvmField
         val STYLE_LIST = 0

@@ -15,7 +15,7 @@ import java.util.*
 import kotlin.Comparator
 
 /**
- * @author: wushuyong 2020/11/16 :11:23
+ * @author: archko 2020/11/16 :11:23
  */
 class BookViewModel : ViewModel() {
 
@@ -65,7 +65,7 @@ class BookViewModel : ViewModel() {
     }
 
     fun loadFiles(home: String, mCurrentPath: String?, dirsFirst: Boolean, showExtension: Boolean) =
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val fileList: ArrayList<FileBean> = ArrayList()
                 var entry: FileBean
