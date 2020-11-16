@@ -14,7 +14,6 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -33,9 +32,6 @@ import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.listeners.OnItemClickListener
 import cn.archko.pdf.utils.FileUtils
 import com.umeng.analytics.MobclickAgent
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
 
@@ -159,13 +155,12 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         bookViewModel.uiFileModel.observe(viewLifecycleOwner,
             { fileList -> emitFileBeans(fileList) })
 
-        bookViewModel.uiItemModel.observe(viewLifecycleOwner,
-            { flag ->
-                {
-                    fileListAdapter.notifyDataSetChanged()
-                    currentBean = null
-                }
-            })
+        bookViewModel.uiItemModel.observe(viewLifecycleOwner) { flag ->
+            run {
+                fileListAdapter.notifyDataSetChanged()
+                currentBean = null
+            }
+        }
 
         bookViewModel.uiScannerModel.observe(viewLifecycleOwner, { args ->
             emitScannerBean(args)
