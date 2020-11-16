@@ -12,7 +12,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import cn.archko.pdf.App
@@ -23,17 +22,9 @@ import cn.archko.pdf.common.FontHelper
 import cn.archko.pdf.common.StyleHelper
 import cn.archko.pdf.entity.FontBean
 import cn.archko.pdf.listeners.DataListener
-import cn.archko.pdf.utils.FileUtils
 import cn.archko.pdf.utils.Utils
 import com.google.android.material.appbar.MaterialToolbar
 import com.umeng.analytics.MobclickAgent
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.FileFilter
-import java.util.*
 
 /**
  * 字体列表
@@ -46,6 +37,7 @@ open class FontsFragment : DialogFragment() {
     var mStyleHelper: StyleHelper? = null
     var mDataListener: DataListener? = null
     var selectedFontName: String? = null
+    private lateinit var fontsViewModel: FontsViewModel
 
     public fun setStyleHelper(styleHelper: StyleHelper?) {
         this.mStyleHelper = styleHelper
@@ -69,6 +61,8 @@ open class FontsFragment : DialogFragment() {
 
         val sp: SharedPreferences = App.instance!!.getSharedPreferences(FontHelper.FONT_SP_FILE, Context.MODE_PRIVATE)
         selectedFontName = sp.getString(FontHelper.FONT_KEY_NAME, FontHelper.SYSTEM_FONT)
+
+        fontsViewModel = FontsViewModel()
     }
 
     override fun onResume() {
@@ -93,6 +87,17 @@ open class FontsFragment : DialogFragment() {
         recyclerView = view.findViewById(R.id.files)
         recyclerView.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
 
+        fontsViewModel.uiFontModel.observe(viewLifecycleOwner) { list ->
+            kotlin.run {
+                if (list.size > 0) {
+                    adapter.data = list
+                    adapter.notifyDataSetChanged()
+                } else {
+                    Toast.makeText(this@FontsFragment.activity, R.string.dialog_sub_title_font, Toast.LENGTH_LONG)
+                        .show()
+                }
+            }
+        }
         return view
     }
 
@@ -108,42 +113,7 @@ open class FontsFragment : DialogFragment() {
         }
         recyclerView.adapter = adapter
 
-        loadFonts();
-    }
-
-    private fun loadFonts() {
-        lifecycleScope.launch {
-            val list: MutableList<FontBean> = withContext(Dispatchers.IO) {
-                val fontDir = FileUtils.getStorageDir(FontHelper.FONT_DIR)
-                val list = ArrayList<FontBean>()
-
-                list.add(FontBean(FontHelper.DEFAULT, FontHelper.SYSTEM_FONT, null))
-                list.add(FontBean(FontHelper.SANS_SERIF, FontHelper.SYSTEM_FONT_SAN, null))
-                list.add(FontBean(FontHelper.SERIF, FontHelper.SYSTEM_FONT_SERIF, null))
-                list.add(FontBean(FontHelper.MONOSPACE, FontHelper.SYSTEM_FONT_MONO, null))
-                fontDir.listFiles(FileFilter { file ->
-                    if (file.isDirectory)
-                        return@FileFilter false
-                    val fname: String = file.name.toLowerCase(Locale.ROOT)
-
-                    if (fname.endsWith(".ttf", true))
-                        return@FileFilter true
-                    if (fname.endsWith(".ttc", true))
-                        return@FileFilter true
-                    false
-                })?.asFlow()?.map {
-                    list.add(FontBean(FontHelper.CUSTOM, it.name, it))
-                }
-                return@withContext list
-            }
-
-            if (list.size > 0) {
-                adapter.data = list
-                adapter.notifyDataSetChanged()
-            } else {
-                Toast.makeText(this@FontsFragment.activity, R.string.dialog_sub_title_font, Toast.LENGTH_LONG).show()
-            }
-        }
+        fontsViewModel.loadFonts()
     }
 
     inner class FontHolder(itemView: View?) : BaseViewHolder<FontBean>(itemView) {
