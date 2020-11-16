@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import cn.archko.pdf.common.RecentManager
 import cn.archko.pdf.entity.FileBean
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -25,6 +26,14 @@ class HistoryViewModel : ViewModel() {
     private val _uiFileModel = MutableLiveData<Array<Any?>>()
     val uiFileModel: LiveData<Array<Any?>>
         get() = _uiFileModel
+
+    private val _uiBackupModel = MutableLiveData<String>()
+    val uiBackupModel: LiveData<String>
+        get() = _uiBackupModel
+
+    private val _uiRestorepModel = MutableLiveData<Boolean>()
+    val uiRestorepModel: LiveData<Boolean>
+        get() = _uiRestorepModel
 
     fun loadFiles(curPage: Int, showExtension: Boolean) =
         viewModelScope.launch {
@@ -56,4 +65,47 @@ class HistoryViewModel : ViewModel() {
                 _uiFileModel.value = args
             }
         }
+
+    fun backupFromDb() {
+        val now = System.currentTimeMillis()
+        viewModelScope.launch {
+            val filepath = withContext(Dispatchers.IO) {
+                val filepath = RecentManager.instance.backupFromDb()
+                var newTime = System.currentTimeMillis() - now
+                if (newTime < 1500L) {
+                    newTime = 1500L - newTime
+                } else {
+                    newTime = 0
+                }
+
+                delay(newTime)
+                return@withContext filepath
+            }
+
+            withContext(Dispatchers.Main) {
+                _uiBackupModel.value = filepath
+            }
+        }
+    }
+
+    fun restoreToDb(file: File) {
+        val now = System.currentTimeMillis()
+        viewModelScope.launch {
+            val flag = withContext(Dispatchers.IO) {
+                val flag: Boolean = RecentManager.instance.restoreToDb(file)
+                var newTime = System.currentTimeMillis() - now
+                if (newTime < 1300L) {
+                    newTime = 1300L - newTime
+                } else {
+                    newTime = 0
+                }
+
+                delay(newTime)
+                return@withContext flag
+            }
+            withContext(Dispatchers.Main) {
+                _uiRestorepModel.value = flag
+            }
+        }
+    }
 }

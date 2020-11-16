@@ -11,7 +11,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -25,17 +24,12 @@ import cn.archko.pdf.common.Event.Companion.ACTION_STOPPED
 import cn.archko.pdf.common.Event.Companion.ACTION_UNFAVORITED
 import cn.archko.pdf.common.ImageLoader
 import cn.archko.pdf.common.Logcat
-import cn.archko.pdf.common.RecentManager
 import cn.archko.pdf.entity.FileBean
 import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.utils.LengthUtils
 import cn.archko.pdf.widgets.IMoreView
 import cn.archko.pdf.widgets.ListMoreView
 import com.jeremyliao.liveeventbus.LiveEventBus
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
 
@@ -49,6 +43,8 @@ class HistoryFragment : BrowserFragment() {
     private var curPage = 0
     private lateinit var mListMoreView: ListMoreView
     private var mStyle: Int = STYLE_GRID
+
+    private lateinit var progressDialog: ProgressDialog
 
     protected lateinit var historyViewModel: HistoryViewModel
 
@@ -81,6 +77,10 @@ class HistoryFragment : BrowserFragment() {
                 }
             })
         historyViewModel = HistoryViewModel()
+
+        progressDialog = ProgressDialog(activity)
+        progressDialog.setTitle("Waiting...")
+        progressDialog.setMessage("Waiting...")
     }
 
     override fun updateItem() {
@@ -136,69 +136,16 @@ class HistoryFragment : BrowserFragment() {
     }
 
     private fun backup() {
-        val progressDialog = ProgressDialog(activity)
-        progressDialog.setTitle("Waiting...")
-        progressDialog.setMessage("Waiting...")
-        val now = System.currentTimeMillis()
-        lifecycleScope.launch {
-            progressDialog.setCancelable(false)
-            progressDialog.show()
-            val filepath = withContext(Dispatchers.IO) {
-                val filepath = RecentManager.instance.backupFromDb()
-                var newTime = System.currentTimeMillis() - now
-                if (newTime < 1500L) {
-                    newTime = 1500L - newTime
-                } else {
-                    newTime = 0
-                }
-
-                delay(newTime)
-                return@withContext filepath
-            }
-            progressDialog.dismiss()
-
-            if (!LengthUtils.isEmpty(filepath)) {
-                Logcat.d("", "file:" + filepath)
-                Toast.makeText(App.instance, "备份成功:$filepath", Toast.LENGTH_LONG).show()
-            } else {
-                Toast.makeText(App.instance, "备份失败", Toast.LENGTH_LONG).show()
-            }
-        }
+        progressDialog.show()
+        historyViewModel.backupFromDb()
     }
 
     private fun restore() {
         BackupFragment.showBackupDialog(activity, object : DataListener {
             override fun onSuccess(vararg args: Any?) {
                 val file = args[0] as File
-                val progressDialog = ProgressDialog(activity)
-                progressDialog.setTitle("Waiting...")
-                progressDialog.setMessage("Waiting...")
-                progressDialog.setCancelable(false)
                 progressDialog.show()
-                val now = System.currentTimeMillis()
-
-                lifecycleScope.launch {
-                    val flag = withContext(Dispatchers.IO) {
-                        val flag = RecentManager.instance.restoreToDb(file)
-                        var newTime = System.currentTimeMillis() - now
-                        if (newTime < 1300L) {
-                            newTime = 1300L - newTime
-                        } else {
-                            newTime = 0
-                        }
-
-                        delay(newTime)
-                        return@withContext flag
-                    }
-                    progressDialog.dismiss()
-
-                    if (flag) {
-                        Toast.makeText(App.instance, "恢复成功:$flag", Toast.LENGTH_LONG).show()
-                        loadData()
-                    } else {
-                        Toast.makeText(App.instance, "恢复失败", Toast.LENGTH_LONG).show()
-                    }
-                }
+                historyViewModel.restoreToDb(file)
             }
 
             override fun onFailed(vararg args: Any?) {
@@ -244,6 +191,30 @@ class HistoryFragment : BrowserFragment() {
     private fun addBbserver() {
         historyViewModel.uiFileModel.observe(viewLifecycleOwner, { it ->
             updateHistoryBeans(it)
+        })
+
+        historyViewModel.uiBackupModel.observe(viewLifecycleOwner, { filepath ->
+            kotlin.run {
+                progressDialog.dismiss()
+                if (!LengthUtils.isEmpty(filepath)) {
+                    Logcat.d("", "file:$filepath")
+                    Toast.makeText(App.instance, "备份成功:$filepath", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(App.instance, "备份失败", Toast.LENGTH_LONG).show()
+                }
+            }
+        })
+
+        historyViewModel.uiRestorepModel.observe(viewLifecycleOwner, { flag ->
+            kotlin.run {
+                progressDialog.dismiss()
+                if (flag) {
+                    Toast.makeText(App.instance, "恢复成功:$flag", Toast.LENGTH_LONG).show()
+                    loadData()
+                } else {
+                    Toast.makeText(App.instance, "恢复失败", Toast.LENGTH_LONG).show()
+                }
+            }
         })
     }
 

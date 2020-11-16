@@ -8,20 +8,15 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import cn.archko.mupdf.R
 import cn.archko.pdf.adapters.BaseRecyclerAdapter
 import cn.archko.pdf.adapters.BaseViewHolder
-import cn.archko.pdf.common.RecentManager
 import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.utils.Utils
 import com.google.android.material.appbar.MaterialToolbar
 import com.umeng.analytics.MobclickAgent
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
@@ -33,6 +28,7 @@ open class BackupFragment : DialogFragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: BaseRecyclerAdapter<File>
     var mDataListener: DataListener? = null
+    private lateinit var backupViewModel: BackupViewModel
 
     public fun setListener(dataListener: DataListener?) {
         mDataListener = dataListener
@@ -45,6 +41,7 @@ open class BackupFragment : DialogFragment() {
             themeId = android.R.style.Theme_Material_Dialog;
         }
         setStyle(DialogFragment.STYLE_NO_FRAME, themeId)
+        backupViewModel = BackupViewModel()
     }
 
     override fun onResume() {
@@ -69,6 +66,15 @@ open class BackupFragment : DialogFragment() {
         recyclerView = view.findViewById(R.id.files)
         recyclerView.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
 
+        backupViewModel.uiFileModel.observe(viewLifecycleOwner) { files ->
+            kotlin.run {
+                if (files!!.isNotEmpty()) {
+                    adapter.data = files
+                    adapter.notifyDataSetChanged()
+                }
+            }
+        }
+
         return view
     }
 
@@ -88,15 +94,7 @@ open class BackupFragment : DialogFragment() {
     }
 
     private fun loadBackups() {
-        lifecycleScope.launch {
-            val files = withContext(Dispatchers.IO) {
-                RecentManager.instance.backupFiles;
-            }
-            if (files!!.size > 0) {
-                adapter.data = files
-                adapter.notifyDataSetChanged()
-            }
-        }
+        backupViewModel.backupFiles()
     }
 
     inner class ItemHolder(itemView: View?) : BaseViewHolder<File>(itemView) {
