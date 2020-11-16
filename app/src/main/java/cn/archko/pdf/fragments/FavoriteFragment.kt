@@ -2,26 +2,19 @@ package cn.archko.pdf.fragments
 
 import android.content.IntentFilter
 import android.os.Bundle
-import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import cn.archko.pdf.common.Event
 import cn.archko.pdf.common.Logcat
-import cn.archko.pdf.common.RecentManager
 import cn.archko.pdf.entity.FileBean
 import cn.archko.pdf.widgets.IMoreView
 import cn.archko.pdf.widgets.ListMoreView
 import com.jeremyliao.liveeventbus.LiveEventBus
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.File
 import java.util.*
 
 /**
@@ -34,6 +27,7 @@ class FavoriteFragment : BrowserFragment() {
     private var curPage = 0
     private lateinit var mListMoreView: ListMoreView
     private var mStyle: Int = HistoryFragment.STYLE_LIST
+    protected lateinit var favoriteViewModel: FavoriteViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,21 +36,22 @@ class FavoriteFragment : BrowserFragment() {
         filter.addAction(Event.ACTION_FAVORITED)
         filter.addAction(Event.ACTION_UNFAVORITED)
         LiveEventBus
-                .get(Event.ACTION_FAVORITED, FileBean::class.java)
-                .observe(this, object : Observer<FileBean> {
-                    override fun onChanged(t: FileBean?) {
-                        Logcat.d(TAG, "FAVORITED:$t")
-                        loadData()
-                    }
-                })
+            .get(Event.ACTION_FAVORITED, FileBean::class.java)
+            .observe(this, object : Observer<FileBean> {
+                override fun onChanged(t: FileBean?) {
+                    Logcat.d(TAG, "FAVORITED:$t")
+                    loadData()
+                }
+            })
         LiveEventBus
-                .get(Event.ACTION_UNFAVORITED, FileBean::class.java)
-                .observe(this, object : Observer<FileBean> {
-                    override fun onChanged(t: FileBean?) {
-                        Logcat.d(TAG, "UNFAVORITED:$t")
-                        loadData()
-                    }
-                })
+            .get(Event.ACTION_UNFAVORITED, FileBean::class.java)
+            .observe(this, object : Observer<FileBean> {
+                override fun onChanged(t: FileBean?) {
+                    Logcat.d(TAG, "UNFAVORITED:$t")
+                    loadData()
+                }
+            })
+        favoriteViewModel = FavoriteViewModel()
     }
 
     override fun onBackPressed(): Boolean {
@@ -71,11 +66,18 @@ class FavoriteFragment : BrowserFragment() {
         mListMoreView = ListMoreView(filesListView)
         fileListAdapter.addFootView(mListMoreView.getLoadMoreView())
 
+        addBbserver()
         return view
     }
 
     private fun reset() {
         curPage = 0
+    }
+
+    private fun addBbserver() {
+        favoriteViewModel.uiFileModel.observe(viewLifecycleOwner, { it ->
+            updateHistoryBeans(it)
+        })
     }
 
     override fun loadData() {
@@ -85,40 +87,27 @@ class FavoriteFragment : BrowserFragment() {
 
     private fun getFavorities() {
         mListMoreView.onLoadingStateChanged(IMoreView.STATE_LOADING)
-        lifecycleScope.launch {
-            var totalCount = 0
-            val entryList = withContext(Dispatchers.IO) {
-                val recent = RecentManager.instance
-                totalCount = recent.favoriteProgressCount
-                val progresses = recent.readFavoriteFromDb(PAGE_SIZE * (curPage), PAGE_SIZE)
-                val entryList = ArrayList<FileBean>()
 
-                var entry: FileBean
-                var file: File
-                val path = Environment.getExternalStorageDirectory().path
-                progresses?.map {
-                    file = File(path + "/" + it.path)
-                    entry = FileBean(FileBean.FAVORITE, file, showExtension)
-                    entry.bookProgress = it
-                    entryList.add(entry)
-                }
-                return@withContext entryList
-            }
-            mSwipeRefreshWidget.isRefreshing = false
-            if (entryList.size > 0) {
-                if (curPage == 0) {
-                    fileListAdapter.setData(entryList)
-                    fileListAdapter.notifyDataSetChanged()
-                } else {
-                    val index = fileListAdapter.itemCount
-                    fileListAdapter.addData(entryList)
-                    fileListAdapter.notifyItemRangeInserted(index, entryList.size)
-                }
+        favoriteViewModel.loadFiles(curPage, showExtension)
+    }
 
-                curPage++
+    private fun updateHistoryBeans(args: Array<Any?>) {
+        val totalCount = args[0] as Int
+        val entryList = args[1] as ArrayList<FileBean>
+        mSwipeRefreshWidget.isRefreshing = false
+        if (entryList.size > 0) {
+            if (curPage == 0) {
+                fileListAdapter.data = entryList
+                fileListAdapter.notifyDataSetChanged()
+            } else {
+                val index = fileListAdapter.itemCount
+                fileListAdapter.addData(entryList)
+                fileListAdapter.notifyItemRangeInserted(index, entryList.size)
             }
-            updateLoadingStatus(totalCount)
+
+            curPage++
         }
+        updateLoadingStatus(totalCount)
     }
 
     private fun updateLoadingStatus(totalCount: Int) {
@@ -140,18 +129,21 @@ class FavoriteFragment : BrowserFragment() {
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                 if (mListMoreView.state == IMoreView.STATE_NORMAL
-                        || mListMoreView.state == IMoreView.STATE_LOAD_FAIL) {
+                    || mListMoreView.state == IMoreView.STATE_LOAD_FAIL
+                ) {
                     var isReachBottom = false
                     if (mStyle == HistoryFragment.STYLE_GRID) {
                         val gridLayoutManager = filesListView.layoutManager as GridLayoutManager
                         val rowCount = fileListAdapter.getItemCount() / gridLayoutManager.spanCount
-                        val lastVisibleRowPosition = gridLayoutManager.findLastVisibleItemPosition() / gridLayoutManager.spanCount
+                        val lastVisibleRowPosition =
+                            gridLayoutManager.findLastVisibleItemPosition() / gridLayoutManager.spanCount
                         isReachBottom = lastVisibleRowPosition >= rowCount - 1
                     } else if (mStyle == HistoryFragment.STYLE_LIST) {
                         val layoutManager: LinearLayoutManager = filesListView.layoutManager as LinearLayoutManager
                         val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
                         val rowCount = fileListAdapter.getItemCount()
-                        isReachBottom = lastVisibleItemPosition >= rowCount - fileListAdapter.headersCount - fileListAdapter.footersCount
+                        isReachBottom =
+                            lastVisibleItemPosition >= rowCount - fileListAdapter.headersCount - fileListAdapter.footersCount
                     }
                     if (isReachBottom) {
                         mListMoreView.onLoadingStateChanged(IMoreView.STATE_LOADING)

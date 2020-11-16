@@ -214,6 +214,7 @@ class HistoryFragment : BrowserFragment() {
         mListMoreView = ListMoreView(filesListView)
         fileListAdapter.addFootView(mListMoreView.getLoadMoreView())
 
+        addBbserver()
         return view
     }
 
@@ -240,12 +241,15 @@ class HistoryFragment : BrowserFragment() {
         getHistory()
     }
 
-    private fun getHistory() {
-        mListMoreView.onLoadingStateChanged(IMoreView.STATE_LOADING)
-
+    private fun addBbserver() {
         historyViewModel.uiFileModel.observe(viewLifecycleOwner, { it ->
             updateHistoryBeans(it)
         })
+    }
+
+    private fun getHistory() {
+        mListMoreView.onLoadingStateChanged(IMoreView.STATE_LOADING)
+
         historyViewModel.loadFiles(curPage, showExtension)
     }
 
