@@ -2,7 +2,7 @@ ext.deps = [:]
 def versions = [:]
 versions.multidex = '2.0.1'
 
-versions.activity = '1.1.0'
+versions.activity = '1.2.0-alpha08'
 versions.android_gradle_plugin = '4.0.0'
 versions.annotations = "1.0.0"
 versions.apache_commons = "2.5"
