@@ -22,7 +22,6 @@ versions.coroutines = "1.4.0"
 versions.dexmaker = "2.2.0"
 versions.fragment = "1.2.1"
 versions.kotlin = "1.4.0"
-versions.anko_common = "0.10.8"
 versions.lifecycle = "2.2.0"
 versions.material = "1.2.0"
 
