@@ -27,7 +27,6 @@ import cn.archko.pdf.common.AnalysticsHelper
 import cn.archko.pdf.common.Event
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.common.PDFViewerHelper
-import cn.archko.pdf.common.ProgressScaner
 import cn.archko.pdf.common.RecentManager
 import cn.archko.pdf.entity.BookProgress
 import cn.archko.pdf.entity.FileBean
@@ -40,7 +39,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileFilter
 import java.util.*
 
 /**
@@ -57,7 +55,6 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     protected lateinit var mSwipeRefreshWidget: SwipeRefreshLayout
     protected lateinit var pathTextView: TextView
     protected lateinit var filesListView: RecyclerView
-    private lateinit var fileFilter: FileFilter
     protected lateinit var fileListAdapter: BookAdapter
 
     private val dirsFirst = true
@@ -65,49 +62,15 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
 
     private var mPathMap: MutableMap<String, Int> = HashMap()
     private var mSelectedPos = -1
-    private lateinit var mScanner: ProgressScaner
     protected var currentBean: FileBean? = null
+    protected lateinit var bookViewModel: BookViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         mCurrentPath = getHome()
-        mScanner = ProgressScaner()
         fileListAdapter = BookAdapter(activity as Context, itemClickListener)
-        fileFilter = FileFilter { file ->
-            //return (file.isDirectory() || file.getName().toLowerCase().endsWith(".pdf"));
-            if (file.isDirectory)
-                return@FileFilter true
-            val fname = file.name.toLowerCase(Locale.ROOT)
-
-            if (fname.endsWith(".pdf"))
-                return@FileFilter true
-            if (fname.endsWith(".xps"))
-                return@FileFilter true
-            if (fname.endsWith(".cbz"))
-                return@FileFilter true
-            if (fname.endsWith(".png"))
-                return@FileFilter true
-            if (fname.endsWith(".jpe"))
-                return@FileFilter true
-            if (fname.endsWith(".jpeg"))
-                return@FileFilter true
-            if (fname.endsWith(".jpg"))
-                return@FileFilter true
-            if (fname.endsWith(".jfif"))
-                return@FileFilter true
-            if (fname.endsWith(".jfif-tbnl"))
-                return@FileFilter true
-            if (fname.endsWith(".tif"))
-                return@FileFilter true
-            if (fname.endsWith(".tiff"))
-                return@FileFilter true
-            if (fname.endsWith(".epub"))
-                return@FileFilter true
-            if (fname.endsWith(".txt"))
-                return@FileFilter true
-            false
-        }
+        bookViewModel = BookViewModel()
     }
 
     override fun onOptionsItemSelected(menuItem: MenuItem): Boolean {
@@ -241,49 +204,14 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     }
 
     open fun loadData() {
-        val fileList: ArrayList<FileBean> = ArrayList()
-        this.pathTextView.text = this.mCurrentPath
-        var entry: FileBean
+        bookViewModel.uiFileModel.observe(viewLifecycleOwner,
+            { fileList -> emitFileBeans(fileList) })
 
-        entry = FileBean(FileBean.HOME, resources.getString(R.string.go_home))
-        fileList.add(entry)
+        bookViewModel.loadFiles(resources.getString(R.string.go_home), mCurrentPath, dirsFirst, showExtension)
+    }
 
-        if (this.mCurrentPath != "/") {
-            val upFolder = File(this.mCurrentPath!!).parentFile
-            entry = FileBean(FileBean.NORMAL, upFolder!!, "..")
-            fileList.add(entry)
-        }
-
-        val files = File(this.mCurrentPath!!).listFiles(this.fileFilter)
-
-        if (files != null) {
-            try {
-                Arrays.sort(files, Comparator<File> { f1, f2 ->
-                    if (f1 == null) throw RuntimeException("f1 is null inside sort")
-                    if (f2 == null) throw RuntimeException("f2 is null inside sort")
-                    try {
-                        if (dirsFirst && f1.isDirectory != f2.isDirectory) {
-                            if (f1.isDirectory)
-                                return@Comparator -1
-                            else
-                                return@Comparator 1
-                        }
-                        return@Comparator f2.lastModified().compareTo(f1.lastModified())
-                    } catch (e: NullPointerException) {
-                        throw RuntimeException("failed to compare $f1 and $f2", e)
-                    }
-                })
-            } catch (e: NullPointerException) {
-                throw RuntimeException("failed to sort file list " + files + " for path " + this.mCurrentPath, e)
-            }
-
-            for (file in files) {
-                entry = FileBean(FileBean.NORMAL, file, showExtension)
-                fileList.add(entry)
-            }
-        }
-
-        fileListAdapter.setData(fileList)
+    open fun emitFileBeans(fileList: List<FileBean>) {
+        fileListAdapter.data = fileList
         fileListAdapter.notifyDataSetChanged()
         if (null != mPathMap[mCurrentPath!!]) {
             val pos = mPathMap[mCurrentPath!!]
@@ -296,19 +224,17 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         }
         mSwipeRefreshWidget.isRefreshing = false
 
-        startGetProgress(fileList, mCurrentPath)
+        bookViewModel.uiScannerModel.observe(viewLifecycleOwner, { args ->
+            emitScannerBean(args)
+        })
+        bookViewModel.startGetProgress(fileList, mCurrentPath)
     }
 
-    private fun startGetProgress(fileList: List<FileBean>, currentPath: String?) {
-        lifecycleScope.launch {
-            val args = withContext(Dispatchers.IO) {
-                return@withContext mScanner.startScan(fileList, currentPath)
-            }
-            val path = args[0] as String
-            if (currentPath.equals(path)) {
-                fileListAdapter.data = args[1] as ArrayList<FileBean>
-                fileListAdapter.notifyDataSetChanged()
-            }
+    private fun emitScannerBean(args: Array<Any?>) {
+        val path = args[0] as String
+        if (mCurrentPath.equals(path)) {
+            fileListAdapter.data = args[1] as ArrayList<FileBean>
+            fileListAdapter.notifyDataSetChanged()
         }
     }
 
