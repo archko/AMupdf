@@ -161,7 +161,7 @@ class HistoryFragment : BrowserFragment() {
         mListMoreView = ListMoreView(filesListView)
         fileListAdapter.addFootView(mListMoreView.getLoadMoreView())
 
-        addBbserver()
+        addObserver()
         return view
     }
 
@@ -188,7 +188,7 @@ class HistoryFragment : BrowserFragment() {
         getHistory()
     }
 
-    private fun addBbserver() {
+    private fun addObserver() {
         historyViewModel.uiFileModel.observe(viewLifecycleOwner, { it ->
             updateHistoryBeans(it)
         })

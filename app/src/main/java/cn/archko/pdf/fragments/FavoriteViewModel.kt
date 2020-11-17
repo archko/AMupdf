@@ -22,7 +22,7 @@ class FavoriteViewModel : ViewModel() {
     val uiFileModel: LiveData<Array<Any?>>
         get() = _uiFileModel
 
-    fun loadFiles(curPage: Int, showExtension: Boolean) =
+    fun loadFavorities(curPage: Int, showExtension: Boolean) =
         viewModelScope.launch {
             val args = withContext(Dispatchers.IO) {
                 var totalCount = 0

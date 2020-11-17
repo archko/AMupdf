@@ -136,7 +136,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
             setOnRefreshListener(this@BrowserFragment)
         }
 
-        addBbserver()
+        addObserver()
         return view
     }
 
@@ -151,7 +151,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         mHandler.postDelayed({ loadData() }, 80L)
     }
 
-    private fun addBbserver() {
+    private fun addObserver() {
         bookViewModel.uiFileModel.observe(viewLifecycleOwner,
             { fileList -> emitFileBeans(fileList) })
 
@@ -400,6 +400,15 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
                     MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
 
                     bookViewModel.favorite(entry, 1)
+                    return true
+                }
+                if (item.itemId == removeFromFavoriteContextMenuItem) {
+                    val map = HashMap<String, String>()
+                    map.put("type", "removeFromFavorite")
+                    map.put("name", clickedFile.name)
+                    MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
+
+                    bookViewModel.favorite(entry, 0)
                     return true
                 }
 

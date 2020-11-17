@@ -66,7 +66,7 @@ class FavoriteFragment : BrowserFragment() {
         mListMoreView = ListMoreView(filesListView)
         fileListAdapter.addFootView(mListMoreView.getLoadMoreView())
 
-        addBbserver()
+        addObserver()
         return view
     }
 
@@ -74,7 +74,7 @@ class FavoriteFragment : BrowserFragment() {
         curPage = 0
     }
 
-    private fun addBbserver() {
+    private fun addObserver() {
         favoriteViewModel.uiFileModel.observe(viewLifecycleOwner, { it ->
             updateHistoryBeans(it)
         })
@@ -88,7 +88,7 @@ class FavoriteFragment : BrowserFragment() {
     private fun getFavorities() {
         mListMoreView.onLoadingStateChanged(IMoreView.STATE_LOADING)
 
-        favoriteViewModel.loadFiles(curPage, showExtension)
+        favoriteViewModel.loadFavorities(curPage, showExtension)
     }
 
     private fun updateHistoryBeans(args: Array<Any?>) {

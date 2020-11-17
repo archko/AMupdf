@@ -178,7 +178,7 @@ class BookViewModel : ViewModel() {
         }
     }
 
-    open fun updateItem(file: File, list: List<FileBean>) {
+    fun updateItem(file: File, list: List<FileBean>) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 try {
@@ -209,7 +209,11 @@ class BookViewModel : ViewModel() {
                 }
             }
             withContext(Dispatchers.Main) {
-                _uiItemModel.value = !_uiItemModel.value!!
+                if (_uiItemModel.value == null) {
+                    _uiItemModel.value = true
+                } else {
+                    _uiItemModel.value = !_uiItemModel.value!!
+                }
             }
         }
     }
