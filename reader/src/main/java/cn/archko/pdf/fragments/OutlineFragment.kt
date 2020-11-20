@@ -72,14 +72,11 @@ open class OutlineFragment : Fragment() {
         adapter = object : BaseRecyclerAdapter<OutlineActivity.Item>(activity, outline!!) {
 
             override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<OutlineActivity.Item> {
-                val view = mInflater.inflate(R.layout.item_outline, parent, false)
-                return ViewHolder(view)
+                val itemView = mInflater.inflate(R.layout.item_outline, parent, false)
+                return ViewHolder(itemView)
             }
         }
         listView.adapter = adapter
-        //listView.onItemClickListener = AdapterView.OnItemClickListener { adapterView, v, i, l -> onListItemClick(adapterView as ListView, v, i, l) }
-
-        //activity?.setResult(-1)
         if (adapter.itemCount > 0) {
             updateSelection(currentPage)
         }
@@ -113,7 +110,6 @@ open class OutlineFragment : Fragment() {
     }
 
     protected fun onListItemClick(item: OutlineActivity.Item) {
-        //val item = adapter.getItem(position) as OutlineActivity.Item
         val ac = activity as OutlineListener
         ac.onSelectedOutline(item.page)
     }

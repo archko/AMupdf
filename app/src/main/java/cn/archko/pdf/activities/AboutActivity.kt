@@ -128,7 +128,7 @@ class AboutActivity : AnalysticActivity() {
                 convertView
             }
             val content = getChild(groupPosition, childPosition).getContent(this@AboutActivity)
-            view!!.loadData(content.toString(), "text/html", "UTF-8")
+            view.loadData(content.toString(), "text/html", "UTF-8")
             //view.setBackgroundColor(Color.GRAY);
             return view
         }

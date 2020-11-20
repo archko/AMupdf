@@ -88,7 +88,7 @@ class HistoryFragment : BrowserFragment() {
     }
 
     private fun updateItem(fileBean: FileBean?) {
-        if (null != fileBean && null != fileBean.bookProgress) {
+        if (fileBean?.bookProgress != null) {
             for (fb in fileListAdapter.data) {
                 if (null != fb.bookProgress && fb.bookProgress!!._id == fileBean.bookProgress!!._id) {
                     fb.bookProgress!!.isFavorited = fileBean.bookProgress!!.isFavorited

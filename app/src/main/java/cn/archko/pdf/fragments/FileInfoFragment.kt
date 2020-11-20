@@ -41,7 +41,7 @@ class FileInfoFragment : DialogFragment() {
     var bookProgress: BookProgress? = null
     var mDataListener: DataListener? = null
 
-    public fun setListener(dataListener: DataListener?) {
+    fun setListener(dataListener: DataListener?) {
         mDataListener = dataListener
     }
 
@@ -74,19 +74,19 @@ class FileInfoFragment : DialogFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.detail_book_info, container, false)
-        mLocation = view.findViewById<TextView>(R.id.location)
-        mFileName = view.findViewById<TextView>(R.id.fileName)
-        mFileSize = view.findViewById<TextView>(R.id.fileSize)
+        mLocation = view.findViewById(R.id.location)
+        mFileName = view.findViewById(R.id.fileName)
+        mFileSize = view.findViewById(R.id.fileSize)
         mLastReadLayout = view.findViewById(R.id.lay_last_read)
-        mLastRead = view.findViewById<TextView>(R.id.lastRead)
+        mLastRead = view.findViewById(R.id.lastRead)
         mReadCount = view.findViewById(R.id.readCount)
-        mProgressBar = view.findViewById<ProgressBar>(R.id.progressbar)
+        mProgressBar = view.findViewById(R.id.progressbar)
         //mLastModified = view.findViewById<TextView>(R.id.lastModified)
-        mPageCount = view.findViewById<TextView>(R.id.pageCount)
-        mIcon = view.findViewById<ImageView>(R.id.icon)
+        mPageCount = view.findViewById(R.id.pageCount)
+        mIcon = view.findViewById(R.id.icon)
         var button = view.findViewById<Button>(R.id.btn_cancel)
         button.setOnClickListener { this@FileInfoFragment.dismiss() }
-        button = view.findViewById<Button>(R.id.btn_ok)
+        button = view.findViewById(R.id.btn_ok)
         button.setOnClickListener {
             read()
         }
@@ -175,8 +175,8 @@ class FileInfoFragment : DialogFragment() {
 
     companion object {
 
-        val TAG = "FileInfoFragment"
-        val FILE_LIST_ENTRY = "FILE_LIST_ENTRY"
+        const val TAG = "FileInfoFragment"
+        const val FILE_LIST_ENTRY = "FILE_LIST_ENTRY"
 
         fun showInfoDialog(activity: FragmentActivity?, entry: FileBean, dataListener: DataListener?) {
             val ft = activity?.supportFragmentManager?.beginTransaction()

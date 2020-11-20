@@ -120,7 +120,7 @@ class BookViewModel : ViewModel() {
             }
         }
 
-    fun startGetProgress(fileList: List<FileBean>, currentPath: String?) {
+    fun startGetProgress(fileList: List<FileBean>, currentPath: String) {
         viewModelScope.launch {
             val args = withContext(Dispatchers.IO) {
                 return@withContext mScanner.startScan(fileList, currentPath)

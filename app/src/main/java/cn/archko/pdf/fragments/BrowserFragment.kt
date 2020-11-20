@@ -193,7 +193,6 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         if (null != mPathMap[mCurrentPath!!]) {
             val pos = mPathMap[mCurrentPath!!]
             if (pos!! < fileList.size) {
-                //(filesListView!!.layoutManager as LinearLayoutManager).scrollToPosition(pos)
                 (filesListView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(pos, 0)
             }
         } else {
@@ -201,7 +200,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         }
         mSwipeRefreshWidget.isRefreshing = false
 
-        bookViewModel.startGetProgress(fileList, mCurrentPath)
+        bookViewModel.startGetProgress(fileList, mCurrentPath!!)
     }
 
     private fun emitScannerBean(args: Array<Any?>) {

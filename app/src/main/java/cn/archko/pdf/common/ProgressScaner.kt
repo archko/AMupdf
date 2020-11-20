@@ -2,7 +2,6 @@ package cn.archko.pdf.common
 
 import cn.archko.pdf.entity.BookProgress
 import cn.archko.pdf.entity.FileBean
-import cn.archko.pdf.listeners.DataListener
 import java.util.*
 
 /**
@@ -10,7 +9,7 @@ import java.util.*
  */
 class ProgressScaner {
 
-    fun startScan(fileListEntries: List<FileBean>, currentPath: String?): Array<Any?> {
+    fun startScan(fileListEntries: List<FileBean>, currentPath: String): Array<Any?> {
         val entries: MutableList<FileBean> = ArrayList()
         val recent = RecentManager.instance
         for (entry in fileListEntries) {
