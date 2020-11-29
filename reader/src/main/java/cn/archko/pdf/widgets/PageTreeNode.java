@@ -169,6 +169,8 @@ class PageTreeNode {
         //    BitmapPool.getInstance().release(bitmap);
         //    bitmap = null;
         //}
+        cropTargetRect = null;
+        targetRect = null;
     }
 
     @Override

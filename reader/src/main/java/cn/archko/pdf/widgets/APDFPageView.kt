@@ -13,13 +13,15 @@ import cn.archko.pdf.mupdf.MupdfDocument
  * @author: archko 2019/11/25 :12:43
  */
 @SuppressLint("AppCompatCustomView")
-class APDFPageView(private val mContext: Context,
-                   private val mupdfDocument: MupdfDocument?,
-                   private var pageSize: APage,
-                   crop: Boolean) : View(mContext) {
+class APDFPageView(
+    private val mContext: Context,
+    private val mupdfDocument: MupdfDocument?,
+    private var pageSize: APage,
+    crop: Boolean
+) : View(mContext) {
 
     private var mZoom: Float = 0.toFloat()
-    private lateinit var pdfPage: APDFPage;
+    private lateinit var pdfPage: APDFPage
 
     init {
         mZoom = pageSize.zoom
@@ -28,8 +30,15 @@ class APDFPageView(private val mContext: Context,
     }
 
     private fun initPdfPage(crop: Boolean) {
-        pdfPage = APDFPage(this, pageSize, mupdfDocument, crop);
-        pdfPage.setBounds(RectF(0f, 0f, this.pageSize.cropScaleWidth.toFloat(), this.pageSize.cropScaleHeight.toFloat()))
+        pdfPage = APDFPage(this, pageSize, mupdfDocument, crop)
+        pdfPage.setBounds(
+            RectF(
+                0f,
+                0f,
+                this.pageSize.cropScaleWidth.toFloat(),
+                this.pageSize.cropScaleHeight.toFloat()
+            )
+        )
     }
 
     private fun updateView() {
@@ -41,12 +50,28 @@ class APDFPageView(private val mContext: Context,
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val width = pageSize.cropScaleWidth
-        val height = pageSize.cropScaleHeight
+        var width = pageSize.cropScaleWidth
+        var height = pageSize.cropScaleHeight
+
+        val viewWidth = pageSize.getTargetWidth()
+        Logcat.d(
+            String.format(
+                "onMeasure,width:%s,height:%s, viewWidth:%s, page:%s-%s, mZoom: %s, aPage:%s",
+                width,
+                height,
+                viewWidth,
+                pageSize.effectivePagesWidth,
+                pageSize.effectivePagesHeight,
+                mZoom,
+                pageSize
+            )
+        )
+        if (viewWidth != width && viewWidth > 0) {
+            width = viewWidth
+            height = (viewWidth.toFloat() / width * height).toInt()
+        }
 
         setMeasuredDimension(width, height)
-        Logcat.d(String.format("onMeasure,width:%s,height:%s, page:%s-%s, mZoom: %s, aPage:%s",
-                width, height, pageSize.effectivePagesWidth, pageSize.effectivePagesHeight, mZoom, pageSize));
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -59,7 +84,14 @@ class APDFPageView(private val mContext: Context,
         if (this.pageSize != pageSize) {
             this.pageSize = pageSize
             isNew = true
-            pdfPage.setBounds(RectF(0f, 0f, pageSize.cropScaleWidth.toFloat(), pageSize.cropScaleHeight.toFloat()))
+            pdfPage.setBounds(
+                RectF(
+                    0f,
+                    0f,
+                    pageSize.cropScaleWidth.toFloat(),
+                    pageSize.cropScaleHeight.toFloat()
+                )
+            )
             pdfPage.update(this, pageSize)
             requestLayout()
         }
@@ -69,8 +101,12 @@ class APDFPageView(private val mContext: Context,
         val zoomSize = this.pageSize.zoomPoint
         val xOrigin = (zoomSize.x - this.pageSize.getTargetWidth()) / 2
 
-        Logcat.d(String.format("updatePage:isNew:%s,width-height:%s-%s, mZoom: %s, aPage:%s",
-                isNew, pageSize.cropScaleWidth, pageSize.cropScaleHeight, mZoom, pageSize));
+        Logcat.d(
+            String.format(
+                "updatePage:isNew:%s,width-height:%s-%s, mZoom: %s, aPage:%s",
+                isNew, pageSize.cropScaleWidth, pageSize.cropScaleHeight, mZoom, pageSize
+            )
+        )
         pdfPage.updateVisibility(crop, xOrigin)
     }
 }
