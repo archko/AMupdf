@@ -34,14 +34,16 @@ import cn.archko.pdf.widgets.ViewerDividerItemDecoration
 /**
  * @author: archko 2020/5/15 :12:43
  */
-class AReflowViewController(private var context: Context,
-                            private var contentView: View,
-                            private val mControllerLayout: RelativeLayout,
-                            private var pdfBookmarkManager: PDFBookmarkManager,
-                            private var mPath: String,
-                            private var mPageSeekBarControls: APageSeekBarControls?,
-                            private var gestureDetector: GestureDetector?) :
-        OutlineListener, AViewController {
+class AReflowViewController(
+    private var context: Context,
+    private var contentView: View,
+    private val mControllerLayout: RelativeLayout,
+    private var pdfBookmarkManager: PDFBookmarkManager,
+    private var mPath: String,
+    private var mPageSeekBarControls: APageSeekBarControls?,
+    private var gestureDetector: GestureDetector?
+) :
+    OutlineListener, AViewController {
 
 
     private var mStyleControls: View? = null
@@ -145,7 +147,8 @@ class AReflowViewController(private var context: Context,
     }
 
     override fun getCurrentPos(): Int {
-        var position = (mRecyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+        var position =
+            (mRecyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
         if (position < 0) {
             position = 0
         }
@@ -215,7 +218,14 @@ class AReflowViewController(private var context: Context,
         pdfBookmarkManager.bookmarkToRestore?.reflow = 1
         val position = getCurrentPos()
         val zoomLevel = pdfBookmarkManager.bookmarkToRestore!!.zoomLevel;
-        pdfBookmarkManager.saveCurrentPage(mPath, mMupdfDocument!!.countPages(), position, zoomLevel, -1, 0)
+        pdfBookmarkManager.saveCurrentPage(
+            mPath,
+            mMupdfDocument!!.countPages(),
+            position,
+            zoomLevel,
+            -1,
+            0
+        )
         if (null != mRecyclerView.adapter && mRecyclerView.adapter is MuPDFReflowAdapter) {
             (mRecyclerView.adapter as MuPDFReflowAdapter).clearCacheViews()
         }
@@ -243,7 +253,10 @@ class AReflowViewController(private var context: Context,
         if (null == mStyleControls) {
             mStyleControls = LayoutInflater.from(context).inflate(R.layout.text_style, null, false)
 
-            val lp = RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            val lp = RelativeLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
             lp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
             mControllerLayout.addView(mStyleControls, lp)
         }
@@ -266,7 +279,11 @@ class AReflowViewController(private var context: Context,
             mFontSizeLabel?.text = String.format("%s", progress + START_PROGRESS)
             mFontSeekBar?.max = 10
             mFontSeekBar?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
                     val index = (progress + START_PROGRESS)
                     mFontSizeLabel?.text = String.format("%s", index)
                 }
@@ -289,16 +306,16 @@ class AReflowViewController(private var context: Context,
 
         mFontFaceChange?.setOnClickListener {
             FontsFragment.showFontsDialog(context as FragmentActivity, mStyleHelper,
-                    object : DataListener {
-                        override fun onSuccess(vararg args: Any?) {
-                            updateReflowAdapter()
-                            val fBean = args[0] as FontBean
-                            mFontFaceSelected?.text = fBean.fontName
-                        }
+                object : DataListener {
+                    override fun onSuccess(vararg args: Any?) {
+                        updateReflowAdapter()
+                        val fBean = args[0] as FontBean
+                        mFontFaceSelected?.text = fBean.fontName
+                    }
 
-                        override fun onFailed(vararg args: Any?) {
-                        }
-                    })
+                    override fun onFailed(vararg args: Any?) {
+                    }
+                })
         }
 
         mLinespaceMinus?.setOnClickListener {
@@ -318,20 +335,24 @@ class AReflowViewController(private var context: Context,
             applyLineSpace(old)
         }
         mBgSetting?.setOnClickListener {
-            pickerColor(mStyleHelper?.styleBean?.bgColor!!, ColorPickerDialog.OnColorSelectedListener { color ->
-                mColorLabel?.setBackgroundColor(color)
-                mStyleHelper?.styleBean?.bgColor = color
-                mStyleHelper?.saveStyleToSP(mStyleHelper?.styleBean)
-                updateReflowAdapter()
-            })
+            pickerColor(
+                mStyleHelper?.styleBean?.bgColor!!,
+                ColorPickerDialog.OnColorSelectedListener { color ->
+                    mColorLabel?.setBackgroundColor(color)
+                    mStyleHelper?.styleBean?.bgColor = color
+                    mStyleHelper?.saveStyleToSP(mStyleHelper?.styleBean)
+                    updateReflowAdapter()
+                })
         }
         mFgSetting?.setOnClickListener {
-            pickerColor(mStyleHelper?.styleBean?.fgColor!!, ColorPickerDialog.OnColorSelectedListener { color ->
-                mColorLabel?.setTextColor(color)
-                mStyleHelper?.styleBean?.fgColor = color
-                mStyleHelper?.saveStyleToSP(mStyleHelper?.styleBean)
-                updateReflowAdapter()
-            })
+            pickerColor(
+                mStyleHelper?.styleBean?.fgColor!!,
+                ColorPickerDialog.OnColorSelectedListener { color ->
+                    mColorLabel?.setTextColor(color)
+                    mStyleHelper?.styleBean?.fgColor = color
+                    mStyleHelper?.saveStyleToSP(mStyleHelper?.styleBean)
+                    updateReflowAdapter()
+                })
         }
     }
 
@@ -348,7 +369,10 @@ class AReflowViewController(private var context: Context,
         updateReflowAdapter()
     }
 
-    private fun pickerColor(initialColor: Int, selectedListener: ColorPickerDialog.OnColorSelectedListener) {
+    private fun pickerColor(
+        initialColor: Int,
+        selectedListener: ColorPickerDialog.OnColorSelectedListener
+    ) {
         if (null == colorPickerDialog) {
             colorPickerDialog = ColorPickerDialog(context, initialColor, selectedListener)
         } else {

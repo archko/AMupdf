@@ -204,7 +204,8 @@ class APage {
         result = 31 * result + if (zoom != +0.0f) java.lang.Float.floatToIntBits(zoom) else 0
         result = 31 * result + targetWidth
         result = 31 * result + if (scale != +0.0f) java.lang.Float.floatToIntBits(scale) else 0
-        result = 31 * result + if (cropScale != +0.0f) java.lang.Float.floatToIntBits(cropScale) else 0
+        result =
+            31 * result + if (cropScale != +0.0f) java.lang.Float.floatToIntBits(cropScale) else 0
         result = 31 * result + if (sourceBounds != null) sourceBounds.hashCode() else 0
         result = 31 * result + if (cropBounds != null) cropBounds.hashCode() else 0
         return result

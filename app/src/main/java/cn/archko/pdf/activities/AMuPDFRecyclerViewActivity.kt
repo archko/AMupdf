@@ -68,15 +68,27 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
         mPageSeekBarControls = createSeekControls()
 
-        val lp = RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        val lp = RelativeLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
         lp.addRule(RelativeLayout.ALIGN_PARENT_TOP)
         mControllerLayout.addView(mPageSeekBarControls, lp)
 
         mPageSeekBarControls?.autoCropButton!!.visibility = View.VISIBLE
 
         with(mLeftDrawer) {
-            layoutManager = LinearLayoutManager(this@AMuPDFRecyclerViewActivity, LinearLayoutManager.VERTICAL, false)
-            addItemDecoration(ViewerDividerItemDecoration(this@AMuPDFRecyclerViewActivity, LinearLayoutManager.VERTICAL))
+            layoutManager = LinearLayoutManager(
+                this@AMuPDFRecyclerViewActivity,
+                LinearLayoutManager.VERTICAL,
+                false
+            )
+            addItemDecoration(
+                ViewerDividerItemDecoration(
+                    this@AMuPDFRecyclerViewActivity,
+                    LinearLayoutManager.VERTICAL
+                )
+            )
         }
 
         mContentView = findViewById(R.id.content)
@@ -103,7 +115,10 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
     private fun addDocumentView() {
         mDocumentView?.removeAllViews()
-        val lap: FrameLayout.LayoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        val lap: FrameLayout.LayoutParams = FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        )
         mDocumentView?.addView(viewController?.getDocumentView(), lap)
     }
 
@@ -129,7 +144,12 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
                 return false
             }
 
-            override fun onScroll(e1: MotionEvent, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
+            override fun onScroll(
+                e1: MotionEvent,
+                e2: MotionEvent,
+                distanceX: Float,
+                distanceY: Float
+            ): Boolean {
                 return false
             }
 
@@ -137,7 +157,12 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
             }
 
-            override fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+            override fun onFling(
+                e1: MotionEvent,
+                e2: MotionEvent,
+                velocityX: Float,
+                velocityY: Float
+            ): Boolean {
                 return false
             }
         })
@@ -178,12 +203,14 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     }
 
     private fun changeViewMode() {
-        val aViewController = ViewControllerFactory.getOrCreateViewController(viewControllerCache,
-                viewMode,
-                this@AMuPDFRecyclerViewActivity,
-                mContentView,
-                mControllerLayout, pdfBookmarkManager!!, mPath!!,
-                mPageSeekBarControls!!, gestureDetector)
+        val aViewController = ViewControllerFactory.getOrCreateViewController(
+            viewControllerCache,
+            viewMode,
+            this@AMuPDFRecyclerViewActivity,
+            mContentView,
+            mControllerLayout, pdfBookmarkManager!!, mPath!!,
+            mPageSeekBarControls!!, gestureDetector
+        )
         viewController = aViewController
         Logcat.d("changeViewMode:$viewMode,controller:$viewController")
         addDocumentView()
@@ -219,8 +246,8 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
                 showOutline()
 
                 sp.edit()
-                        .putBoolean(PREF_READER_KEY_FIRST, false)
-                        .apply()
+                    .putBoolean(PREF_READER_KEY_FIRST, false)
+                    .apply()
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -236,11 +263,15 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             if (it.size() < 0 || it.size() < APageSizeLoader.PAGE_COUNT) {
                 return
             }
-            APageSizeLoader.savePageSizeToFile(mCrop,
-                    pdfBookmarkManager!!.bookmarkToRestore!!.size,
-                    mPageSizes,
-                    FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
-                            pdfBookmarkManager?.bookmarkToRestore?.name))
+            APageSizeLoader.savePageSizeToFile(
+                mCrop,
+                pdfBookmarkManager!!.bookmarkToRestore!!.size,
+                mPageSizes,
+                FileUtils.getDiskCacheDir(
+                    this@AMuPDFRecyclerViewActivity,
+                    pdfBookmarkManager?.bookmarkToRestore?.name
+                )
+            )
         }
     }
 
@@ -250,11 +281,15 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         var start = SystemClock.uptimeMillis()
         var pageSizeBean: APageSizeLoader.PageSizeBean? = null
         if (pdfBookmarkManager != null && pdfBookmarkManager!!.bookmarkToRestore != null) {
-            pageSizeBean = APageSizeLoader.loadPageSizeFromFile(width,
-                    pdfBookmarkManager!!.bookmarkToRestore!!.pageCount,
-                    pdfBookmarkManager!!.bookmarkToRestore!!.size,
-                    FileUtils.getDiskCacheDir(this@AMuPDFRecyclerViewActivity,
-                            pdfBookmarkManager?.bookmarkToRestore?.name))
+            pageSizeBean = APageSizeLoader.loadPageSizeFromFile(
+                width,
+                pdfBookmarkManager!!.bookmarkToRestore!!.pageCount,
+                pdfBookmarkManager!!.bookmarkToRestore!!.size,
+                FileUtils.getDiskCacheDir(
+                    this@AMuPDFRecyclerViewActivity,
+                    pdfBookmarkManager?.bookmarkToRestore?.name
+                )
+            )
         }
         Logcat.d("open3:" + (SystemClock.uptimeMillis() - start))
 
@@ -306,7 +341,11 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         mReflow = !mReflow
         setReflowButton(mReflow)
 
-        Toast.makeText(this, if (mReflow) getString(R.string.entering_reflow_mode) else getString(R.string.leaving_reflow_mode), Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            this,
+            if (mReflow) getString(R.string.entering_reflow_mode) else getString(R.string.leaving_reflow_mode),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     private fun setReflowButton(reflow: Boolean) {
@@ -524,35 +563,72 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     }
 
     internal object ViewControllerFactory {
-        fun getOrCreateViewController(viewControllerCache: SparseArray<AViewController>,
-                                      viewMode: ViewMode,
-                                      context: Context,
-                                      contentView: View,
-                                      controllerLayout: RelativeLayout,
-                                      pdfBookmarkManager: PDFBookmarkManager,
-                                      path: String,
-                                      pageSeekBarControls: APageSeekBarControls,
-                                      gestureDetector: GestureDetector?): AViewController {
+        fun getOrCreateViewController(
+            viewControllerCache: SparseArray<AViewController>,
+            viewMode: ViewMode,
+            context: Context,
+            contentView: View,
+            controllerLayout: RelativeLayout,
+            pdfBookmarkManager: PDFBookmarkManager,
+            path: String,
+            pageSeekBarControls: APageSeekBarControls,
+            gestureDetector: GestureDetector?
+        ): AViewController {
             val aViewController = viewControllerCache.get(viewMode.ordinal)
             if (null != aViewController) {
                 return aViewController
             }
-            return createViewController(viewMode, context, contentView, controllerLayout, pdfBookmarkManager, path, pageSeekBarControls, gestureDetector)
+            return createViewController(
+                viewMode,
+                context,
+                contentView,
+                controllerLayout,
+                pdfBookmarkManager,
+                path,
+                pageSeekBarControls,
+                gestureDetector
+            )
         }
 
-        fun createViewController(viewMode: ViewMode, context: Context,
-                                 contentView: View,
-                                 controllerLayout: RelativeLayout,
-                                 pdfBookmarkManager: PDFBookmarkManager,
-                                 path: String,
-                                 pageSeekBarControls: APageSeekBarControls,
-                                 gestureDetector: GestureDetector?): AViewController {
+        fun createViewController(
+            viewMode: ViewMode, context: Context,
+            contentView: View,
+            controllerLayout: RelativeLayout,
+            pdfBookmarkManager: PDFBookmarkManager,
+            path: String,
+            pageSeekBarControls: APageSeekBarControls,
+            gestureDetector: GestureDetector?
+        ): AViewController {
             if (viewMode == ViewMode.CROP) {
-                return ACropViewController(context, contentView, controllerLayout, pdfBookmarkManager, path, pageSeekBarControls, gestureDetector)
+                return ACropViewController(
+                    context,
+                    contentView,
+                    controllerLayout,
+                    pdfBookmarkManager,
+                    path,
+                    pageSeekBarControls,
+                    gestureDetector
+                )
             } else if (viewMode == ViewMode.REFLOW) {
-                return AReflowViewController(context, contentView, controllerLayout, pdfBookmarkManager, path, pageSeekBarControls, gestureDetector)
+                return AReflowViewController(
+                    context,
+                    contentView,
+                    controllerLayout,
+                    pdfBookmarkManager,
+                    path,
+                    pageSeekBarControls,
+                    gestureDetector
+                )
             } else {
-                return ANormalViewController(context, contentView, controllerLayout, pdfBookmarkManager, path, pageSeekBarControls, gestureDetector)
+                return ANormalViewController(
+                    context,
+                    contentView,
+                    controllerLayout,
+                    pdfBookmarkManager,
+                    path,
+                    pageSeekBarControls,
+                    gestureDetector
+                )
             }
         }
     }

@@ -23,11 +23,13 @@ class TextReflowHelper(var mCore: Document?) {
     }
 
     fun exportToText() {
-        var file = File(FileUtils.getStorageDir("amupdf").absolutePath + File.separator + "book.txt")
+        var file =
+            File(FileUtils.getStorageDir("amupdf").absolutePath + File.separator + "book.txt")
         var fw = FileWriter(file, true)
         try {
             for (index in 0 until 30) {
-                val result = mCore?.loadPage(index)?.textAsText("preserve-whitespace,inhibit-spaces,preserve-images")
+                val result = mCore?.loadPage(index)
+                    ?.textAsText("preserve-whitespace,inhibit-spaces,preserve-images")
                 fw.write(String(result!!))
             }
         } catch (e: Exception) {
@@ -37,11 +39,13 @@ class TextReflowHelper(var mCore: Document?) {
     }
 
     fun exportToHtml() {
-        var file = File(FileUtils.getStorageDir("amupdf").absolutePath + File.separator + "book.html")
+        var file =
+            File(FileUtils.getStorageDir("amupdf").absolutePath + File.separator + "book.html")
         var fw = FileWriter(file, true)
         try {
             for (index in 0 until 30) {
-                val result = mCore?.loadPage(index)?.textAsHtml2("preserve-whitespace,inhibit-spaces,preserve-images")
+                val result = mCore?.loadPage(index)
+                    ?.textAsHtml2("preserve-whitespace,inhibit-spaces,preserve-images")
                 fw.write(String(result!!))
             }
         } catch (e: Exception) {
@@ -51,11 +55,13 @@ class TextReflowHelper(var mCore: Document?) {
     }
 
     fun exportToXHtml() {
-        var file = File(FileUtils.getStorageDir("amupdf").absolutePath + File.separator + "book.xhtml")
+        var file =
+            File(FileUtils.getStorageDir("amupdf").absolutePath + File.separator + "book.xhtml")
         var fw = FileWriter(file, true)
         try {
             for (index in 0 until 30) {
-                val result = mCore?.loadPage(index)?.textAsXHtml("preserve-whitespace,inhibit-spaces,preserve-images")
+                val result = mCore?.loadPage(index)
+                    ?.textAsXHtml("preserve-whitespace,inhibit-spaces,preserve-images")
                 fw.write(String(result!!))
             }
         } catch (e: Exception) {

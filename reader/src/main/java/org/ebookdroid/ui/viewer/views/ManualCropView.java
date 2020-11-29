@@ -213,7 +213,7 @@ public class ManualCropView extends View {
         //pageBounds.offset(-viewState.viewBase.x, -viewState.viewBase.y);
         //viewState.release();
         //return pageBounds;
-        return new RectF(0,0,getWidth(), getHeight());
+        return new RectF(0, 0, getWidth(), getHeight());
     }
 
     static String str(final PointF p) {

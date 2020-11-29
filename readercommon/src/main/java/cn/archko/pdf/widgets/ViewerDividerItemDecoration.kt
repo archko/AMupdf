@@ -12,9 +12,11 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import cn.archko.pdf.utils.Utils
 
-class ViewerDividerItemDecoration @JvmOverloads constructor(orientation: Int,
-                                                            color: Int,
-                                                            itemSize: Int = Utils.dipToPixel(0.5f)) : ItemDecoration() {
+class ViewerDividerItemDecoration @JvmOverloads constructor(
+    orientation: Int,
+    color: Int,
+    itemSize: Int = Utils.dipToPixel(0.5f)
+) : ItemDecoration() {
     /**
      * RecyclerView的布局方向，默认先赋值
      * 为纵向布局
@@ -41,7 +43,11 @@ class ViewerDividerItemDecoration @JvmOverloads constructor(orientation: Int,
      * @param context
      * @param orientation
      */
-    constructor(context: Context?, orientation: Int) : this(orientation, Color.parseColor("#dddddd"), Utils.dipToPixel(0.5f)) {
+    constructor(context: Context?, orientation: Int) : this(
+        orientation,
+        Color.parseColor("#dddddd"),
+        Utils.dipToPixel(0.5f)
+    ) {
         //final TypedArray a = context.obtainStyledAttributes(ATTRS);
         //mDivider = a.getDrawable(0);
         //a.recycle();
@@ -74,7 +80,13 @@ class ViewerDividerItemDecoration @JvmOverloads constructor(orientation: Int,
             val layoutParams = child.layoutParams as RecyclerView.LayoutParams
             val top = child.bottom + layoutParams.bottomMargin
             val bottom = top + mItemSize
-            canvas.drawRect(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat(), mPaint)
+            canvas.drawRect(
+                left.toFloat(),
+                top.toFloat(),
+                right.toFloat(),
+                bottom.toFloat(),
+                mPaint
+            )
         }
     }
 
@@ -93,7 +105,13 @@ class ViewerDividerItemDecoration @JvmOverloads constructor(orientation: Int,
             val layoutParams = child.layoutParams as RecyclerView.LayoutParams
             val left = child.right + layoutParams.rightMargin
             val right = left + mItemSize
-            canvas.drawRect(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat(), mPaint)
+            canvas.drawRect(
+                left.toFloat(),
+                top.toFloat(),
+                right.toFloat(),
+                bottom.toFloat(),
+                mPaint
+            )
         }
     }
 
@@ -105,7 +123,12 @@ class ViewerDividerItemDecoration @JvmOverloads constructor(orientation: Int,
      * @param parent
      * @param state
      */
-    override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
+    override fun getItemOffsets(
+        outRect: Rect,
+        view: View,
+        parent: RecyclerView,
+        state: RecyclerView.State
+    ) {
         if (mOrientation == LinearLayoutManager.VERTICAL) {
             outRect[0, 0, 0] = mItemSize
         } else {
@@ -115,7 +138,7 @@ class ViewerDividerItemDecoration @JvmOverloads constructor(orientation: Int,
 
     companion object {
         private val ATTRS = intArrayOf(
-                R.attr.listDivider
+            R.attr.listDivider
         )
     }
 

@@ -32,9 +32,13 @@ class SensorHelper(private val activity: Activity) {
                 return
             }
             if (sq1 > 3 * (sq0 + sq2)) {
-                if (gravity[1] > 4) setOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) else if (gravity[1] < -4 && Build.VERSION.SDK.toInt() >= 9) setOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT)
+                if (gravity[1] > 4) setOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) else if (gravity[1] < -4 && Build.VERSION.SDK.toInt() >= 9) setOrientation(
+                    ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT
+                )
             } else if (sq0 > 3 * (sq1 + sq2)) {
-                if (gravity[0] > 4) setOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) else if (gravity[0] < -4 && Build.VERSION.SDK.toInt() >= 9) setOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE)
+                if (gravity[0] > 4) setOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) else if (gravity[0] < -4 && Build.VERSION.SDK.toInt() >= 9) setOrientation(
+                    ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+                )
             }
         }
     }
@@ -70,9 +74,13 @@ class SensorHelper(private val activity: Activity) {
                 gravity[1] = -9.81f
                 gravity[2] = 0f
                 gravityAge = 0
-                sensorManager!!.registerListener(sensorEventListener, sensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                        SensorManager.SENSOR_DELAY_NORMAL)
-                prevOrientation = options.getInt(PREF_PREV_ORIENTATION, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+                sensorManager!!.registerListener(
+                    sensorEventListener,
+                    sensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+                    SensorManager.SENSOR_DELAY_NORMAL
+                )
+                prevOrientation =
+                    options.getInt(PREF_PREV_ORIENTATION, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
                 activity.requestedOrientation = prevOrientation
             } else {
                 activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
@@ -91,15 +99,21 @@ class SensorHelper(private val activity: Activity) {
                 1 -> activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                 2 -> activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                 3 -> {
-                    val prev = options.getInt(PREF_PREV_ORIENTATION, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+                    val prev = options.getInt(
+                        PREF_PREV_ORIENTATION,
+                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                    )
                     //Logcat.v(TAG, "restoring orientation: " + prev);
                     activity.requestedOrientation = prev
                     return true
                 }
-                4 -> activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT
-                5 -> activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+                4 -> activity.requestedOrientation =
+                    ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT
+                5 -> activity.requestedOrientation =
+                    ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
                 6 -> activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                7 -> activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                7 -> activity.requestedOrientation =
+                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                 else -> {
                 }
             }

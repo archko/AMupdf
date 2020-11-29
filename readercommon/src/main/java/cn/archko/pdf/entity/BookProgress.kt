@@ -29,18 +29,25 @@ class BookProgress : Serializable, Comparator<BookProgress> {
      */
     @JvmField
     var name: String? = null
+
     @JvmField
     var ext: String? = null
+
     @JvmField
     var md5: String? = null
+
     @JvmField
     var pageCount = 0
+
     @JvmField
     var size: Long = 0
+
     @JvmField
     var firstTimestampe: Long = 0
+
     @JvmField
     var lastTimestampe: Long = 0
+
     @JvmField
     var readTimes = 0
 
@@ -49,14 +56,19 @@ class BookProgress : Serializable, Comparator<BookProgress> {
      */
     @JvmField
     var progress = 0
+
     @JvmField
     var page = 0
+
     @JvmField
     var zoomLevel = 1000f
+
     @JvmField
     var rotation = 0
+
     @JvmField
     var offsetX = 0
+
     @JvmField
     var offsetY = 0
 
@@ -75,6 +87,7 @@ class BookProgress : Serializable, Comparator<BookProgress> {
     //3.4.0 add isFavorited: 0,not in favorities,1,is in favorities
     @JvmField
     var isFavorited = 0
+
     @JvmField
     var inRecent = 0 //0:in recent,-1:not in recent,-2:all
 
@@ -102,9 +115,29 @@ class BookProgress : Serializable, Comparator<BookProgress> {
         this(_id, index, path, name, ext, md5, pageCount, size, firstTimestampe, lastTimestampe,
                 readTimes, progress, page, zoomLevel, rotation, offsetX, offsety, autoCrop, reflow, 0, 0);
     }*/
-    constructor(_id: Int, index: Int, path: String?, name: String?, ext: String?, md5: String?, pageCount: Int,
-                size: Long, firstTimestampe: Long, lastTimestampe: Long, readTimes: Int, progress: Int,
-                page: Int, zoomLevel: Float, rotation: Int, offsetX: Int, offsety: Int, autoCrop: Int, reflow: Int, isFavorited: Int, inRecent: Int) {
+    constructor(
+        _id: Int,
+        index: Int,
+        path: String?,
+        name: String?,
+        ext: String?,
+        md5: String?,
+        pageCount: Int,
+        size: Long,
+        firstTimestampe: Long,
+        lastTimestampe: Long,
+        readTimes: Int,
+        progress: Int,
+        page: Int,
+        zoomLevel: Float,
+        rotation: Int,
+        offsetX: Int,
+        offsety: Int,
+        autoCrop: Int,
+        reflow: Int,
+        isFavorited: Int,
+        inRecent: Int
+    ) {
         this._id = _id
         this.index = index
         this.path = path

@@ -24,7 +24,8 @@ public class PDFViewerHelper {
         fun openWithDefaultViewer(f: File, activity: Activity) {
             Logcat.i(Logcat.TAG, "post intent to open file $f")
             if (f.absolutePath.endsWith("txt", true)) {
-                Toast.makeText(activity, "can't load f:${f.absolutePath}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity, "can't load f:${f.absolutePath}", Toast.LENGTH_SHORT)
+                    .show()
                 return
             }
             openWithDefaultViewer(Uri.fromFile(f), activity)
@@ -92,7 +93,13 @@ public class PDFViewerHelper {
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         //val mimeType = this@BrowserFragment.activity?.contentResolver?.getType(FileProvider.getUriForFile(getContext()!!, "cn.archko.mupdf.fileProvider", clickedFile))
-                        intent.setDataAndType(FileProvider.getUriForFile(activity, "cn.archko.mupdf.fileProvider", clickedFile), mimeType);
+                        intent.setDataAndType(
+                            FileProvider.getUriForFile(
+                                activity,
+                                "cn.archko.mupdf.fileProvider",
+                                clickedFile
+                            ), mimeType
+                        );
                         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                         intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                         intent.addCategory(Intent.CATEGORY_DEFAULT);

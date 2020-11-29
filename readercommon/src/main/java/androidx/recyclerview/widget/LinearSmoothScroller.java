@@ -188,7 +188,7 @@ public class LinearSmoothScroller extends RecyclerView.SmoothScroller {
         // area under curve (1-(1-x)^2) can be calculated as (1 - x/3) * x * x
         // which gives 0.100028 when x = .3356
         // this is why we divide linear scrolling time with .3356
-        return  (int) Math.ceil(calculateTimeForScrolling(dx) / .3356);
+        return (int) Math.ceil(calculateTimeForScrolling(dx) / .3356);
     }
 
     /**

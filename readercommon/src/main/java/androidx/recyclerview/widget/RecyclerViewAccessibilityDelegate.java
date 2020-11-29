@@ -186,7 +186,7 @@ public class RecyclerViewAccessibilityDelegate extends AccessibilityDelegateComp
 
         @Override
         public void sendAccessibilityEventUnchecked(@NonNull View host,
-                @NonNull AccessibilityEvent event) {
+                                                    @NonNull AccessibilityEvent event) {
             AccessibilityDelegateCompat originalDelegate = mOriginalItemDelegates.get(host);
             if (originalDelegate != null) {
                 originalDelegate.sendAccessibilityEventUnchecked(host, event);
@@ -197,7 +197,7 @@ public class RecyclerViewAccessibilityDelegate extends AccessibilityDelegateComp
 
         @Override
         public boolean dispatchPopulateAccessibilityEvent(@NonNull View host,
-                @NonNull AccessibilityEvent event) {
+                                                          @NonNull AccessibilityEvent event) {
             AccessibilityDelegateCompat originalDelegate = mOriginalItemDelegates.get(host);
             if (originalDelegate != null) {
                 return originalDelegate.dispatchPopulateAccessibilityEvent(host, event);
@@ -208,7 +208,7 @@ public class RecyclerViewAccessibilityDelegate extends AccessibilityDelegateComp
 
         @Override
         public void onPopulateAccessibilityEvent(@NonNull View host,
-                @NonNull AccessibilityEvent event) {
+                                                 @NonNull AccessibilityEvent event) {
             AccessibilityDelegateCompat originalDelegate = mOriginalItemDelegates.get(host);
             if (originalDelegate != null) {
                 originalDelegate.onPopulateAccessibilityEvent(host, event);
@@ -219,7 +219,7 @@ public class RecyclerViewAccessibilityDelegate extends AccessibilityDelegateComp
 
         @Override
         public void onInitializeAccessibilityEvent(@NonNull View host,
-                @NonNull AccessibilityEvent event) {
+                                                   @NonNull AccessibilityEvent event) {
             AccessibilityDelegateCompat originalDelegate = mOriginalItemDelegates.get(host);
             if (originalDelegate != null) {
                 originalDelegate.onInitializeAccessibilityEvent(host, event);
@@ -230,7 +230,7 @@ public class RecyclerViewAccessibilityDelegate extends AccessibilityDelegateComp
 
         @Override
         public boolean onRequestSendAccessibilityEvent(@NonNull ViewGroup host,
-                @NonNull View child, @NonNull AccessibilityEvent event) {
+                                                       @NonNull View child, @NonNull AccessibilityEvent event) {
             AccessibilityDelegateCompat originalDelegate = mOriginalItemDelegates.get(host);
             if (originalDelegate != null) {
                 return originalDelegate.onRequestSendAccessibilityEvent(host, child, event);

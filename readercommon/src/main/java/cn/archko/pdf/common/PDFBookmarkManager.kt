@@ -42,7 +42,8 @@ class PDFBookmarkManager {
         var currentPage = 0
         if (bookmarkToRestore!!.pageCount != pageCount || bookmarkToRestore!!.page > pageCount) {
             bookmarkToRestore!!.pageCount = pageCount
-            bookmarkToRestore!!.page = if (bookmarkToRestore!!.page >= pageCount) 0 else bookmarkToRestore!!.page
+            bookmarkToRestore!!.page =
+                if (bookmarkToRestore!!.page >= pageCount) 0 else bookmarkToRestore!!.page
             return currentPage
         }
         if (0 < bookmarkToRestore!!.page) {
@@ -51,7 +52,14 @@ class PDFBookmarkManager {
         return currentPage
     }
 
-    fun saveCurrentPage(absolutePath: String?, pageCount: Int, currentPage: Int, zoom: Float, scrollX: Int, scrollY: Int) {
+    fun saveCurrentPage(
+        absolutePath: String?,
+        pageCount: Int,
+        currentPage: Int,
+        zoom: Float,
+        scrollX: Int,
+        scrollY: Int
+    ) {
         if (null == bookmarkToRestore) {
             bookmarkToRestore = BookProgress(FileUtils.getRealPath(absolutePath))
         } else {
@@ -69,16 +77,19 @@ class PDFBookmarkManager {
         }
         bookmarkToRestore!!.offsetY = scrollY
         bookmarkToRestore!!.progress = currentPage * 100 / pageCount
-        Log.i(RecentManager.TAG, String.format("last page saved for currentPage:%s, :%s", currentPage, bookmarkToRestore))
+        Log.i(
+            RecentManager.TAG,
+            String.format("last page saved for currentPage:%s, :%s", currentPage, bookmarkToRestore)
+        )
         RecentManager.instance.addAsyncToDB(bookmarkToRestore,
-                object : DataListener {
-                    override fun onSuccess(vararg args: Any) {
-                        Log.i(RecentManager.TAG, "onSuccess")
-                    }
+            object : DataListener {
+                override fun onSuccess(vararg args: Any) {
+                    Log.i(RecentManager.TAG, "onSuccess")
+                }
 
-                    override fun onFailed(vararg args: Any) {
-                        Log.i(RecentManager.TAG, "onFailed")
-                    }
-                })
+                override fun onFailed(vararg args: Any) {
+                    Log.i(RecentManager.TAG, "onFailed")
+                }
+            })
     }
 }

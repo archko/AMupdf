@@ -21,10 +21,10 @@ class App : Application() {
         screenWidth = displayMetrics.widthPixels
         UMConfigure.init(this, appkey, "archko", UMConfigure.DEVICE_TYPE_PHONE, null)
         LiveEventBus
-                .config()
-                .supportBroadcast(this)
-                .lifecycleObserverAlwaysActive(true)
-                .autoClear(false)
+            .config()
+            .supportBroadcast(this)
+            .lifecycleObserverAlwaysActive(true)
+            .autoClear(false)
     }
 
     companion object {

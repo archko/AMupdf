@@ -39,14 +39,14 @@ public interface ItemTouchUIUtil {
      * RecyclerView, RecyclerView.ViewHolder, float, float, int, boolean)}
      */
     void onDraw(Canvas c, RecyclerView recyclerView, View view,
-            float dX, float dY, int actionState, boolean isCurrentlyActive);
+                float dX, float dY, int actionState, boolean isCurrentlyActive);
 
     /**
      * The default implementation for {@link ItemTouchHelper.Callback#onChildDrawOver(Canvas,
      * RecyclerView, RecyclerView.ViewHolder, float, float, int, boolean)}
      */
     void onDrawOver(Canvas c, RecyclerView recyclerView, View view,
-            float dX, float dY, int actionState, boolean isCurrentlyActive);
+                    float dX, float dY, int actionState, boolean isCurrentlyActive);
 
     /**
      * The default implementation for {@link ItemTouchHelper.Callback#clearView(RecyclerView,
@@ -56,7 +56,7 @@ public interface ItemTouchUIUtil {
 
     /**
      * The default implementation for {@link ItemTouchHelper.Callback#onSelectedChanged(
-     * RecyclerView.ViewHolder, int)}
+     *RecyclerView.ViewHolder, int)}
      */
     void onSelected(View view);
 }

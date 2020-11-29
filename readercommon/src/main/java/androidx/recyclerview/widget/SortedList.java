@@ -133,7 +133,6 @@ public class SortedList<T> {
      * {@link #indexOf(Object)} before you update the object.
      *
      * @param item The item to be added into the list.
-     *
      * @return The index of the newly added item.
      * @see Callback#compare(Object, Object)
      * @see Callback#areItemsTheSame(Object, Object)
@@ -153,7 +152,8 @@ public class SortedList<T> {
      * extra memory allocation, in which case you should not continue to reference or modify the
      * array yourself.
      * <p>
-     * @param items Array of items to be added into the list.
+     *
+     * @param items          Array of items to be added into the list.
      * @param mayModifyInput If true, SortedList is allowed to modify and permanently reference the
      *                       input array.
      * @see SortedList#addAll(T[] items)
@@ -174,9 +174,8 @@ public class SortedList<T> {
     /**
      * Adds the given items to the list. Does not modify or retain the input.
      *
-     * @see SortedList#addAll(T[] items, boolean mayModifyInput)
-     *
      * @param items Array of items to be added into the list.
+     * @see SortedList#addAll(T[] items, boolean mayModifyInput)
      */
     public void addAll(@NonNull T... items) {
         addAll(items, false);
@@ -185,9 +184,8 @@ public class SortedList<T> {
     /**
      * Adds the given items to the list. Does not modify or retain the input.
      *
-     * @see SortedList#addAll(T[] items, boolean mayModifyInput)
-     *
      * @param items Collection of items to be added into the list.
+     * @see SortedList#addAll(T[] items, boolean mayModifyInput)
      */
     public void addAll(@NonNull Collection<T> items) {
         T[] copy = (T[]) Array.newInstance(mTClass, items.size());
@@ -208,7 +206,8 @@ public class SortedList<T> {
      * and {@link ListUpdateCallback#onRemoved(int, int)} events.  See {@link DiffUtil} if you want
      * your implementation to dispatch move events.
      * <p>
-     * @param items Array of items to replace current items.
+     *
+     * @param items          Array of items to replace current items.
      * @param mayModifyInput If true, SortedList is allowed to modify and permanently reference the
      *                       input array.
      * @see #replaceAll(T[])
@@ -227,9 +226,8 @@ public class SortedList<T> {
      * Replaces the current items with the new items, dispatching {@link ListUpdateCallback} events
      * for each change detected as appropriate.  Does not modify or retain the input.
      *
-     * @see #replaceAll(T[], boolean)
-     *
      * @param items Array of items to replace current items.
+     * @see #replaceAll(T[], boolean)
      */
     public void replaceAll(@NonNull T... items) {
         replaceAll(items, false);
@@ -239,9 +237,8 @@ public class SortedList<T> {
      * Replaces the current items with the new items, dispatching {@link ListUpdateCallback} events
      * for each change detected as appropriate. Does not modify or retain the input.
      *
-     * @see #replaceAll(T[], boolean)
-     *
      * @param items Array of items to replace current items.
+     * @see #replaceAll(T[], boolean)
      */
     public void replaceAll(@NonNull Collection<T> items) {
         T[] copy = (T[]) Array.newInstance(mTClass, items.size());
@@ -567,7 +564,6 @@ public class SortedList<T> {
      * Removes the provided item from the list and calls {@link Callback#onRemoved(int, int)}.
      *
      * @param item The item to be removed from the list.
-     *
      * @return True if item is removed, false if item cannot be found in the list.
      */
     public boolean remove(T item) {
@@ -579,7 +575,6 @@ public class SortedList<T> {
      * Removes the item at the given index and calls {@link Callback#onRemoved(int, int)}.
      *
      * @param index The index of the item to be removed.
-     *
      * @return The removed item.
      */
     public T removeItemAt(int index) {
@@ -696,10 +691,9 @@ public class SortedList<T> {
      * Returns the item at the given index.
      *
      * @param index The index of the item to retrieve.
-     *
      * @return The item at the given index.
      * @throws IndexOutOfBoundsException if provided index is negative or larger than the
-     *                                             size of the list.
+     *                                   size of the list.
      */
     public T get(int index) throws IndexOutOfBoundsException {
         if (index >= mSize || index < 0) {
@@ -720,7 +714,6 @@ public class SortedList<T> {
      * Returns the position of the provided item.
      *
      * @param item The item to query for position.
-     *
      * @return The position of the provided item or {@link #INVALID_POSITION} if item is not in the
      * list.
      */
@@ -845,7 +838,6 @@ public class SortedList<T> {
          *
          * @param o1 The first object to compare.
          * @param o2 The second object to compare.
-         *
          * @return a negative integer, zero, or a positive integer as the
          * first argument is less than, equal to, or greater than the
          * second.
@@ -881,7 +873,6 @@ public class SortedList<T> {
          *
          * @param oldItem The previous representation of the object.
          * @param newItem The new object that replaces the previous one.
-         *
          * @return True if the contents of the items are the same or false if they are different.
          */
         abstract public boolean areContentsTheSame(T2 oldItem, T2 newItem);
@@ -893,7 +884,6 @@ public class SortedList<T> {
          *
          * @param item1 The first item to check.
          * @param item2 The second item to check.
-         *
          * @return True if the two items represent the same object or false if they are different.
          */
         abstract public boolean areItemsTheSame(T2 item1, T2 item2);
@@ -941,6 +931,7 @@ public class SortedList<T> {
 
         final Callback<T2> mWrappedCallback;
         private final BatchingListUpdateCallback mBatchingListUpdateCallback;
+
         /**
          * Creates a new BatchedCallback that wraps the provided Callback.
          *

@@ -61,7 +61,11 @@ open class SearchFragment : DialogFragment() {
         MobclickAgent.onPageEnd(TAG);
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val view = inflater.inflate(R.layout.list_book_search, container, false)
         val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
         toolbar.setNavigationOnClickListener(View.OnClickListener { dismiss() })
@@ -70,7 +74,8 @@ open class SearchFragment : DialogFragment() {
         editView = view.findViewById(R.id.searchEdit)
         imgClose = view.findViewById(R.id.img_close)
         filesListView = view.findViewById(R.id.files)
-        filesListView.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+        filesListView.layoutManager =
+            LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
 
         imgClose.setOnClickListener { clear() }
 
@@ -159,7 +164,8 @@ open class SearchFragment : DialogFragment() {
 
     private fun getHome(): String {
         val defaultHome = Environment.getExternalStorageDirectory().absolutePath
-        var path: String = activity?.getSharedPreferences(ChooseFileFragmentActivity.PREF_TAG, 0)!!.getString(ChooseFileFragmentActivity.PREF_HOME, defaultHome)!!
+        var path: String = activity?.getSharedPreferences(ChooseFileFragmentActivity.PREF_TAG, 0)!!
+            .getString(ChooseFileFragmentActivity.PREF_HOME, defaultHome)!!
         if (path.length > 1 && path.endsWith("/")) {
             path = path.substring(0, path.length - 2)
         }
@@ -173,23 +179,24 @@ open class SearchFragment : DialogFragment() {
         }
     }
 
-    private val itemClickListener: OnItemClickListener<FileBean> = object : OnItemClickListener<FileBean> {
-        override fun onItemClick(view: View?, data: FileBean?, position: Int) {
-            val clickedEntry = this@SearchFragment.fileListAdapter!!.data[position] as FileBean
-            val clickedFile = clickedEntry.file
+    private val itemClickListener: OnItemClickListener<FileBean> =
+        object : OnItemClickListener<FileBean> {
+            override fun onItemClick(view: View?, data: FileBean?, position: Int) {
+                val clickedEntry = this@SearchFragment.fileListAdapter!!.data[position] as FileBean
+                val clickedFile = clickedEntry.file
 
-            if (null == clickedFile || !clickedFile.exists()) {
-                return
+                if (null == clickedFile || !clickedFile.exists()) {
+                    return
+                }
+
+                PDFViewerHelper.openWithDefaultViewer(clickedFile, activity!!)
             }
 
-            PDFViewerHelper.openWithDefaultViewer(clickedFile, activity!!)
+            override fun onItemClick2(view: View?, data: FileBean?, position: Int) {
+                val entry = this@SearchFragment.fileListAdapter!!.data[position] as FileBean
+                showFileInfoDialog(entry)
+            }
         }
-
-        override fun onItemClick2(view: View?, data: FileBean?, position: Int) {
-            val entry = this@SearchFragment.fileListAdapter!!.data[position] as FileBean
-            showFileInfoDialog(entry)
-        }
-    }
 
     protected fun showFileInfoDialog(entry: FileBean) {
         val ft = activity?.supportFragmentManager?.beginTransaction()

@@ -108,19 +108,24 @@ class AboutActivity : AnalysticActivity() {
             return true
         }
 
-        override fun getGroupView(groupPosition: Int, isExpanded: Boolean, convertView: View,
-                                  parent: ViewGroup): View {
+        override fun getGroupView(
+            groupPosition: Int, isExpanded: Boolean, convertView: View,
+            parent: ViewGroup
+        ): View {
             var container: View? = null
             var view: TextView? = null
             container = convertView
-                    ?: LayoutInflater.from(this@AboutActivity).inflate(R.layout.about_part, parent, false)
+                ?: LayoutInflater.from(this@AboutActivity)
+                    .inflate(R.layout.about_part, parent, false)
             view = container!!.findViewById<View>(R.id.about_partText) as TextView
             view.setText(getGroup(groupPosition).labelId)
             return container
         }
 
-        override fun getChildView(groupPosition: Int, childPosition: Int, isLastChild: Boolean,
-                                  convertView: View, parent: ViewGroup): View {
+        override fun getChildView(
+            groupPosition: Int, childPosition: Int, isLastChild: Boolean,
+            convertView: View, parent: ViewGroup
+        ): View {
             var view: WebView? = null
             view = if (convertView !is WebView) {
                 WebView(this@AboutActivity)
@@ -165,8 +170,13 @@ class AboutActivity : AnalysticActivity() {
 
     companion object {
         private val PARTS = arrayOf( // Start
-                Part(R.string.about_commmon_title, Format.HTML, "about_common.html"),  //new Part(R.string.about_license_title, Format.HTML, "about_license.html"),
-                Part(R.string.about_3dparty_title, Format.HTML, "about_3rdparty.html"),
-                Part(R.string.about_changelog_title, Format.HTML, "about_changelog.html"))
+            Part(
+                R.string.about_commmon_title,
+                Format.HTML,
+                "about_common.html"
+            ),  //new Part(R.string.about_license_title, Format.HTML, "about_license.html"),
+            Part(R.string.about_3dparty_title, Format.HTML, "about_3rdparty.html"),
+            Part(R.string.about_changelog_title, Format.HTML, "about_changelog.html")
+        )
     }
 }

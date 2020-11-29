@@ -48,7 +48,11 @@ open class OutlineFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val view = inflater.inflate(R.layout.fragment_outline, container, false)
 
         listView = view.findViewById(R.id.list)
@@ -71,7 +75,10 @@ open class OutlineFragment : Fragment() {
 
         adapter = object : BaseRecyclerAdapter<OutlineActivity.Item>(activity, outline!!) {
 
-            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<OutlineActivity.Item> {
+            override fun onCreateViewHolder(
+                parent: ViewGroup,
+                viewType: Int
+            ): BaseViewHolder<OutlineActivity.Item> {
                 val itemView = mInflater.inflate(R.layout.item_outline, parent, false)
                 return ViewHolder(itemView)
             }
@@ -100,7 +107,8 @@ open class OutlineFragment : Fragment() {
         }
         if (found >= 0) {
             val finalFound = found
-            listView.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+            listView.viewTreeObserver.addOnGlobalLayoutListener(object :
+                ViewTreeObserver.OnGlobalLayoutListener {
                 override fun onGlobalLayout() {
                     listView.viewTreeObserver.removeGlobalOnLayoutListener(this)
                     listView.scrollToPosition(finalFound)

@@ -48,18 +48,22 @@ class AImageView : ImageView {
     internal fun drawSearchBox(canvas: Canvas) {
         if (drawable != null && mSearchBoxes != null) {
             for (rect in mSearchBoxes!!)
-                canvas.drawRect(rect.left * scale, rect.top * scale,
-                        rect.right * scale, rect.bottom * scale,
-                        searchPaint)
+                canvas.drawRect(
+                    rect.left * scale, rect.top * scale,
+                    rect.right * scale, rect.bottom * scale,
+                    searchPaint
+                )
         }
     }
 
     internal fun drawLink(canvas: Canvas) {
         if (drawable != null && mLinks != null && mHighlightLinks) {
             for (link in mLinks!!)
-                canvas.drawRect(link.bounds.x0 * scale, link.bounds.y0 * scale,
-                        link.bounds.x1 * scale, link.bounds.y1 * scale,
-                        linkPaint)
+                canvas.drawRect(
+                    link.bounds.x0 * scale, link.bounds.y0 * scale,
+                    link.bounds.x1 * scale, link.bounds.y1 * scale,
+                    linkPaint
+                )
         }
     }
 

@@ -42,7 +42,11 @@ open class ChooseFileFragmentActivity : AnalysticActivity() {
     private lateinit var tabLayout: TabLayout
     internal var mTabs: MutableList<SamplePagerItem> = ArrayList()
 
-    internal data class SamplePagerItem(var clss: Class<*>, var args: Bundle, var title: CharSequence)
+    internal data class SamplePagerItem(
+        var clss: Class<*>,
+        var args: Bundle,
+        var title: CharSequence
+    )
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,7 +58,12 @@ open class ChooseFileFragmentActivity : AnalysticActivity() {
         toolbar.setOnMenuItemClickListener { item ->
             val id = item.itemId
             when (id) {
-                R.id.action_about -> startActivity(Intent(this@ChooseFileFragmentActivity, AboutActivity::class.java))
+                R.id.action_about -> startActivity(
+                    Intent(
+                        this@ChooseFileFragmentActivity,
+                        AboutActivity::class.java
+                    )
+                )
                 R.id.action_options -> PdfOptionsActivity.start(this@ChooseFileFragmentActivity)
                 R.id.action_search -> {
                     showSearchDialog()
@@ -76,12 +85,12 @@ open class ChooseFileFragmentActivity : AnalysticActivity() {
         val filter = IntentFilter()
         filter.addAction(Event.ACTION_ISFIRST)
         LiveEventBus
-                .get(Event.ACTION_ISFIRST, Boolean::class.java)
-                .observe(this, object : Observer<Boolean> {
-                    override fun onChanged(t: Boolean?) {
-                        mViewPager.currentItem = 1
-                    }
-                })
+            .get(Event.ACTION_ISFIRST, Boolean::class.java)
+            .observe(this, object : Observer<Boolean> {
+                override fun onChanged(t: Boolean?) {
+                    mViewPager.currentItem = 1
+                }
+            })
     }
 
     public override fun onResume() {
@@ -98,7 +107,11 @@ open class ChooseFileFragmentActivity : AnalysticActivity() {
 
 
     private fun checkSdcardPermission() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             // WRITE_EXTERNAL_STORAGE permission has not been granted.
 
             requestSdcardPermission()
@@ -115,22 +128,33 @@ open class ChooseFileFragmentActivity : AnalysticActivity() {
     private fun requestSdcardPermission() {
         Logcat.d(TAG, "sdcard permission has NOT been granted. Requesting permission.")
 
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(
+                this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            )
+        ) {
             // Provide an additional rationale to the user if the permission was not granted
             // and the user would benefit from additional context for the use of the permission.
             // For example if the user has previously denied the permission.
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    REQUEST_PERMISSION_CODE)
+            ActivityCompat.requestPermissions(
+                this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                REQUEST_PERMISSION_CODE
+            )
         } else {
 
             // sdcard permission has not been granted yet. Request it directly.
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    REQUEST_PERMISSION_CODE)
+            ActivityCompat.requestPermissions(
+                this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                REQUEST_PERMISSION_CODE
+            )
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
         if (requestCode == REQUEST_PERMISSION_CODE) {
             if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 //  权限通过
@@ -270,6 +294,7 @@ open class ChooseFileFragmentActivity : AnalysticActivity() {
 
         @JvmField
         val PREF_TAG = "ChooseFileActivity"
+
         @JvmField
         val PREF_HOME = "Home"
         private val REQUEST_PERMISSION_CODE = 0x001

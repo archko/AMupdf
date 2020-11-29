@@ -17,10 +17,11 @@ import cn.archko.pdf.utils.Utils
 /**
  * @author: archko 2016/5/13 :11:03
  */
-class MuPDFReflowAdapter(private val mContext: Context,
-                         private val mupdfDocument: MupdfDocument?,
-                         private var styleHelper: StyleHelper?)
-    : BaseRecyclerAdapter<Any>(mContext) {
+class MuPDFReflowAdapter(
+    private val mContext: Context,
+    private val mupdfDocument: MupdfDocument?,
+    private var styleHelper: StyleHelper?
+) : BaseRecyclerAdapter<Any>(mContext) {
 
     private var screenHeight = 720
     private var screenWidth = 1080
@@ -41,9 +42,13 @@ class MuPDFReflowAdapter(private val mContext: Context,
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<*> {
-        val pdfView: ReflowTextViewHolder.PDFTextView = ReflowTextViewHolder.PDFTextView(mContext, styleHelper)
+        val pdfView: ReflowTextViewHolder.PDFTextView =
+            ReflowTextViewHolder.PDFTextView(mContext, styleHelper)
         val holder = ReflowTextViewHolder(pdfView)
-        val lp: RecyclerView.LayoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        val lp: RecyclerView.LayoutParams = RecyclerView.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
         pdfView.layoutParams = lp
 
         return holder
@@ -58,7 +63,8 @@ class MuPDFReflowAdapter(private val mContext: Context,
         val task = object : AsyncTask<Void, Void, List<ReflowBean>?>() {
             override fun doInBackground(vararg arg0: Void): List<ReflowBean>? {
                 try {
-                    val result = mupdfDocument?.loadPage(pos)?.textAsText("preserve-whitespace,inhibit-spaces,preserve-images")
+                    val result = mupdfDocument?.loadPage(pos)
+                        ?.textAsText("preserve-whitespace,inhibit-spaces,preserve-images")
                     val list = result?.let { ParseTextMain.instance.parseAsList(it, pos) }
                     return list
                 } catch (e: Exception) {
@@ -68,7 +74,13 @@ class MuPDFReflowAdapter(private val mContext: Context,
 
             override fun onPostExecute(result: List<ReflowBean>?) {
                 if (null != result) {
-                    (holder as ReflowTextViewHolder).bindAsList(result, screenHeight, screenWidth, systemScale, reflowCache)
+                    (holder as ReflowTextViewHolder).bindAsList(
+                        result,
+                        screenHeight,
+                        screenWidth,
+                        systemScale,
+                        reflowCache
+                    )
                 }
             }
         }

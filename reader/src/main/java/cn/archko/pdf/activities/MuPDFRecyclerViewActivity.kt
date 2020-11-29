@@ -75,7 +75,11 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
         Logcat.d("path:" + mPath!!)
 
         if (TextUtils.isEmpty(mPath)) {
-            Toast.makeText(this@MuPDFRecyclerViewActivity, "error file path:$mPath", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this@MuPDFRecyclerViewActivity,
+                "error file path:$mPath",
+                Toast.LENGTH_SHORT
+            ).show()
             return
         }
         sensorHelper = SensorHelper(this)
@@ -87,7 +91,8 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
     }
 
     open fun loadBookmark() {
-        mCrop = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(PdfOptionsActivity.PREF_AUTOCROP, true)
+        mCrop = PreferenceManager.getDefaultSharedPreferences(this)
+            .getBoolean(PdfOptionsActivity.PREF_AUTOCROP, true)
 
         pdfBookmarkManager = PDFBookmarkManager()
         var autoCrop = 0
@@ -169,8 +174,8 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
         super.onDestroy()
         isDocLoaded = false
         LiveEventBus
-                .get(Event.ACTION_STOPPED)
-                .post(null)
+            .get(Event.ACTION_STOPPED)
+            .post(null)
         mMupdfDocument?.destroy()
         progressDialog.dismiss()
         BitmapCache.getInstance().clear()
@@ -180,7 +185,8 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
         window.requestFeature(Window.FEATURE_NO_TITLE)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             val lp: WindowManager.LayoutParams = window.getAttributes()
-            lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            lp.layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
             window.attributes = lp
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -209,7 +215,8 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
         if (pageNumberToast != null) {
             pageNumberToast!!.setText(pageText)
         } else {
-            pageNumberToast = Toast.makeText(this@MuPDFRecyclerViewActivity, pageText, Toast.LENGTH_SHORT)
+            pageNumberToast =
+                Toast.makeText(this@MuPDFRecyclerViewActivity, pageText, Toast.LENGTH_SHORT)
         }
         pageNumberToast!!.setGravity(Gravity.BOTTOM or Gravity.START, Utils.dipToPixel(15f), 0)
         pageNumberToast!!.show()
@@ -238,7 +245,10 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
 
         if (options.getBoolean(PdfOptionsActivity.PREF_FULLSCREEN, true)) {
             //getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-            window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            window.setFlags(
+                WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN
+            )
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
         }

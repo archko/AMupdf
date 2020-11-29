@@ -158,7 +158,12 @@ class ParseTextMain private constructor() {
          * @param pageIndex
          * @param lastBreak wethere last line has a break char.
          */
-        private fun parseLine(ss: String, sb: StringBuilder, pageIndex: Int, lastBreak: Boolean): Boolean {
+        private fun parseLine(
+            ss: String,
+            sb: StringBuilder,
+            pageIndex: Int,
+            lastBreak: Boolean
+        ): Boolean {
             var headBreak = false;
             var tailBreak = false;
             //1.处理结尾字符,如果是前几页,且一行字符<LINE_LENGTH,有可能是目录.添加尾部换行符.
@@ -276,28 +281,35 @@ class ParseTextMain private constructor() {
          * 总结,小结,●,■,（2）,（3）
          * //|var|val|let|这是程序的注释.需要换行,或者是程序的开头.
          */
-        internal val START_MARK = Pattern.compile("(第\\w*[^章]章)|总结|小结|●|■|//|var|val|let|fun|public|private|static|abstract|protected|import|export|pack|overri|open|class|void|for|while")
+        internal val START_MARK =
+            Pattern.compile("(第\\w*[^章]章)|总结|小结|●|■|//|var|val|let|fun|public|private|static|abstract|protected|import|export|pack|overri|open|class|void|for|while")
         internal val START_MARK2 = Pattern.compile("\\d+\\.")
+
         /**
          * 段落的结束字符可能是以下.
          */
         internal const val END_MARK = ".!?．！？。！?:：」？” ——"
+
         /**
          * 如果遇到的是代码,通常是以这些结尾
          */
         internal const val PROGRAM_MARK = "\\]>){};,'\""
+
         /**
          * 解析pdf得到的文本,取出其中的图片
          */
         internal const val IMAGE_START_MARK = "<p><img"
+
         /**
          * 图片结束,jni中的特定结束符.
          */
         internal const val IMAGE_END_MARK = "</p>"
+
         /**
          * 一行如果不到20个字符,有可能是目录或是标题.
          */
         internal const val LINE_LENGTH = 20
+
         /**
          * 最大的页面是30页,如果是30页前的,一行小于25字,认为可能是目录.在这之后的,文本重排时不认为是目录.合并为一行.
          */

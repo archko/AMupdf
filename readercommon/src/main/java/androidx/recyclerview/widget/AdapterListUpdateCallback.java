@@ -36,25 +36,33 @@ public final class AdapterListUpdateCallback implements ListUpdateCallback {
         mAdapter = adapter;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onInserted(int position, int count) {
         mAdapter.notifyItemRangeInserted(position, count);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onRemoved(int position, int count) {
         mAdapter.notifyItemRangeRemoved(position, count);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onMoved(int fromPosition, int toPosition) {
         mAdapter.notifyItemMoved(fromPosition, toPosition);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onChanged(int position, int count, Object payload) {
         mAdapter.notifyItemRangeChanged(position, count, payload);

@@ -44,7 +44,6 @@ import androidx.annotation.WorkerThread;
  * <p>
  * This class is designed to work with {@link RecyclerView}, but it does
  * not depend on it and can be used with other list views.
- *
  */
 public class AsyncListUtil<T> {
     static final String TAG = "AsyncListUtil";
@@ -82,13 +81,13 @@ public class AsyncListUtil<T> {
     /**
      * Creates an AsyncListUtil.
      *
-     * @param klass Class of the data item.
-     * @param tileSize Number of item per chunk loaded at once.
+     * @param klass        Class of the data item.
+     * @param tileSize     Number of item per chunk loaded at once.
      * @param dataCallback Data access callback.
      * @param viewCallback Callback for querying visible item range and update notifications.
      */
     public AsyncListUtil(@NonNull Class<T> klass, int tileSize,
-            @NonNull DataCallback<T> dataCallback, @NonNull ViewCallback viewCallback) {
+                         @NonNull DataCallback<T> dataCallback, @NonNull ViewCallback viewCallback) {
         mTClass = klass;
         mTileSize = tileSize;
         mDataCallback = dataCallback;
@@ -146,9 +145,8 @@ public class AsyncListUtil<T> {
      * this position.
      *
      * @param position Item position.
-     *
      * @return The data item at the given position or <code>null</code> if it has not been loaded
-     *         yet.
+     * yet.
      */
     @Nullable
     public T getItem(int position) {
@@ -313,7 +311,7 @@ public class AsyncListUtil<T> {
 
         @Override
         public void updateRange(int rangeStart, int rangeEnd, int extRangeStart, int extRangeEnd,
-                int scrollHint) {
+                                int scrollHint) {
             if (DEBUG) {
                 log("updateRange: %d..%d extended to %d..%d, scroll hint: %d",
                         rangeStart, rangeEnd, extRangeStart, extRangeEnd, scrollHint);
@@ -428,7 +426,7 @@ public class AsyncListUtil<T> {
                         (scrollHint == ViewCallback.HINT_SCROLL_ASC))) {
                     removeTile(firstLoadedTileStart);
                 } else if (endMargin > 0 && (startMargin < endMargin ||
-                        (scrollHint == ViewCallback.HINT_SCROLL_DESC))){
+                        (scrollHint == ViewCallback.HINT_SCROLL_DESC))) {
                     removeTile(lastLoadedTileStart);
                 } else {
                     // Could not flush on either side, bail out.
@@ -470,9 +468,9 @@ public class AsyncListUtil<T> {
          * It is suggested to re-use these objects if possible in your use case.
          *
          * @param startPosition The start position in the list.
-         * @param itemCount The data item count.
-         * @param data The data item array to fill into. Should not be accessed beyond
-         *             <code>itemCount</code>.
+         * @param itemCount     The data item count.
+         * @param data          The data item array to fill into. Should not be accessed beyond
+         *                      <code>itemCount</code>.
          */
         @WorkerThread
         public abstract void fillData(@NonNull T[] data, int startPosition, int itemCount);
@@ -480,8 +478,7 @@ public class AsyncListUtil<T> {
         /**
          * Recycle the objects created in {@link #fillData} if necessary.
          *
-         *
-         * @param data Array of data items. Should not be accessed beyond <code>itemCount</code>.
+         * @param data      Array of data items. Should not be accessed beyond <code>itemCount</code>.
          * @param itemCount The data item count.
          */
         @WorkerThread
@@ -517,7 +514,7 @@ public class AsyncListUtil<T> {
      *
      * <p>
      * All methods are called on the main thread.
-          */
+     */
     public static abstract class ViewCallback {
 
         /**
@@ -568,8 +565,8 @@ public class AsyncListUtil<T> {
          * However, if <code>scrollHint</code> is {@link #HINT_SCROLL_NONE}, then
          * <code>outRange</code> will be <code>{50, 250}</code>
          *
-         * @param range Visible item range.
-         * @param outRange Extended range.
+         * @param range      Visible item range.
+         * @param outRange   Extended range.
          * @param scrollHint The scroll direction hint.
          */
         @UiThread
@@ -588,6 +585,7 @@ public class AsyncListUtil<T> {
 
         /**
          * Called when an item at the given position is loaded.
+         *
          * @param position Item position.
          */
         @UiThread

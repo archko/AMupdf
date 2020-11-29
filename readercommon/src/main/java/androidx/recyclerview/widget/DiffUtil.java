@@ -96,7 +96,6 @@ public class DiffUtil {
      * Calculates the list of update operations that can covert one list into the other one.
      *
      * @param cb The callback that acts as a gateway to the backing list data
-     *
      * @return A DiffResult that contains the information about the edit sequence to convert the
      * old list into the new list.
      */
@@ -112,9 +111,8 @@ public class DiffUtil {
      * positions), you can disable move detection which takes <code>O(N^2)</code> time where
      * N is the number of added, moved, removed items.
      *
-     * @param cb The callback that acts as a gateway to the backing list data
+     * @param cb          The callback that acts as a gateway to the backing list data
      * @param detectMoves True if DiffUtil should try to detect moved items, false otherwise.
-     *
      * @return A DiffResult that contains the information about the edit sequence to convert the
      * old list into the new list.
      */
@@ -200,7 +198,7 @@ public class DiffUtil {
     }
 
     private static Snake diffPartial(Callback cb, int startOld, int endOld,
-            int startNew, int endNew, int[] forward, int[] backward, int kOffset) {
+                                     int startNew, int endNew, int[] forward, int[] backward, int kOffset) {
         final int oldSize = endOld - startOld;
         final int newSize = endNew - startNew;
 
@@ -352,7 +350,6 @@ public class DiffUtil {
          *
          * @param oldItemPosition The position of the item in the old list
          * @param newItemPosition The position of the item in the new list
-         *
          * @return A payload object that represents the change between the two items.
          */
         @Nullable
@@ -383,7 +380,6 @@ public class DiffUtil {
          * @param oldItem The item in the old list.
          * @param newItem The item in the new list.
          * @return True if the two items represent the same object or false if they are different.
-         *
          * @see Callback#areItemsTheSame(int, int)
          */
         public abstract boolean areItemsTheSame(@NonNull T oldItem, @NonNull T newItem);
@@ -409,7 +405,6 @@ public class DiffUtil {
          * @param oldItem The item in the old list.
          * @param newItem The item in the new list.
          * @return True if the contents of the items are the same or false if they are different.
-         *
          * @see Callback#areContentsTheSame(int, int)
          */
         public abstract boolean areContentsTheSame(@NonNull T oldItem, @NonNull T newItem);
@@ -557,14 +552,14 @@ public class DiffUtil {
         private final boolean mDetectMoves;
 
         /**
-         * @param callback The callback that was used to calculate the diff
-         * @param snakes The list of Myers' snakes
+         * @param callback        The callback that was used to calculate the diff
+         * @param snakes          The list of Myers' snakes
          * @param oldItemStatuses An int[] that can be re-purposed to keep metadata
          * @param newItemStatuses An int[] that can be re-purposed to keep metadata
-         * @param detectMoves True if this DiffResult will try to detect moved items
+         * @param detectMoves     True if this DiffResult will try to detect moved items
          */
         DiffResult(Callback callback, List<Snake> snakes, int[] oldItemStatuses,
-                int[] newItemStatuses, boolean detectMoves) {
+                   int[] newItemStatuses, boolean detectMoves) {
             mSnakes = snakes;
             mOldItemStatuses = oldItemStatuses;
             mNewItemStatuses = newItemStatuses;
@@ -661,9 +656,7 @@ public class DiffUtil {
          * {@code NO_POSITION} if it was removed.
          *
          * @param oldListPosition Position of item in old list
-         *
          * @return Position of item in new list, or {@code NO_POSITION} if not present.
-         *
          * @see #NO_POSITION
          * @see #convertNewPositionToOld(int)
          */
@@ -685,9 +678,7 @@ public class DiffUtil {
          * {@code NO_POSITION} if it was removed.
          *
          * @param newListPosition Position of item in new list
-         *
          * @return Position of item in old list, or {@code NO_POSITION} if not present.
-         *
          * @see #NO_POSITION
          * @see #convertOldPositionToNew(int)
          */
@@ -708,15 +699,14 @@ public class DiffUtil {
          * Finds a matching item that is before the given coordinates in the matrix
          * (before : left and above).
          *
-         * @param x The x position in the matrix (position in the old list)
-         * @param y The y position in the matrix (position in the new list)
+         * @param x          The x position in the matrix (position in the old list)
+         * @param y          The y position in the matrix (position in the new list)
          * @param snakeIndex The current snake index
-         * @param removal True if we are looking for a removal, false otherwise
-         *
+         * @param removal    True if we are looking for a removal, false otherwise
          * @return True if such item is found.
          */
         private boolean findMatchingItem(final int x, final int y, final int snakeIndex,
-                final boolean removal) {
+                                         final boolean removal) {
             final int myItemPos;
             int curX;
             int curY;
@@ -853,7 +843,7 @@ public class DiffUtil {
         }
 
         private static PostponedUpdate removePostponedUpdate(List<PostponedUpdate> updates,
-                int pos, boolean removal) {
+                                                             int pos, boolean removal) {
             for (int i = updates.size() - 1; i >= 0; i--) {
                 final PostponedUpdate update = updates.get(i);
                 if (update.posInOwnerList == pos && update.removal == removal) {
@@ -869,7 +859,7 @@ public class DiffUtil {
         }
 
         private void dispatchAdditions(List<PostponedUpdate> postponedUpdates,
-                ListUpdateCallback updateCallback, int start, int count, int globalIndex) {
+                                       ListUpdateCallback updateCallback, int start, int count, int globalIndex) {
             if (!mDetectMoves) {
                 updateCallback.onInserted(start, count);
                 return;
@@ -909,7 +899,7 @@ public class DiffUtil {
         }
 
         private void dispatchRemovals(List<PostponedUpdate> postponedUpdates,
-                ListUpdateCallback updateCallback, int start, int count, int globalIndex) {
+                                      ListUpdateCallback updateCallback, int start, int count, int globalIndex) {
             if (!mDetectMoves) {
                 updateCallback.onRemoved(start, count);
                 return;

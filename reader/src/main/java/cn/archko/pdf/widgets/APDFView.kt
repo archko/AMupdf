@@ -14,10 +14,12 @@ import com.artifex.mupdf.fitz.Document
  * @author: archko 2018/7/25 :12:43
  */
 @SuppressLint("AppCompatCustomView")
-public class APDFView(protected val mContext: Context,
-                      private val mCore: Document?,
-                      private var aPage: APage,
-                      crop: Boolean) : ImageView(mContext) {
+public class APDFView(
+    protected val mContext: Context,
+    private val mCore: Document?,
+    private var aPage: APage,
+    crop: Boolean
+) : ImageView(mContext) {
 
     private var mZoom: Float = 0.toFloat()
 
@@ -62,8 +64,12 @@ public class APDFView(protected val mContext: Context,
         }
 
         setMeasuredDimension(mwidth, mheight)
-        Logcat.d(String.format("onMeasure,width:%s,height:%s, page:%s-%s, mZoom: %s, aPage:%s",
-                mwidth, mheight, aPage.effectivePagesWidth, aPage.effectivePagesHeight, mZoom, aPage))
+        Logcat.d(
+            String.format(
+                "onMeasure,width:%s,height:%s, page:%s-%s, mZoom: %s, aPage:%s",
+                mwidth, mheight, aPage.effectivePagesWidth, aPage.effectivePagesHeight, mZoom, aPage
+            )
+        )
     }
 
     fun updatePage(pageSize: APage, newZoom: Float, crop: Boolean) {
@@ -79,10 +85,15 @@ public class APDFView(protected val mContext: Context,
 
         val zoomSize = aPage.zoomPoint
         val xOrigin = (zoomSize.x - aPage.getTargetWidth()) / 2
-        Logcat.d(String.format("updatePage xOrigin: %s,changeScale:%s, oldZoom:%s, newScaleZoom:%s,newZoom:%s,",
-                xOrigin, changeScale, oldZoom, aPage.scaleZoom, newZoom))
+        Logcat.d(
+            String.format(
+                "updatePage xOrigin: %s,changeScale:%s, oldZoom:%s, newScaleZoom:%s,newZoom:%s,",
+                xOrigin, changeScale, oldZoom, aPage.scaleZoom, newZoom
+            )
+        )
 
-        var bmp = BitmapCache.getInstance().getBitmap(ImageDecoder.getCacheKey(aPage.index, crop, aPage.scaleZoom))
+        var bmp = BitmapCache.getInstance()
+            .getBitmap(ImageDecoder.getCacheKey(aPage.index, crop, aPage.scaleZoom))
 
         if (null != bmp) {
             setImageBitmap(bmp)
@@ -93,7 +104,8 @@ public class APDFView(protected val mContext: Context,
         }
 
         if (changeScale && bmp == null) {
-            bmp = BitmapCache.getInstance().getBitmap(ImageDecoder.getCacheKey(aPage.index, crop, oldZoom))
+            bmp = BitmapCache.getInstance()
+                .getBitmap(ImageDecoder.getCacheKey(aPage.index, crop, oldZoom))
             //if (Logcat.loggable) {
             //    Logcat.d(String.format("updatePage xOrigin: %s, oldZoom:%s, newZoom:%s, bmp:%s",
             //            xOrigin, oldZoom, newZoom, bmp));

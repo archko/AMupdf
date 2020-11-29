@@ -113,7 +113,6 @@ public abstract class OrientationHelper {
      * @param view The view whose transformed end will be returned
      * @return The end of the View after its decor insets and transformation matrix is applied to
      * its position
-     *
      * @see RecyclerView.LayoutManager#getTransformedBoundingBox(View, boolean, Rect)
      */
     public abstract int getTransformedEndWithDecoration(View view);
@@ -129,7 +128,6 @@ public abstract class OrientationHelper {
      * @param view The view whose transformed start will be returned
      * @return The start of the View after its decor insets and transformation matrix is applied to
      * its position
-     *
      * @see RecyclerView.LayoutManager#getTransformedBoundingBox(View, boolean, Rect)
      */
     public abstract int getTransformedStartWithDecoration(View view);
@@ -211,7 +209,6 @@ public abstract class OrientationHelper {
      * Returns the MeasureSpec mode for the current orientation from the LayoutManager.
      *
      * @return The current measure spec mode.
-     *
      * @see View.MeasureSpec
      * @see RecyclerView.LayoutManager#getWidthMode()
      * @see RecyclerView.LayoutManager#getHeightMode()
@@ -222,7 +219,6 @@ public abstract class OrientationHelper {
      * Returns the MeasureSpec mode for the perpendicular orientation from the LayoutManager.
      *
      * @return The current measure spec mode.
-     *
      * @see View.MeasureSpec
      * @see RecyclerView.LayoutManager#getWidthMode()
      * @see RecyclerView.LayoutManager#getHeightMode()

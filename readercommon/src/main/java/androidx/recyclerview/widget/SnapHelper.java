@@ -83,10 +83,8 @@ public abstract class SnapHelper extends RecyclerView.OnFlingListener {
      * @param recyclerView The RecyclerView instance to which you want to add this helper or
      *                     {@code null} if you want to remove SnapHelper from the current
      *                     RecyclerView.
-     *
      * @throws IllegalArgumentException if there is already a {@link RecyclerView.OnFlingListener}
-     * attached to the provided {@link RecyclerView}.
-     *
+     *                                  attached to the provided {@link RecyclerView}.
      */
     public void attachToRecyclerView(@Nullable RecyclerView recyclerView)
             throws IllegalStateException {
@@ -127,9 +125,8 @@ public abstract class SnapHelper extends RecyclerView.OnFlingListener {
     /**
      * Calculated the estimated scroll distance in each direction given velocities on both axes.
      *
-     * @param velocityX     Fling velocity on the horizontal axis.
-     * @param velocityY     Fling velocity on the vertical axis.
-     *
+     * @param velocityX Fling velocity on the horizontal axis.
+     * @param velocityY Fling velocity on the vertical axis.
      * @return array holding the calculated distances in x and y directions
      * respectively.
      */
@@ -149,11 +146,10 @@ public abstract class SnapHelper extends RecyclerView.OnFlingListener {
      *                      {@link RecyclerView}.
      * @param velocityX     Fling velocity on the horizontal axis.
      * @param velocityY     Fling velocity on the vertical axis.
-     *
      * @return true if it is handled, false otherwise.
      */
     private boolean snapFromFling(@NonNull RecyclerView.LayoutManager layoutManager, int velocityX,
-            int velocityY) {
+                                  int velocityY) {
         if (!(layoutManager instanceof RecyclerView.SmoothScroller.ScrollVectorProvider)) {
             return false;
         }
@@ -199,9 +195,8 @@ public abstract class SnapHelper extends RecyclerView.OnFlingListener {
     /**
      * Creates a scroller to be used in the snapping implementation.
      *
-     * @param layoutManager     The {@link RecyclerView.LayoutManager} associated with the attached
-     *                          {@link RecyclerView}.
-     *
+     * @param layoutManager The {@link RecyclerView.LayoutManager} associated with the attached
+     *                      {@link RecyclerView}.
      * @return a {@link RecyclerView.SmoothScroller} which will handle the scrolling.
      */
     @Nullable
@@ -212,9 +207,8 @@ public abstract class SnapHelper extends RecyclerView.OnFlingListener {
     /**
      * Creates a scroller to be used in the snapping implementation.
      *
-     * @param layoutManager     The {@link RecyclerView.LayoutManager} associated with the attached
-     *                          {@link RecyclerView}.
-     *
+     * @param layoutManager The {@link RecyclerView.LayoutManager} associated with the attached
+     *                      {@link RecyclerView}.
      * @return a {@link LinearSmoothScroller} which will handle the scrolling.
      * @deprecated use {@link #createScroller(RecyclerView.LayoutManager)} instead.
      */
@@ -257,15 +251,14 @@ public abstract class SnapHelper extends RecyclerView.OnFlingListener {
      *
      * @param layoutManager the {@link RecyclerView.LayoutManager} associated with the attached
      *                      {@link RecyclerView}
-     * @param targetView the target view that is chosen as the view to snap
-     *
+     * @param targetView    the target view that is chosen as the view to snap
      * @return the output coordinates the put the result into. out[0] is the distance
      * on horizontal axis and out[1] is the distance on vertical axis.
      */
     @SuppressWarnings("WeakerAccess")
     @Nullable
     public abstract int[] calculateDistanceToFinalSnap(@NonNull RecyclerView.LayoutManager layoutManager,
-            @NonNull View targetView);
+                                                       @NonNull View targetView);
 
     /**
      * Override this method to provide a particular target view for snapping.
@@ -279,7 +272,6 @@ public abstract class SnapHelper extends RecyclerView.OnFlingListener {
      *
      * @param layoutManager the {@link RecyclerView.LayoutManager} associated with the attached
      *                      {@link RecyclerView}
-     *
      * @return the target view to which to snap on fling or end of scroll
      */
     @SuppressWarnings("WeakerAccess")
@@ -291,12 +283,11 @@ public abstract class SnapHelper extends RecyclerView.OnFlingListener {
      *
      * @param layoutManager the {@link RecyclerView.LayoutManager} associated with the attached
      *                      {@link RecyclerView}
-     * @param velocityX fling velocity on the horizontal axis
-     * @param velocityY fling velocity on the vertical axis
-     *
+     * @param velocityX     fling velocity on the horizontal axis
+     * @param velocityY     fling velocity on the vertical axis
      * @return the target adapter position to you want to snap or {@link RecyclerView#NO_POSITION}
-     *         if no snapping should happen
+     * if no snapping should happen
      */
     public abstract int findTargetSnapPosition(RecyclerView.LayoutManager layoutManager, int velocityX,
-            int velocityY);
+                                               int velocityY);
 }

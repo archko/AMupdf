@@ -52,7 +52,7 @@ class OpReorderer {
     }
 
     void swapMoveRemove(List<AdapterHelper.UpdateOp> list, int movePos, AdapterHelper.UpdateOp moveOp,
-            int removePos, AdapterHelper.UpdateOp removeOp) {
+                        int removePos, AdapterHelper.UpdateOp removeOp) {
         AdapterHelper.UpdateOp extraRm = null;
         // check if move is nulled out by remove
         boolean revertedMove = false;
@@ -151,7 +151,7 @@ class OpReorderer {
     }
 
     private void swapMoveAdd(List<AdapterHelper.UpdateOp> list, int move, AdapterHelper.UpdateOp moveOp, int add,
-            AdapterHelper.UpdateOp addOp) {
+                             AdapterHelper.UpdateOp addOp) {
         int offset = 0;
         // going in reverse, first revert the effect of add
         if (moveOp.itemCount < addOp.positionStart) {
@@ -172,7 +172,7 @@ class OpReorderer {
     }
 
     void swapMoveUpdate(List<AdapterHelper.UpdateOp> list, int move, AdapterHelper.UpdateOp moveOp, int update,
-            AdapterHelper.UpdateOp updateOp) {
+                        AdapterHelper.UpdateOp updateOp) {
         AdapterHelper.UpdateOp extraUp1 = null;
         AdapterHelper.UpdateOp extraUp2 = null;
         // going in reverse, first revert the effect of add

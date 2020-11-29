@@ -120,12 +120,17 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         Logcat.i(TAG, ".onDetach.$this")
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val view = inflater.inflate(R.layout.list_book_choose, container, false)
 
         this.pathTextView = view.findViewById(R.id.path)
         this.filesListView = view.findViewById(R.id.files)
-        filesListView.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+        filesListView.layoutManager =
+            LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
 
         mSwipeRefreshWidget = view.findViewById(R.id.swipe_refresh_widget) as SwipeRefreshLayout
         mSwipeRefreshWidget.apply {
@@ -184,7 +189,12 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     }
 
     open fun loadData() {
-        bookViewModel.loadFiles(resources.getString(R.string.go_home), mCurrentPath, dirsFirst, showExtension)
+        bookViewModel.loadFiles(
+            resources.getString(R.string.go_home),
+            mCurrentPath,
+            dirsFirst,
+            showExtension
+        )
     }
 
     open fun emitFileBeans(fileList: List<FileBean>) {
@@ -193,7 +203,10 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         if (null != mPathMap[mCurrentPath!!]) {
             val pos = mPathMap[mCurrentPath!!]
             if (pos!! < fileList.size) {
-                (filesListView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(pos, 0)
+                (filesListView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(
+                    pos,
+                    0
+                )
             }
         } else {
             (filesListView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(0, 0)
@@ -216,7 +229,11 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         var path: String? = activity?.getSharedPreferences(ChooseFileFragmentActivity.PREF_TAG, 0)!!
             .getString(ChooseFileFragmentActivity.PREF_HOME, null)
         if (null == path) {
-            Toast.makeText(activity, resources.getString(R.string.toast_set_as_home), Toast.LENGTH_SHORT)
+            Toast.makeText(
+                activity,
+                resources.getString(R.string.toast_set_as_home),
+                Toast.LENGTH_SHORT
+            )
             path = defaultHome
         }
         if (path!!.length > 1 && path.endsWith("/")) {
@@ -231,15 +248,16 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
             return defaultHome
     }
 
-    private val itemClickListener: OnItemClickListener<FileBean> = object : OnItemClickListener<FileBean> {
-        override fun onItemClick(view: View?, data: FileBean?, position: Int) {
-            clickItem(position)
-        }
+    private val itemClickListener: OnItemClickListener<FileBean> =
+        object : OnItemClickListener<FileBean> {
+            override fun onItemClick(view: View?, data: FileBean?, position: Int) {
+                clickItem(position)
+            }
 
-        override fun onItemClick2(view: View?, data: FileBean?, position: Int) {
-            clickItem2(position, view!!)
+            override fun onItemClick2(view: View?, data: FileBean?, position: Int) {
+                clickItem2(position, view!!)
+            }
         }
-    }
 
     private fun clickItem(position: Int) {
         val clickedEntry = fileListAdapter.data[position]
@@ -255,7 +273,8 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
             return
 
         if (clickedFile.isDirectory) {
-            var pos: Int = (filesListView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+            var pos: Int =
+                (filesListView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
             if (pos < 0) {
                 pos = 0
             }
@@ -335,7 +354,12 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         menuBuilder.menu.add(0, infoContextMenuItem, 0, getString(R.string.menu_info))
 
         if (entry.type == FileBean.RECENT) {
-            menuBuilder.menu.add(0, removeContextMenuItem, 0, getString(R.string.menu_remove_from_recent))
+            menuBuilder.menu.add(
+                0,
+                removeContextMenuItem,
+                0,
+                getString(R.string.menu_remove_from_recent)
+            )
         } else if (!entry.isDirectory && entry.type != FileBean.HOME) {
             if (entry.bookProgress?.isFavorited == 0) {
                 menuBuilder.menu.add(0, deleteContextMenuItem, 0, getString(R.string.menu_delete))
@@ -353,9 +377,19 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
             }
         }
         if (entry.bookProgress!!.isFavorited == 0) {
-            menuBuilder.menu.add(0, addToFavoriteContextMenuItem, 0, getString(R.string.menu_add_to_fav))
+            menuBuilder.menu.add(
+                0,
+                addToFavoriteContextMenuItem,
+                0,
+                getString(R.string.menu_add_to_fav)
+            )
         } else {
-            menuBuilder.menu.add(0, removeFromFavoriteContextMenuItem, 0, getString(R.string.menu_remove_from_fav))
+            menuBuilder.menu.add(
+                0,
+                removeFromFavoriteContextMenuItem,
+                0,
+                getString(R.string.menu_remove_from_fav)
+            )
         }
     }
 

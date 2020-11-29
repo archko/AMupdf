@@ -28,11 +28,11 @@ import cn.archko.pdf.common.R;
  * public API, which is not desired in this case.
  */
 class ItemTouchUIUtilImpl implements ItemTouchUIUtil {
-    static final ItemTouchUIUtil INSTANCE =  new ItemTouchUIUtilImpl();
+    static final ItemTouchUIUtil INSTANCE = new ItemTouchUIUtilImpl();
 
     @Override
     public void onDraw(Canvas c, RecyclerView recyclerView, View view, float dX, float dY,
-            int actionState, boolean isCurrentlyActive) {
+                       int actionState, boolean isCurrentlyActive) {
         if (Build.VERSION.SDK_INT >= 21) {
             if (isCurrentlyActive) {
                 Object originalElevation = view.getTag(R.id.item_touch_helper_previous_elevation);
@@ -67,7 +67,7 @@ class ItemTouchUIUtilImpl implements ItemTouchUIUtil {
 
     @Override
     public void onDrawOver(Canvas c, RecyclerView recyclerView, View view, float dX, float dY,
-            int actionState, boolean isCurrentlyActive) {
+                           int actionState, boolean isCurrentlyActive) {
     }
 
     @Override

@@ -57,8 +57,9 @@ class ViewInfoStore {
 
     /**
      * Adds the item information to the prelayout tracking
+     *
      * @param holder The ViewHolder whose information is being saved
-     * @param info The information to save
+     * @param info   The information to save
      */
     void addToPreLayout(RecyclerView.ViewHolder holder, RecyclerView.ItemAnimator.ItemHolderInfo info) {
         InfoRecord record = mLayoutHolderMap.get(holder);
@@ -125,7 +126,8 @@ class ViewInfoStore {
 
     /**
      * Adds the given ViewHolder to the oldChangeHolders list
-     * @param key The key to identify the ViewHolder.
+     *
+     * @param key    The key to identify the ViewHolder.
      * @param holder The ViewHolder to store
      */
     void addToOldChangeHolders(long key, RecyclerView.ViewHolder holder) {
@@ -139,7 +141,7 @@ class ViewInfoStore {
      * them.
      *
      * @param holder The ViewHolder to store
-     * @param info The information to save
+     * @param info   The information to save
      */
     void addToAppearedInPreLayoutHolders(RecyclerView.ViewHolder holder, RecyclerView.ItemAnimator.ItemHolderInfo info) {
         InfoRecord record = mLayoutHolderMap.get(holder);
@@ -153,8 +155,8 @@ class ViewInfoStore {
 
     /**
      * Checks whether the given ViewHolder is in preLayout list
-     * @param viewHolder The ViewHolder to query
      *
+     * @param viewHolder The ViewHolder to query
      * @return True if the ViewHolder is present in preLayout, false otherwise
      */
     boolean isInPreLayout(RecyclerView.ViewHolder viewHolder) {
@@ -165,8 +167,8 @@ class ViewInfoStore {
     /**
      * Queries the oldChangeHolder list for the given key. If they are not tracked, simply returns
      * null.
-     * @param key The key to be used to find the ViewHolder.
      *
+     * @param key The key to be used to find the ViewHolder.
      * @return A ViewHolder if exists or null if it does not exist.
      */
     RecyclerView.ViewHolder getFromOldChangeHolders(long key) {
@@ -175,8 +177,9 @@ class ViewInfoStore {
 
     /**
      * Adds the item information to the post layout list
+     *
      * @param holder The ViewHolder whose information is being saved
-     * @param info The information to save
+     * @param info   The information to save
      */
     void addToPostLayout(RecyclerView.ViewHolder holder, RecyclerView.ItemAnimator.ItemHolderInfo info) {
         InfoRecord record = mLayoutHolderMap.get(holder);
@@ -205,6 +208,7 @@ class ViewInfoStore {
 
     /**
      * Removes a ViewHolder from disappearing list.
+     *
      * @param holder The ViewHolder to be removed from the disappearing list.
      */
     void removeFromDisappearedInLayout(RecyclerView.ViewHolder holder) {
@@ -254,6 +258,7 @@ class ViewInfoStore {
 
     /**
      * Removes the ViewHolder from all list
+     *
      * @param holder The ViewHolder which we should stop tracking
      */
     void removeViewHolder(RecyclerView.ViewHolder holder) {
@@ -279,11 +284,14 @@ class ViewInfoStore {
 
     interface ProcessCallback {
         void processDisappeared(RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ItemAnimator.ItemHolderInfo preInfo,
-                @Nullable RecyclerView.ItemAnimator.ItemHolderInfo postInfo);
+                                @Nullable RecyclerView.ItemAnimator.ItemHolderInfo postInfo);
+
         void processAppeared(RecyclerView.ViewHolder viewHolder, @Nullable RecyclerView.ItemAnimator.ItemHolderInfo preInfo,
-                RecyclerView.ItemAnimator.ItemHolderInfo postInfo);
+                             RecyclerView.ItemAnimator.ItemHolderInfo postInfo);
+
         void processPersistent(RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ItemAnimator.ItemHolderInfo preInfo,
-                @NonNull RecyclerView.ItemAnimator.ItemHolderInfo postInfo);
+                               @NonNull RecyclerView.ItemAnimator.ItemHolderInfo postInfo);
+
         void unused(RecyclerView.ViewHolder holder);
     }
 
@@ -323,7 +331,7 @@ class ViewInfoStore {
 
         static void drainCache() {
             //noinspection StatementWithEmptyBody
-            while (sPool.acquire() != null);
+            while (sPool.acquire() != null) ;
         }
     }
 }

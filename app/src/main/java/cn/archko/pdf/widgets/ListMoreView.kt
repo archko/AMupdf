@@ -93,10 +93,12 @@ class ListMoreView : IMoreView {
 
     override fun getLoadMoreView(): ViewGroup {
         if (mRootView == null) {
-            mRootView = LayoutInflater.from(mHostListView.context).inflate(layoutId, mHostListView, false) as ViewGroup
+            mRootView = LayoutInflater.from(mHostListView.context)
+                .inflate(layoutId, mHostListView, false) as ViewGroup
             loadingView = mRootView!!.findViewById<View>(R.id.txt_more) as TextView
             progressImage = mRootView!!.findViewById<View>(R.id.img_progress) as ImageView
-            animation = AnimationUtils.loadAnimation(mHostListView.context, R.anim.loading_animation)
+            animation =
+                AnimationUtils.loadAnimation(mHostListView.context, R.anim.loading_animation)
             mRootView!!.setOnClickListener { onLoadMore() }
         }
         return mRootView!!
@@ -134,8 +136,10 @@ class ListMoreView : IMoreView {
                     progressImage!!.clearAnimation()
                 }
                 if (failedDrawable != null && failedDrawable!!.size == 4) {
-                    loadingView!!.setCompoundDrawablesWithIntrinsicBounds(failedDrawable!![0],
-                            failedDrawable!![1], failedDrawable!![2], failedDrawable!![3])
+                    loadingView!!.setCompoundDrawablesWithIntrinsicBounds(
+                        failedDrawable!![0],
+                        failedDrawable!![1], failedDrawable!![2], failedDrawable!![3]
+                    )
                 }
                 loadingView!!.text = text[2]
             }
@@ -145,8 +149,10 @@ class ListMoreView : IMoreView {
                     progressImage!!.clearAnimation()
                 }
                 if (noneMoreDrawable != null && noneMoreDrawable!!.size == 4) {
-                    loadingView!!.setCompoundDrawablesWithIntrinsicBounds(noneMoreDrawable!![0],
-                            noneMoreDrawable!![1], noneMoreDrawable!![2], noneMoreDrawable!![3])
+                    loadingView!!.setCompoundDrawablesWithIntrinsicBounds(
+                        noneMoreDrawable!![0],
+                        noneMoreDrawable!![1], noneMoreDrawable!![2], noneMoreDrawable!![3]
+                    )
                 }
                 loadingView!!.text = text[3]
             }

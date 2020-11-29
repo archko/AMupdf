@@ -59,7 +59,8 @@ open class FontsFragment : DialogFragment() {
         }
         setStyle(DialogFragment.STYLE_NO_FRAME, themeId)
 
-        val sp: SharedPreferences = App.instance!!.getSharedPreferences(FontHelper.FONT_SP_FILE, Context.MODE_PRIVATE)
+        val sp: SharedPreferences =
+            App.instance!!.getSharedPreferences(FontHelper.FONT_SP_FILE, Context.MODE_PRIVATE)
         selectedFontName = sp.getString(FontHelper.FONT_KEY_NAME, FontHelper.SYSTEM_FONT)
 
         fontsViewModel = FontsViewModel()
@@ -75,7 +76,11 @@ open class FontsFragment : DialogFragment() {
         MobclickAgent.onPageEnd(TAG);
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val view = inflater.inflate(R.layout.item_font, container, false)
         view.findViewById<View>(R.id.layout_search).visibility = View.GONE
         val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
@@ -85,7 +90,8 @@ open class FontsFragment : DialogFragment() {
         toolbar?.setSubtitle(R.string.dialog_sub_title_font)
 
         recyclerView = view.findViewById(R.id.files)
-        recyclerView.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+        recyclerView.layoutManager =
+            LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
 
         fontsViewModel.uiFontModel.observe(viewLifecycleOwner) { list ->
             kotlin.run {
@@ -93,7 +99,11 @@ open class FontsFragment : DialogFragment() {
                     adapter.data = list
                     adapter.notifyDataSetChanged()
                 } else {
-                    Toast.makeText(this@FontsFragment.activity, R.string.dialog_sub_title_font, Toast.LENGTH_LONG)
+                    Toast.makeText(
+                        this@FontsFragment.activity,
+                        R.string.dialog_sub_title_font,
+                        Toast.LENGTH_LONG
+                    )
                         .show()
                 }
             }
@@ -128,7 +138,8 @@ open class FontsFragment : DialogFragment() {
             title.setText(String.format(getString(R.string.dialog_item_title_font), data?.fontName))
             if (data?.fontType == FontHelper.CUSTOM) {
                 if (null != data.file) {
-                    val typeface = mStyleHelper?.fontHelper?.createFontByPath(data.file?.absolutePath!!)
+                    val typeface =
+                        mStyleHelper?.fontHelper?.createFontByPath(data.file?.absolutePath!!)
                     title.setTypeface(typeface)
                 }
             } else {
@@ -157,7 +168,11 @@ open class FontsFragment : DialogFragment() {
 
         const val TAG = "FontsFragment"
 
-        fun showFontsDialog(activity: FragmentActivity?, styleHelper: StyleHelper?, dataListener: DataListener?) {
+        fun showFontsDialog(
+            activity: FragmentActivity?,
+            styleHelper: StyleHelper?,
+            dataListener: DataListener?
+        ) {
             val ft = activity?.supportFragmentManager?.beginTransaction()
             val prev = activity?.supportFragmentManager?.findFragmentByTag("font_dialog")
             if (prev != null) {

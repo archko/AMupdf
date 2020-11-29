@@ -46,7 +46,8 @@ class RecentTableManager(private val context: Context) {
     var db: SQLiteDatabase? = null
         private set
 
-    private class DatabaseHelper internal constructor(context: Context?) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION) {
+    private class DatabaseHelper internal constructor(context: Context?) :
+        SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION) {
         override fun onCreate(db: SQLiteDatabase) {
             db.execSQL(DATABASE_CREATE)
         }
@@ -137,7 +138,12 @@ class RecentTableManager(private val context: Context) {
         cv.put(ProgressTbl.KEY_RECORD_IS_FAVORITED, progress.isFavorited)
         cv.put(ProgressTbl.KEY_RECORD_IS_IN_RECENT, progress.inRecent)
         var count: Long = 0
-        count = db!!.update(ProgressTbl.TABLE_NAME, cv, ProgressTbl.KEY_NAME + "='" + progress.name + "'", null).toLong()
+        count = db!!.update(
+            ProgressTbl.TABLE_NAME,
+            cv,
+            ProgressTbl.KEY_NAME + "='" + progress.name + "'",
+            null
+        ).toLong()
         return count
     }
 
@@ -157,9 +163,11 @@ class RecentTableManager(private val context: Context) {
             if (inRecent == BookProgress.ALL) {
                 selection = ProgressTbl.KEY_NAME + "=?"
             }
-            cur = db!!.query(true, ProgressTbl.TABLE_NAME, null,
-                    selection, arrayOf(name),
-                    null, null, null, "1")
+            cur = db!!.query(
+                true, ProgressTbl.TABLE_NAME, null,
+                selection, arrayOf(name),
+                null, null, null, "1"
+            )
             if (cur != null) {
                 if (cur.moveToFirst()) {
                     entry = fillProgress(cur)
@@ -196,8 +204,29 @@ class RecentTableManager(private val context: Context) {
         val reflow = cur.getInt(cur.getColumnIndex(ProgressTbl.KEY_RECORD_REFLOW))
         val isFavorited = cur.getInt(cur.getColumnIndex(ProgressTbl.KEY_RECORD_IS_FAVORITED))
         val inRecent = cur.getInt(cur.getColumnIndex(ProgressTbl.KEY_RECORD_IS_IN_RECENT))
-        entry = BookProgress(_id, index, path, name, ext, md5, pageCount, size, firstT, lastT,
-                readTime, progress, page, zoomLevel, rotation, offsetX, offsetY, autoCrop, reflow, isFavorited, inRecent)
+        entry = BookProgress(
+            _id,
+            index,
+            path,
+            name,
+            ext,
+            md5,
+            pageCount,
+            size,
+            firstT,
+            lastT,
+            readTime,
+            progress,
+            page,
+            zoomLevel,
+            rotation,
+            offsetX,
+            offsetY,
+            autoCrop,
+            reflow,
+            isFavorited,
+            inRecent
+        )
         return entry
     }
 
@@ -207,8 +236,10 @@ class RecentTableManager(private val context: Context) {
             var list: ArrayList<BookProgress?>? = null
             var cur: Cursor? = null
             try {
-                cur = db!!.query(ProgressTbl.TABLE_NAME, null,
-                        null, null, null, null, ProgressTbl.KEY_RECORD_LAST_TIMESTAMP + " desc")
+                cur = db!!.query(
+                    ProgressTbl.TABLE_NAME, null,
+                    null, null, null, null, ProgressTbl.KEY_RECORD_LAST_TIMESTAMP + " desc"
+                )
                 if (cur != null) {
                     list = ArrayList()
                     if (cur.moveToFirst()) {
@@ -235,8 +266,16 @@ class RecentTableManager(private val context: Context) {
         var list: ArrayList<BookProgress>? = null
         var cur: Cursor? = null
         try {
-            cur = db!!.query(ProgressTbl.TABLE_NAME, null,
-                    selection, null, null, null, ProgressTbl.KEY_RECORD_LAST_TIMESTAMP + " desc", "$start , $count")
+            cur = db!!.query(
+                ProgressTbl.TABLE_NAME,
+                null,
+                selection,
+                null,
+                null,
+                null,
+                ProgressTbl.KEY_RECORD_LAST_TIMESTAMP + " desc",
+                "$start , $count"
+            )
             if (cur != null) {
                 list = ArrayList()
                 if (cur.moveToFirst()) {
@@ -259,8 +298,10 @@ class RecentTableManager(private val context: Context) {
         get() {
             var cur: Cursor? = null
             try {
-                cur = db!!.query(ProgressTbl.TABLE_NAME, arrayOf("_id"),
-                        null, null, null, null, null)
+                cur = db!!.query(
+                    ProgressTbl.TABLE_NAME, arrayOf("_id"),
+                    null, null, null, null, null
+                )
                 if (cur != null && cur.count > 0) {
                     return cur.count
                 }
@@ -284,8 +325,15 @@ class RecentTableManager(private val context: Context) {
     fun getFavoriteProgressCount(isFavorited: Int): Int {
         var cur: Cursor? = null
         try {
-            cur = db!!.query(ProgressTbl.TABLE_NAME, arrayOf("_id"),
-                    ProgressTbl.KEY_RECORD_IS_FAVORITED + "='" + isFavorited + "'", null, null, null, null)
+            cur = db!!.query(
+                ProgressTbl.TABLE_NAME,
+                arrayOf("_id"),
+                ProgressTbl.KEY_RECORD_IS_FAVORITED + "='" + isFavorited + "'",
+                null,
+                null,
+                null,
+                null
+            )
             if (cur != null && cur.count > 0) {
                 return cur.count
             }

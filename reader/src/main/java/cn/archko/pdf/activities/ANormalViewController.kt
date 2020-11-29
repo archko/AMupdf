@@ -32,14 +32,16 @@ import org.vudroid.pdfdroid.codec.PdfDocument
 /**
  * @author: archko 2020/5/15 :12:43
  */
-class ANormalViewController(private var context: Context,
-                            private var contentView: View,
-                            private val mControllerLayout: RelativeLayout,
-                            private var pdfBookmarkManager: PDFBookmarkManager,
-                            private var mPath: String,
-                            private var mPageSeekBarControls: APageSeekBarControls?,
-                            private var gestureDetector: GestureDetector?) :
-        OutlineListener, AViewController {
+class ANormalViewController(
+    private var context: Context,
+    private var contentView: View,
+    private val mControllerLayout: RelativeLayout,
+    private var pdfBookmarkManager: PDFBookmarkManager,
+    private var mPath: String,
+    private var mPageSeekBarControls: APageSeekBarControls?,
+    private var gestureDetector: GestureDetector?
+) :
+    OutlineListener, AViewController {
 
     private lateinit var documentView: DocumentView
     private lateinit var frameLayout: FrameLayout
@@ -67,9 +69,15 @@ class ANormalViewController(private var context: Context,
         progressModel.addEventListener(this)
         currentPageModel = CurrentPageModel()
         currentPageModel.addEventListener(this)
-        documentView = DocumentView(context, zoomModel, progressModel, currentPageModel, simpleGestureListener)
+        documentView =
+            DocumentView(context, zoomModel, progressModel, currentPageModel, simpleGestureListener)
         zoomModel.addEventListener(documentView)
-        documentView.setLayoutParams(ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        documentView.setLayoutParams(
+            ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
         decodeService?.setContainerView(documentView)
         documentView.setDecodeService(decodeService)
 
@@ -79,7 +87,10 @@ class ANormalViewController(private var context: Context,
         //frameLayout.addView(mPageControls)
         zoomModel.addEventListener(this)
 
-        val lp = RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        val lp = RelativeLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
         lp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
         mControllerLayout.addView(mPageControls, lp)
     }
@@ -152,7 +163,11 @@ class ANormalViewController(private var context: Context,
         document.core = mMupdfDocument?.document
         (decodeService as AKDecodeService).document = document
         if (pos > 0) {
-            documentView.goToPage(pos, pdfBookmarkManager.bookmarkToRestore!!.offsetX, pdfBookmarkManager.bookmarkToRestore!!.offsetY)
+            documentView.goToPage(
+                pos,
+                pdfBookmarkManager.bookmarkToRestore!!.offsetX,
+                pdfBookmarkManager.bookmarkToRestore!!.offsetY
+            )
         }
         documentView.showDocument()
         mPageControls?.hide()
@@ -211,8 +226,10 @@ class ANormalViewController(private var context: Context,
     }
 
     override fun onPause() {
-        pdfBookmarkManager.saveCurrentPage(mPath, mMupdfDocument!!.countPages(), documentView.currentPage,
-                documentView.zoomModel.zoom * 1000f, documentView.scrollX, documentView.scrollY)
+        pdfBookmarkManager.saveCurrentPage(
+            mPath, mMupdfDocument!!.countPages(), documentView.currentPage,
+            documentView.zoomModel.zoom * 1000f, documentView.scrollX, documentView.scrollY
+        )
     }
 
     //===========================================

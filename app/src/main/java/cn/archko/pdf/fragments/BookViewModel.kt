@@ -106,7 +106,10 @@ class BookViewModel : ViewModel() {
                             }
                         })
                     } catch (e: NullPointerException) {
-                        throw RuntimeException("failed to sort file list " + files + " for path " + mCurrentPath, e)
+                        throw RuntimeException(
+                            "failed to sort file list " + files + " for path " + mCurrentPath,
+                            e
+                        )
                     }
 
                     for (file in files) {
@@ -183,14 +186,18 @@ class BookViewModel : ViewModel() {
             withContext(Dispatchers.IO) {
                 try {
                     val recentManager = RecentManager.instance
-                    val progress = recentManager.readRecentFromDb(file.absolutePath, BookProgress.ALL);
+                    val progress =
+                        recentManager.readRecentFromDb(file.absolutePath, BookProgress.ALL);
                     if (null != progress) {
                         Logcat.d(BrowserFragment.TAG, "refresh entry:${progress}")
                         for (fb in list) {
                             if (null != fb.bookProgress && fb.bookProgress!!.name.equals(progress.name)) {
                                 if (fb.bookProgress!!._id == 0) {
                                     fb.bookProgress = progress
-                                    Logcat.d(BrowserFragment.TAG, "update new entry:${fb.bookProgress}")
+                                    Logcat.d(
+                                        BrowserFragment.TAG,
+                                        "update new entry:${fb.bookProgress}"
+                                    )
                                     recentManager.recentTableManager.updateProgress(fb.bookProgress!!)
                                 } else {
                                     fb.bookProgress!!.page = progress.page
@@ -198,7 +205,10 @@ class BookViewModel : ViewModel() {
                                     fb.bookProgress!!.readTimes = progress.readTimes
                                     fb.bookProgress!!.pageCount = progress.pageCount
                                     fb.bookProgress!!.inRecent = progress.inRecent
-                                    Logcat.d(BrowserFragment.TAG, "add new entry:${fb.bookProgress}")
+                                    Logcat.d(
+                                        BrowserFragment.TAG,
+                                        "add new entry:${fb.bookProgress}"
+                                    )
                                 }
                                 break
                             }

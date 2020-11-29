@@ -149,14 +149,17 @@ object Logcat {
             val args = arrayOf("logcat", "-v", "time", "-d", "-t", "500")
             val process = Runtime.getRuntime().exec(args)
             val input = InputStreamReader(
-                    process.inputStream)
+                process.inputStream
+            )
             val br = BufferedReader(input)
             val log = StringBuilder()
             var line: String
-            while (br.readLine().also { line = it } != null) log.append("""
+            while (br.readLine().also { line = it } != null) log.append(
+                """
     $line
     
-    """.trimIndent())
+    """.trimIndent()
+            )
             br.close()
             input.close()
             return log.toString()

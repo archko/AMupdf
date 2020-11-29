@@ -28,13 +28,20 @@ class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
         this.mMode = mMode
     }
 
-    constructor(context: Context, itemClickListener: OnItemClickListener<FileBean>) : super(context) {
+    constructor(
+        context: Context,
+        itemClickListener: OnItemClickListener<FileBean>
+    ) : super(context) {
         this.itemClickListener = itemClickListener
 
         screenWidth = App.instance!!.screenWidth
     }
 
-    constructor(context: Context, arrayList: List<FileBean>, itemClickListener: OnItemClickListener<FileBean>) : super(context, arrayList) {
+    constructor(
+        context: Context,
+        arrayList: List<FileBean>,
+        itemClickListener: OnItemClickListener<FileBean>
+    ) : super(context, arrayList) {
         this.itemClickListener = itemClickListener
     }
 
@@ -76,11 +83,18 @@ class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
 
         override fun onBind(entry: FileBean, position: Int) {
             itemClickListener?.let {
-                itemView.setOnClickListener { itemClickListener!!.onItemClick(itemView, entry, position) }
+                itemView.setOnClickListener {
+                    itemClickListener!!.onItemClick(
+                        itemView,
+                        entry,
+                        position
+                    )
+                }
                 itemView.setOnLongClickListener {
                     if (entry.type != FileBean.HOME
-                            && !entry.isDirectory
-                            && !entry.isUpFolder) {
+                        && !entry.isDirectory
+                        && !entry.isUpFolder
+                    ) {
                         itemClickListener!!.onItemClick2(itemView, entry, position)
                         return@setOnLongClickListener true
                     } else {
@@ -143,11 +157,18 @@ class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
 
         override fun onBind(entry: FileBean, position: Int) {
             itemClickListener?.let {
-                itemView.setOnClickListener { itemClickListener!!.onItemClick(itemView, entry, position) }
+                itemView.setOnClickListener {
+                    itemClickListener!!.onItemClick(
+                        itemView,
+                        entry,
+                        position
+                    )
+                }
                 itemView.setOnLongClickListener {
                     if (entry.type != FileBean.HOME
-                            && !entry.isDirectory
-                            && !entry.isUpFolder) {
+                        && !entry.isDirectory
+                        && !entry.isUpFolder
+                    ) {
                         itemClickListener!!.onItemClick2(itemView, entry, position)
                         return@setOnLongClickListener true
                     } else {
@@ -180,6 +201,7 @@ class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
 
         internal var mName: TextView? = null
         internal var mIcon: ImageView? = null
+
         //internal var mSize: TextView? = null
         internal var mProgressBar: ProgressBar? = null
 
@@ -193,11 +215,18 @@ class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
 
         override fun onBind(entry: FileBean, position: Int) {
             itemClickListener?.let {
-                itemView.setOnClickListener { itemClickListener!!.onItemClick(itemView, entry, position) }
+                itemView.setOnClickListener {
+                    itemClickListener!!.onItemClick(
+                        itemView,
+                        entry,
+                        position
+                    )
+                }
                 itemView.setOnLongClickListener {
                     if (entry.type != FileBean.HOME
-                            && !entry.isDirectory
-                            && !entry.isUpFolder) {
+                        && !entry.isDirectory
+                        && !entry.isUpFolder
+                    ) {
                         itemClickListener!!.onItemClick2(itemView, entry, position)
                         return@setOnLongClickListener true
                     } else {
@@ -232,7 +261,8 @@ class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
                     mIcon!!.setImageResource(R.drawable.ic_explorer_any)
                 }
 
-                ImageLoader.getInstance().loadImage(entry.file?.absolutePath, 0, 1.0f, screenWidth, mIcon!!);
+                ImageLoader.getInstance()
+                    .loadImage(entry.file?.absolutePath, 0, 1.0f, screenWidth, mIcon!!);
             }
         }
     }
@@ -241,10 +271,13 @@ class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
 
         @JvmField
         val TYPE_FILE = 0
+
         @JvmField
         val TYPE_RENCENT = 1
+
         @JvmField
         val TYPE_SEARCH = 2
+
         @JvmField
         val TYPE_GRID = 3
     }

@@ -52,7 +52,8 @@ class StyleHelper {
     }
 
     fun loadStyleFromSP() {
-        val sp: SharedPreferences = App.instance!!.getSharedPreferences(STYLE_SP_FILE, Context.MODE_PRIVATE)
+        val sp: SharedPreferences =
+            App.instance!!.getSharedPreferences(STYLE_SP_FILE, Context.MODE_PRIVATE)
         val textSize: Float = sp.getFloat(STYLE_KEY_FONT_SIZE, 16f)
         val bgColor: Int = sp.getInt(STYLE_KEY_BGCOLOR, Color.WHITE)
         val fgColor: Int = sp.getInt(STYLE_KEY_FGCOLOR, Color.BLACK)
@@ -61,23 +62,33 @@ class StyleHelper {
         val topPadding: Int = sp.getInt(STYLE_KEY_TOP_PADDING, Utils.dipToPixel(16f))
         val rightPadding: Int = sp.getInt(STYLE_KEY_RIGHT_PADDING, Utils.dipToPixel(12f))
         val bottomPadding: Int = sp.getInt(STYLE_KEY_BOTTOM_PADDING, Utils.dipToPixel(20f))
-        styleBean = StyleBean(textSize, bgColor, fgColor, lineSpacingMult, leftPadding, topPadding, rightPadding, bottomPadding)
+        styleBean = StyleBean(
+            textSize,
+            bgColor,
+            fgColor,
+            lineSpacingMult,
+            leftPadding,
+            topPadding,
+            rightPadding,
+            bottomPadding
+        )
     }
 
     fun saveStyleToSP(sBean: StyleBean?) {
         sBean?.run {
             styleBean = sBean
-            val sp: SharedPreferences = App.instance!!.getSharedPreferences(STYLE_SP_FILE, Context.MODE_PRIVATE)
+            val sp: SharedPreferences =
+                App.instance!!.getSharedPreferences(STYLE_SP_FILE, Context.MODE_PRIVATE)
             sp.edit()
-                    .putFloat(STYLE_KEY_FONT_SIZE, sBean.textSize)
-                    .putInt(STYLE_KEY_BGCOLOR, sBean.bgColor)
-                    .putInt(STYLE_KEY_FGCOLOR, sBean.fgColor)
-                    .putFloat(STYLE_KEY_LINE_SPACEING_MULT, sBean.lineSpacingMult)
-                    .putInt(STYLE_KEY_LEFT_PADDING, sBean.leftPadding)
-                    .putInt(STYLE_KEY_TOP_PADDING, sBean.topPadding)
-                    .putInt(STYLE_KEY_RIGHT_PADDING, sBean.rightPadding)
-                    .putInt(STYLE_KEY_BOTTOM_PADDING, sBean.bottomPadding)
-                    .apply()
+                .putFloat(STYLE_KEY_FONT_SIZE, sBean.textSize)
+                .putInt(STYLE_KEY_BGCOLOR, sBean.bgColor)
+                .putInt(STYLE_KEY_FGCOLOR, sBean.fgColor)
+                .putFloat(STYLE_KEY_LINE_SPACEING_MULT, sBean.lineSpacingMult)
+                .putInt(STYLE_KEY_LEFT_PADDING, sBean.leftPadding)
+                .putInt(STYLE_KEY_TOP_PADDING, sBean.topPadding)
+                .putInt(STYLE_KEY_RIGHT_PADDING, sBean.rightPadding)
+                .putInt(STYLE_KEY_BOTTOM_PADDING, sBean.bottomPadding)
+                .apply()
         }
     }
 }

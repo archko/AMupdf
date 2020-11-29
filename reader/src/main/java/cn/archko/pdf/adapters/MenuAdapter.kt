@@ -12,8 +12,10 @@ import cn.archko.pdf.utils.Utils
 /**
  * @author: archko 2019/7/12 :19:52
  */
-class MenuAdapter public constructor(var menuListener: MenuListener?, private var context: Context?)
-    : BaseRecyclerAdapter<String>(context) {
+class MenuAdapter public constructor(
+    var menuListener: MenuListener?,
+    private var context: Context?
+) : BaseRecyclerAdapter<String>(context) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<MenuBean> {
         val view = mInflater.inflate(R.layout.item_outline, parent, false)

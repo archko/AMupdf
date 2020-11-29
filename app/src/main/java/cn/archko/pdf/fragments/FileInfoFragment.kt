@@ -31,6 +31,7 @@ class FileInfoFragment : DialogFragment() {
     lateinit var mLocation: TextView
     lateinit var mFileName: TextView
     lateinit var mFileSize: TextView
+
     //lateinit var mLastModified: TextView
     lateinit var mLastReadLayout: View
     lateinit var mLastRead: TextView
@@ -72,7 +73,11 @@ class FileInfoFragment : DialogFragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val view = inflater.inflate(R.layout.detail_book_info, container, false)
         mLocation = view.findViewById(R.id.location)
         mFileName = view.findViewById(R.id.fileName)
@@ -178,7 +183,11 @@ class FileInfoFragment : DialogFragment() {
         const val TAG = "FileInfoFragment"
         const val FILE_LIST_ENTRY = "FILE_LIST_ENTRY"
 
-        fun showInfoDialog(activity: FragmentActivity?, entry: FileBean, dataListener: DataListener?) {
+        fun showInfoDialog(
+            activity: FragmentActivity?,
+            entry: FileBean,
+            dataListener: DataListener?
+        ) {
             val ft = activity?.supportFragmentManager?.beginTransaction()
             val prev = activity?.supportFragmentManager?.findFragmentByTag("diaLog")
             if (prev != null) {

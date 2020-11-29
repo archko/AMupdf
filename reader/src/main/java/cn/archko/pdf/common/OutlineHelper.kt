@@ -9,7 +9,10 @@ import com.artifex.mupdf.viewer.OutlineActivity
 /**
  * @author: archko 2018/12/15 :9:11
  */
-class OutlineHelper public constructor(private var mupdfDocument: MupdfDocument?, private var activity: Activity?) {
+class OutlineHelper public constructor(
+    private var mupdfDocument: MupdfDocument?,
+    private var activity: Activity?
+) {
 
     private var outline: Array<Outline>? = null
     private var items: ArrayList<OutlineActivity.Item>? = null
@@ -25,7 +28,11 @@ class OutlineHelper public constructor(private var mupdfDocument: MupdfDocument?
         return items!!
     }
 
-    private fun flattenOutlineNodes(result: ArrayList<OutlineActivity.Item>, list: Array<Outline>?, indent: String) {
+    private fun flattenOutlineNodes(
+        result: ArrayList<OutlineActivity.Item>,
+        list: Array<Outline>?,
+        indent: String
+    ) {
         for (node in list!!) {
             if (node.title != null) {
                 val page = mupdfDocument?.pageNumberFromLocation(node)
@@ -52,7 +59,12 @@ class OutlineHelper public constructor(private var mupdfDocument: MupdfDocument?
         return outlineItems!!
     }
 
-    private fun flattenOutlineItems(parent: OutlineItem, result: ArrayList<OutlineItem>, list: Array<Outline>?, indent: String) {
+    private fun flattenOutlineItems(
+        parent: OutlineItem,
+        result: ArrayList<OutlineItem>,
+        list: Array<Outline>?,
+        indent: String
+    ) {
         for (node in list!!) {
             val element = OutlineItem(nodeId++, parent.id, node.title)
             result.add(element)

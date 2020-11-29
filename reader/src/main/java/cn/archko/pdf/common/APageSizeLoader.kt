@@ -15,7 +15,12 @@ import java.io.File
  */
 object APageSizeLoader {
     const val PAGE_COUNT = 250
-    fun loadPageSizeFromFile(targetWidth: Int, pageCount: Int, fileSize: Long, file: File?): PageSizeBean? {
+    fun loadPageSizeFromFile(
+        targetWidth: Int,
+        pageCount: Int,
+        fileSize: Long,
+        file: File?
+    ): PageSizeBean? {
         var pageSizeBean: PageSizeBean? = null
         try {
             val content = StreamUtils.readStringFromFile(file)
@@ -28,7 +33,12 @@ object APageSizeLoader {
         return pageSizeBean
     }
 
-    fun savePageSizeToFile(crop: Boolean, fileSize: Long, sparseArray: SparseArray<APage>, file: File?) {
+    fun savePageSizeToFile(
+        crop: Boolean,
+        fileSize: Long,
+        sparseArray: SparseArray<APage>,
+        file: File?
+    ) {
         val content = toJson(crop, fileSize, sparseArray)
         StreamUtils.saveStringToFile(content, file)
     }

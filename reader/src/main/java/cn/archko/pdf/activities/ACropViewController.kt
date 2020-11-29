@@ -24,14 +24,16 @@ import cn.archko.pdf.widgets.ViewerDividerItemDecoration
 /**
  * @author: archko 2020/5/15 :12:43
  */
-class ACropViewController(private var context: Context,
-                          private var contentView: View,
-                          private val mControllerLayout: RelativeLayout,
-                          private var pdfBookmarkManager: PDFBookmarkManager,
-                          private var mPath: String,
-                          private var mPageSeekBarControls: APageSeekBarControls?,
-                          private var gestureDetector: GestureDetector?) :
-        OutlineListener, AViewController {
+class ACropViewController(
+    private var context: Context,
+    private var contentView: View,
+    private val mControllerLayout: RelativeLayout,
+    private var pdfBookmarkManager: PDFBookmarkManager,
+    private var mPath: String,
+    private var mPageSeekBarControls: APageSeekBarControls?,
+    private var gestureDetector: GestureDetector?
+) :
+    OutlineListener, AViewController {
 
     private lateinit var mRecyclerView: RecyclerView
     private var mMupdfDocument: MupdfDocument? = null
@@ -118,7 +120,8 @@ class ACropViewController(private var context: Context,
     }
 
     override fun getCurrentPos(): Int {
-        var position = (mRecyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+        var position =
+            (mRecyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
         if (position < 0) {
             position = 0
         }
@@ -181,7 +184,14 @@ class ACropViewController(private var context: Context,
 
         val position = getCurrentPos()
         val zoomLevel = pdfBookmarkManager.bookmarkToRestore!!.zoomLevel
-        pdfBookmarkManager.saveCurrentPage(mPath, mMupdfDocument!!.countPages(), position, zoomLevel, -1, 0)
+        pdfBookmarkManager.saveCurrentPage(
+            mPath,
+            mMupdfDocument!!.countPages(),
+            position,
+            zoomLevel,
+            -1,
+            0
+        )
     }
 
     //===========================================

@@ -54,7 +54,7 @@ class ChildHelper {
     /**
      * Marks a child view as hidden
      *
-     * @param child  View to hide.
+     * @param child View to hide.
      */
     private void hideViewInternal(View child) {
         mHiddenViews.add(child);
@@ -64,7 +64,7 @@ class ChildHelper {
     /**
      * Unmarks a child view as hidden.
      *
-     * @param child  View to hide.
+     * @param child View to hide.
      */
     private boolean unhideViewInternal(View child) {
         if (mHiddenViews.remove(child)) {
@@ -200,7 +200,7 @@ class ChildHelper {
      * This can be used to find a disappearing view by position.
      *
      * @param position The adapter position of the item.
-     * @return         A hidden view with a valid ViewHolder that matches the position.
+     * @return A hidden view with a valid ViewHolder that matches the position.
      */
     View findHiddenNonRemovedView(int position) {
         final int count = mHiddenViews.size();
@@ -225,7 +225,7 @@ class ChildHelper {
      * @param hidden       If set to true, this item will be invisible to the regular methods.
      */
     void attachViewToParent(View child, int index, ViewGroup.LayoutParams layoutParams,
-            boolean hidden) {
+                            boolean hidden) {
         final int offset;
         if (index < 0) {
             offset = mCallback.getChildCount();

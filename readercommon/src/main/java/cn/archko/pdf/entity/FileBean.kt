@@ -32,7 +32,13 @@ class FileBean : Serializable, Cloneable {
         }
     }
 
-    constructor(type: Int, file: File, showPDFExtension: Boolean) : this(type, file, getLabel(file, showPDFExtension)) {}
+    constructor(type: Int, file: File, showPDFExtension: Boolean) : this(
+        type,
+        file,
+        getLabel(file, showPDFExtension)
+    ) {
+    }
+
     constructor(type: Int, label: String?) {
         this.type = type
         this.label = label

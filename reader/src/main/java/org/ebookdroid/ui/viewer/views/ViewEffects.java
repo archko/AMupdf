@@ -21,5 +21,5 @@ public class ViewEffects {
         view.startAnimation(anim);
         view.setVisibility(visibility);
     }
-    
+
 }

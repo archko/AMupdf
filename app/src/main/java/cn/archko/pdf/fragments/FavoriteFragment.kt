@@ -58,7 +58,11 @@ class FavoriteFragment : BrowserFragment() {
         return false
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val view = super.onCreateView(inflater, container, savedInstanceState)
 
         this.pathTextView.visibility = View.GONE
@@ -111,7 +115,13 @@ class FavoriteFragment : BrowserFragment() {
     }
 
     private fun updateLoadingStatus(totalCount: Int) {
-        Logcat.d(String.format("$this, total count:%s, adapter count:%s", totalCount, fileListAdapter.normalCount))
+        Logcat.d(
+            String.format(
+                "$this, total count:%s, adapter count:%s",
+                totalCount,
+                fileListAdapter.normalCount
+            )
+        )
         if (fileListAdapter.normalCount > 0) {
             if (fileListAdapter.normalCount < totalCount) {
                 mListMoreView.onLoadingStateChanged(IMoreView.STATE_NORMAL)
@@ -125,37 +135,41 @@ class FavoriteFragment : BrowserFragment() {
         }
     }
 
-    private val onScrollListener: RecyclerView.OnScrollListener = object : RecyclerView.OnScrollListener() {
-        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-            if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                if (mListMoreView.state == IMoreView.STATE_NORMAL
-                    || mListMoreView.state == IMoreView.STATE_LOAD_FAIL
-                ) {
-                    var isReachBottom = false
-                    if (mStyle == HistoryFragment.STYLE_GRID) {
-                        val gridLayoutManager = filesListView.layoutManager as GridLayoutManager
-                        val rowCount = fileListAdapter.getItemCount() / gridLayoutManager.spanCount
-                        val lastVisibleRowPosition =
-                            gridLayoutManager.findLastVisibleItemPosition() / gridLayoutManager.spanCount
-                        isReachBottom = lastVisibleRowPosition >= rowCount - 1
-                    } else if (mStyle == HistoryFragment.STYLE_LIST) {
-                        val layoutManager: LinearLayoutManager = filesListView.layoutManager as LinearLayoutManager
-                        val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
-                        val rowCount = fileListAdapter.getItemCount()
-                        isReachBottom =
-                            lastVisibleItemPosition >= rowCount - fileListAdapter.headersCount - fileListAdapter.footersCount
-                    }
-                    if (isReachBottom) {
-                        mListMoreView.onLoadingStateChanged(IMoreView.STATE_LOADING)
-                        loadMore()
+    private val onScrollListener: RecyclerView.OnScrollListener =
+        object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    if (mListMoreView.state == IMoreView.STATE_NORMAL
+                        || mListMoreView.state == IMoreView.STATE_LOAD_FAIL
+                    ) {
+                        var isReachBottom = false
+                        if (mStyle == HistoryFragment.STYLE_GRID) {
+                            val gridLayoutManager = filesListView.layoutManager as GridLayoutManager
+                            val rowCount =
+                                fileListAdapter.getItemCount() / gridLayoutManager.spanCount
+                            val lastVisibleRowPosition =
+                                gridLayoutManager.findLastVisibleItemPosition() / gridLayoutManager.spanCount
+                            isReachBottom = lastVisibleRowPosition >= rowCount - 1
+                        } else if (mStyle == HistoryFragment.STYLE_LIST) {
+                            val layoutManager: LinearLayoutManager =
+                                filesListView.layoutManager as LinearLayoutManager
+                            val lastVisibleItemPosition =
+                                layoutManager.findLastVisibleItemPosition()
+                            val rowCount = fileListAdapter.getItemCount()
+                            isReachBottom =
+                                lastVisibleItemPosition >= rowCount - fileListAdapter.headersCount - fileListAdapter.footersCount
+                        }
+                        if (isReachBottom) {
+                            mListMoreView.onLoadingStateChanged(IMoreView.STATE_LOADING)
+                            loadMore()
+                        }
                     }
                 }
             }
-        }
 
-        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            }
         }
-    }
 
     private fun loadMore() {
         Logcat.d("loadMore")

@@ -105,7 +105,10 @@ class RecentManager private constructor() {
     }
 
     @JvmOverloads
-    fun readRecentFromDb(absolutePath: String?, recent: Int = BookProgress.IN_RECENT): BookProgress? {
+    fun readRecentFromDb(
+        absolutePath: String?,
+        recent: Int = BookProgress.IN_RECENT
+    ): BookProgress? {
         var progress: BookProgress? = null
         try {
             val file = File(absolutePath)
@@ -119,7 +122,11 @@ class RecentManager private constructor() {
     fun readRecentFromDb(start: Int, count: Int): ArrayList<BookProgress>? {
         var list: ArrayList<BookProgress>? = null
         try {
-            list = recentTableManager.getProgresses(start, count, RecentTableManager.ProgressTbl.KEY_RECORD_IS_IN_RECENT + "='0'")
+            list = recentTableManager.getProgresses(
+                start,
+                count,
+                RecentTableManager.ProgressTbl.KEY_RECORD_IS_IN_RECENT + "='0'"
+            )
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -137,7 +144,8 @@ class RecentManager private constructor() {
         }
 
     fun backupFromDb(): String? {
-        val name = "mupdf_" + DateUtils.formatTime(System.currentTimeMillis(), "yyyy-MM-dd-HH-mm-ss")
+        val name =
+            "mupdf_" + DateUtils.formatTime(System.currentTimeMillis(), "yyyy-MM-dd-HH-mm-ss")
         return backupFromDb(name)
     }
 
@@ -249,7 +257,11 @@ class RecentManager private constructor() {
     fun readFavoriteFromDb(start: Int, count: Int): ArrayList<BookProgress>? {
         var list: ArrayList<BookProgress>? = null
         try {
-            list = recentTableManager.getProgresses(start, count, RecentTableManager.ProgressTbl.KEY_RECORD_IS_FAVORITED + "='1'")
+            list = recentTableManager.getProgresses(
+                start,
+                count,
+                RecentTableManager.ProgressTbl.KEY_RECORD_IS_FAVORITED + "='1'"
+            )
         } catch (e: Exception) {
             e.printStackTrace()
         }
