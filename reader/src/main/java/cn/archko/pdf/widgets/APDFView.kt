@@ -2,23 +2,18 @@ package cn.archko.pdf.widgets
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.RectF
 import android.os.Handler
 import android.view.View
 import android.widget.ImageView
-import cn.archko.pdf.AppExecutors
-import cn.archko.pdf.common.BitmapPool
+import cn.archko.pdf.common.BitmapCache
+import cn.archko.pdf.common.ImageDecoder
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.entity.APage
 import cn.archko.pdf.mupdf.MupdfDocument
 import cn.archko.pdf.utils.Utils
-import com.artifex.mupdf.fitz.Matrix
-import com.artifex.mupdf.fitz.Page
-import com.artifex.mupdf.fitz.RectI
 
 /**
  * @author: archko 2018/7/25 :12:43
@@ -35,7 +30,7 @@ public class APDFView(
     private val mHandler: Handler = Handler()
     private val bitmapPaint = Paint()
     private val textPaint: Paint = textPaint()
-    private var task: DecodeTask? = null
+    //private var task: DecodeTask? = null
 
     init {
         updateView()
@@ -56,11 +51,11 @@ public class APDFView(
     }
 
     fun recycle() {
-        task?.let { it.recycle = true }
+        //task?.let { it.recycle = true }
         setImageBitmap(null)
-        mBitmap?.recycle()
-        mBitmap = null
-        isRecycle = true
+        //mBitmap?.recycle()
+        //mBitmap = null
+        //isRecycle = true
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -88,7 +83,7 @@ public class APDFView(
     }
 
     override fun onDraw(canvas: Canvas) {
-        if (mBitmap == null && drawable == null) {
+        if (/*mBitmap == null &&*/ drawable == null) {
             canvas.drawText(
                 String.format("Page %s", aPage.index + 1), (measuredWidth / 2).toFloat(),
                 (measuredHeight / 2).toFloat(), textPaint
@@ -98,7 +93,7 @@ public class APDFView(
     }
 
     fun updatePage(pageSize: APage, newZoom: Float, crop: Boolean) {
-        isRecycle = false
+        //isRecycle = false
         val oldZoom = aPage.scaleZoom
         aPage = pageSize
         aPage.zoom = newZoom
@@ -110,7 +105,7 @@ public class APDFView(
             )
         )
 
-        if (null != mBitmap) {
+        /*if (null != mBitmap) {
             if (!mBitmap!!.isRecycled) {
                 setImageBitmap(mBitmap)
                 return
@@ -120,20 +115,46 @@ public class APDFView(
         task?.let { it.recycle = true }
         task = DecodeTask(pageSize, crop)
 
-        decodeBitmap(task!!)
+        decodeBitmap(task!!)*/
+        var bmp = BitmapCache.getInstance()
+            .getBitmap(ImageDecoder.getCacheKey(aPage.index, crop, aPage.scaleZoom))
+
+        if (null != bmp) {
+            setImageBitmap(bmp)
+        } else {
+            bmp = BitmapCache.getInstance()
+                .getBitmap(ImageDecoder.getCacheKey(aPage.index, crop, oldZoom))
+            //if (Logcat.loggable) {
+            //    Logcat.d(String.format("updatePage xOrigin: %s, oldZoom:%s, newZoom:%s, bmp:%s",
+            //            xOrigin, oldZoom, newZoom, bmp));
+            //}
+            if (null != bmp) {
+                setImageBitmap(bmp)
+                return
+            }
+        }
+
+        ImageDecoder.getInstance().loadImage(aPage, crop, 0, this, mupdfDocument?.document) { bitmap ->
+            //if (Logcat.loggable) {
+            //    Logcat.d(String.format("decode2 relayout bitmap:index:%s, %s:%s imageView->%s:%s",
+            //            pageSize.index, bitmap.width, bitmap.height,
+            //            getWidth(), getHeight()))
+            //}
+            setImageBitmap(bitmap)
+        }
     }
 
-    override fun setImageBitmap(bm: Bitmap?) {
-        super.setImageBitmap(bm)
-        mBitmap = bm
-    }
+    //override fun setImageBitmap(bm: Bitmap?) {
+    //    super.setImageBitmap(bm)
+    //    mBitmap = bm
+    //}
 
     // =================== decode ===================
-    private var mBitmap: Bitmap? = null
-    private var isRecycle = false
+    //private var mBitmap: Bitmap? = null
+    //private var isRecycle = false
     //private var crop: Boolean = false
 
-    private fun decodeBitmap(task: DecodeTask) {
+    /*private fun decodeBitmap(task: DecodeTask) {
         AppExecutors.instance.diskIO().execute(Runnable { doDecode(task) })
     }
 
@@ -225,5 +246,5 @@ public class APDFView(
         override fun toString(): String {
             return "DecodeTask(pageSize=$pageSize, crop=$crop, recycle=$recycle)"
         }
-    }
+    }*/
 }
