@@ -3,15 +3,20 @@ package cn.archko.pdf.widgets
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.RectF
 import android.os.Handler
+import android.text.TextPaint
 import android.view.View
-import android.widget.ImageView
 import cn.archko.pdf.AppExecutors
 import cn.archko.pdf.common.BitmapPool
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.entity.APage
 import cn.archko.pdf.mupdf.MupdfDocument
+import cn.archko.pdf.utils.Utils
 import com.artifex.mupdf.fitz.Matrix
 import com.artifex.mupdf.fitz.Page
 import com.artifex.mupdf.fitz.RectI
@@ -25,18 +30,31 @@ public class APDFView(
     private val mupdfDocument: MupdfDocument?,
     private var aPage: APage,
     crop: Boolean,
-) : ImageView(mContext) {
+) : View(mContext) {
 
     private var mZoom: Float = 0.toFloat()
     private val mHandler: Handler = Handler()
+    private val bitmapPaint = Paint()
+    private val textPaint: Paint = textPaint()
+
+    private var targetRect: Rect? = null
 
     init {
         updateView()
     }
 
     private fun updateView() {
-        scaleType = ImageView.ScaleType.MATRIX
+        //scaleType = ImageView.ScaleType.MATRIX
         setLayerType(View.LAYER_TYPE_HARDWARE, null)
+    }
+
+    private fun textPaint(): Paint {
+        val paint = TextPaint()
+        paint.color = Color.BLUE
+        paint.isAntiAlias = true
+        paint.textSize = Utils.sp2px(30f).toFloat()
+        paint.textAlign = Paint.Align.CENTER
+        return paint
     }
 
     fun recycle() {
@@ -49,10 +67,10 @@ public class APDFView(
         var mwidth = aPage.getCropWidth()
         var mheight = aPage.getCropHeight()
 
-        val d = drawable
+        val d = bitmap
         if (null != d) {
-            val dwidth = d.intrinsicWidth
-            val dheight = d.intrinsicHeight
+            val dwidth = d.width
+            val dheight = d.height
 
             if (dwidth > 0 && dheight > 0) {
                 mwidth = dwidth
@@ -67,6 +85,25 @@ public class APDFView(
                 mwidth, mheight, aPage.effectivePagesWidth, aPage.effectivePagesHeight, mZoom, aPage
             )
         )
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        canvas.drawText(
+            String.format("Page %s", aPage.index + 1), (width / 2).toFloat(),
+            (height / 2).toFloat(), textPaint
+        )
+        if (bitmap != null) {
+            val tRect: Rect = getTargetRect()
+            //Logcat.d(String.format("draw:%s-%s,w-h:%s-%s,rect:%s", tRect.width(), tRect.height(), bitmap.getWidth(), bitmap.getHeight(), tRect));
+            canvas.drawBitmap(bitmap!!, Rect(0, 0, bitmap!!.width, bitmap!!.height), tRect, bitmapPaint)
+            //canvas.drawRect(tRect, strokePaint);
+            //canvas.drawRect(getCropTargetRect(), strokePaint2);
+        }
+    }
+
+    private fun getTargetRect(): Rect {
+        targetRect = Rect(0, 0, measuredWidth, measuredHeight)
+        return targetRect as Rect
     }
 
     fun updatePage(pageSize: APage, newZoom: Float, crop: Boolean) {
@@ -90,9 +127,10 @@ public class APDFView(
         decodeBitmap(crop)
     }
 
-    override fun setImageBitmap(bm: Bitmap?) {
-        super.setImageBitmap(bm)
+    fun setImageBitmap(bm: Bitmap?) {
+        //super.setImageBitmap(bm)
         bitmap = bm
+        invalidate()
     }
 
     // =================== decode ===================
@@ -148,7 +186,7 @@ public class APDFView(
             val cropRectf = RectF(
                 leftBound.toFloat(), topBound.toFloat(),
                 (leftBound + pageW).toFloat(), (topBound + pageH).toFloat()
-            );
+            )
             pageSize.setCropBounds(cropRectf, cropScale)
             //}
         }
