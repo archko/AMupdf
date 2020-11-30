@@ -2,13 +2,19 @@ package cn.archko.pdf.widgets
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.RectF
+import android.os.Handler
 import android.view.View
 import android.widget.ImageView
-import cn.archko.pdf.common.BitmapCache
-import cn.archko.pdf.common.ImageDecoder
+import cn.archko.pdf.AppExecutors
+import cn.archko.pdf.common.BitmapPool
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.entity.APage
-import com.artifex.mupdf.fitz.Document
+import cn.archko.pdf.mupdf.MupdfDocument
+import com.artifex.mupdf.fitz.Matrix
+import com.artifex.mupdf.fitz.Page
+import com.artifex.mupdf.fitz.RectI
 
 /**
  * @author: archko 2018/7/25 :12:43
@@ -16,12 +22,13 @@ import com.artifex.mupdf.fitz.Document
 @SuppressLint("AppCompatCustomView")
 public class APDFView(
     protected val mContext: Context,
-    private val mCore: Document?,
+    private val mupdfDocument: MupdfDocument?,
     private var aPage: APage,
-    crop: Boolean
+    crop: Boolean,
 ) : ImageView(mContext) {
 
     private var mZoom: Float = 0.toFloat()
+    private val mHandler: Handler = Handler()
 
     init {
         updateView()
@@ -34,6 +41,8 @@ public class APDFView(
 
     fun recycle() {
         setImageBitmap(null)
+        bitmap = null
+        isRecycle = true
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -48,18 +57,6 @@ public class APDFView(
             if (dwidth > 0 && dheight > 0) {
                 mwidth = dwidth
                 mheight = dheight
-
-                if (mZoom > 1.0f) {
-                    val sx = (mwidth * mZoom).toInt()
-                    val sy = (mheight * mZoom).toInt()
-                    val dx = sx - mwidth
-                    val dy = sy - mheight
-                    mwidth = sx
-                    mheight = sy
-                    imageMatrix.reset()
-                    imageMatrix.setScale(mZoom, mZoom)
-                    imageMatrix.postTranslate((-dx).toFloat(), (-dy).toFloat())
-                }
             }
         }
 
@@ -73,154 +70,114 @@ public class APDFView(
     }
 
     fun updatePage(pageSize: APage, newZoom: Float, crop: Boolean) {
+        isRecycle = false
         val oldZoom = aPage.scaleZoom
-        var changeScale = false
-        if (mZoom != newZoom) {
-            changeScale = true
-        } else {
-            changeScale = aPage !== pageSize
-        }
         aPage = pageSize
         aPage.zoom = newZoom
 
-        val zoomSize = aPage.zoomPoint
-        val xOrigin = (zoomSize.x - aPage.getTargetWidth()) / 2
         Logcat.d(
             String.format(
-                "updatePage xOrigin: %s,changeScale:%s, oldZoom:%s, newScaleZoom:%s,newZoom:%s,",
-                xOrigin, changeScale, oldZoom, aPage.scaleZoom, newZoom
+                "updatePage, oldZoom:%s, newScaleZoom:%s,newZoom:%s,",
+                oldZoom, aPage.scaleZoom, newZoom
             )
         )
 
-        var bmp = BitmapCache.getInstance()
-            .getBitmap(ImageDecoder.getCacheKey(aPage.index, crop, aPage.scaleZoom))
-
-        if (null != bmp) {
-            setImageBitmap(bmp)
-            imageMatrix.reset()
-            if (!changeScale) {
-                return
-            }
-        }
-
-        if (changeScale && bmp == null) {
-            bmp = BitmapCache.getInstance()
-                .getBitmap(ImageDecoder.getCacheKey(aPage.index, crop, oldZoom))
-            //if (Logcat.loggable) {
-            //    Logcat.d(String.format("updatePage xOrigin: %s, oldZoom:%s, newZoom:%s, bmp:%s",
-            //            xOrigin, oldZoom, newZoom, bmp));
-            //}
-            if (null != bmp) {
-                setImageBitmap(bmp)
-                imageMatrix.reset()
-                imageMatrix.setScale(newZoom, newZoom)
-                imageMatrix.postTranslate((-xOrigin).toFloat(), 0f)
-            }
-        }
-
-        ImageDecoder.getInstance().loadImage(aPage, crop, xOrigin, this, mCore) { bitmap ->
-            //if (Logcat.loggable) {
-            //    Logcat.d(String.format("decode2 relayout bitmap:index:%s, %s:%s imageView->%s:%s",
-            //            pageSize.index, bitmap.width, bitmap.height,
-            //            getWidth(), getHeight()))
-            //}
+        if (null != bitmap) {
             setImageBitmap(bitmap)
-            imageMatrix.reset()
+            return
+        }
+
+        decodeBitmap(crop)
+    }
+
+    override fun setImageBitmap(bm: Bitmap?) {
+        super.setImageBitmap(bm)
+        bitmap = bm
+    }
+
+    // =================== decode ===================
+    private var bitmap: Bitmap? = null
+    private var isRecycle = false
+    private var crop: Boolean = false
+
+    private fun decodeBitmap(crop: Boolean) {
+        AppExecutors.instance.diskIO().execute(Runnable { doDecode(crop) })
+    }
+
+    private fun doDecode(crop: Boolean) {
+        this.crop = crop
+        val bm: Bitmap? = decode()
+        if (bm != null && !isRecycle) {
+            mHandler.post { setImageBitmap(bm) }
         }
     }
 
-    /*@SuppressLint("StaticFieldLeak")
-    protected fun getDrawPageTask(autoCrop: Boolean, pageSize: APage,
-                                  xOrigin: Int, viewHeight: Int): AsyncTask<Void, Void, Bitmap> {
-        return object : AsyncTask<Void, Void, Bitmap>() {
+    fun decode(): Bitmap? {
+        //long start = SystemClock.uptimeMillis();
+        val page: Page? = mupdfDocument?.loadPage(aPage.index)
 
-            public override fun onPreExecute() {
-                drawText = aPage!!.index.toString()
-                showPaint = true
-            }
+        var leftBound = 0
+        var topBound = 0
+        val pageSize: APage = aPage
+        var pageW = pageSize.zoomPoint.x
+        var pageH = pageSize.zoomPoint.y
 
-            override fun doInBackground(vararg params: Void): Bitmap? {
-                if (isCancelled) {
-                    return null
-                }
-                //long start = SystemClock.uptimeMillis();
-                val page = mCore?.loadPage(aPage!!.index)
+        val ctm = Matrix(MupdfDocument.ZOOM)
+        val bbox = RectI(page?.bounds?.transform(ctm))
+        val xscale = pageW.toFloat() / (bbox.x1 - bbox.x0).toFloat()
+        val yscale = pageH.toFloat() / (bbox.y1 - bbox.y0).toFloat()
+        ctm.scale(xscale, yscale)
 
-                var scale = 1.0f
-                var leftBound = 0
-                var topBound = 0
-                var height = pageSize.zoomPoint.y
-                if (autoCrop) {
-                    val ratio = 6
-                    val thumbPoint = aPage!!.getZoomPoint(aPage!!.scaleZoom / ratio)
-                    val thumb = BitmapPool.getInstance().acquire(thumbPoint.x, thumbPoint.y)
-                    val ctm = Matrix(aPage!!.scaleZoom / ratio)
-                    ImageWorker.render(page, ctm, thumb, 0, leftBound, topBound)
-
-                    val rectF = ImageDecoder.getCropRect(thumb)
-                    //BitmapUtils.saveBitmapToFile(thumb, File(FileUtils.getStoragePath(thumb.toString()+".png")))
-
-                    scale = thumb.width / rectF.width()
-                    BitmapPool.getInstance().release(thumb)
-
-                    leftBound = (rectF.left * ratio * scale).toInt()
-                    topBound = (rectF.top * ratio * scale).toInt()
-
-                    height = (rectF.height() * ratio * scale).toInt()
-                    if (Logcat.loggable) {
-                        Logcat.d(String.format("decode scale:%s,height:%s, thumb:%s,%s,rect:%s, x:%s,y:%s",
-                                scale, height, thumb.width, thumb.height, rectF, pageSize.zoomPoint.x, pageSize.zoomPoint.y))
-                    }
-                }
-                if (isCancelled) {
-                    return null
-                }
-
-                var width = pageSize.zoomPoint.x
-                if (pageSize.targetWidth > 0) {
-                    width = pageSize.targetWidth
-                }
-
-                if (Logcat.loggable) {
-                    Logcat.d(String.format("decode bitmap:width-height:%s-%s,pagesize:%s,%s,%s, bound:%s,%s, page:%s",
-                            width, height, pageSize.zoomPoint.y, xOrigin, pageSize.targetWidth, leftBound, topBound, pageSize))
-                }
-
-                val bitmap = BitmapPool.getInstance().acquire(width, height)//Bitmap.createBitmap(sizeX, sizeY, Bitmap.Config.ARGB_8888);
-
-                val ctm = Matrix(pageSize.scaleZoom * scale)
-                ImageWorker.render(page, ctm, bitmap, xOrigin, leftBound, topBound)
-
-                //BitmapUtils.saveBitmapToFile(bitmap, File(FileUtils.getStoragePath(bitmap.toString()+".png")))
-                page?.destroy()
-                //Logcat.d("decode:" + (SystemClock.uptimeMillis() - start));
-                return bitmap
-            }
-
-            override fun onPostExecute(bitmap: Bitmap?) {
-                if (isCancelled || null == bitmap) {
-                    Logcat.w("decode", "cancel decode.")
-                    return
-                }
-                showPaint = false
-                mBitmap = bitmap
-                mBitmapManager?.setBitmap(aPage!!.index, bitmap)
-                mEntireView!!.setImageBitmap(bitmap)
-                mEntireView!!.imageMatrix.reset()
-
-                if (height != bitmap.height || width != bitmap.width) {
-                    if (Logcat.loggable) {
-                        Logcat.d(String.format("decode relayout bitmap:index:%s, %s:%s imageView->%s:%s view->%s:%s",
-                                pageSize.index, bitmap.width, bitmap.height,
-                                mEntireView!!.getWidth(), mEntireView!!.getHeight(),
-                                (mEntireView!!.getParent() as View).width, (mEntireView!!.getParent() as View).height))
-                    }
-                    layoutParams.height = bitmap.height
-                    layoutParams.width = bitmap.width
-                    requestLayout()
-                }
-            }
+        if (pageSize.getTargetWidth() > 0) {
+            pageW = pageSize.getTargetWidth()
         }
-    }*/
 
+        if (crop) {
+            //if (pageSize.cropBounds != null) {
+            //    leftBound = pageSize.cropBounds?.left?.toInt()!!
+            //    topBound = pageSize.cropBounds?.top?.toInt()!!
+            //    pageH = pageSize.cropBounds?.height()?.toInt()!!
+            //} else {
+            val arr = MupdfDocument.getArrByCrop(page, ctm, pageW, pageH, leftBound, topBound)
+            leftBound = arr[0].toInt()
+            topBound = arr[1].toInt()
+            pageH = arr[2].toInt()
+            val cropScale = arr[3]
+            pageSize.setCropHeight(pageH)
+            pageSize.setCropWidth(pageW)
+            val cropRectf = RectF(
+                leftBound.toFloat(), topBound.toFloat(),
+                (leftBound + pageW).toFloat(), (topBound + pageH).toFloat()
+            );
+            pageSize.setCropBounds(cropRectf, cropScale)
+            //}
+        }
+
+        if (Logcat.loggable) {
+            Logcat.d(
+                TAG, String.format(
+                    "decode bitmap:isRecycle:%s, %s-%s,page:%s-%s, bound(left-top):%s-%s, page:%s",
+                    isRecycle, pageW, pageH, pageSize.zoomPoint.x, pageSize.zoomPoint.y,
+                    leftBound, topBound, pageSize
+                )
+            )
+        }
+
+        if (isRecycle) {
+            return null
+        }
+
+        val bitmap = BitmapPool.getInstance().acquire(pageW, pageH)
+        //Bitmap.createBitmap(sizeX, sizeY, Bitmap.Config.ARGB_8888);
+
+        MupdfDocument.render(page, ctm, bitmap, 0, leftBound, topBound)
+
+        page?.destroy()
+
+        return bitmap
+    }
+
+    companion object {
+        private val TAG: String = "APDFView"
+    }
 }

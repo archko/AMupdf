@@ -17,7 +17,7 @@ import cn.archko.pdf.entity.APage
 import cn.archko.pdf.listeners.AViewController
 import cn.archko.pdf.listeners.OutlineListener
 import cn.archko.pdf.mupdf.MupdfDocument
-import cn.archko.pdf.widgets.APDFPageView
+import cn.archko.pdf.widgets.APDFView
 import cn.archko.pdf.widgets.APageSeekBarControls
 import cn.archko.pdf.widgets.ViewerDividerItemDecoration
 
@@ -210,7 +210,7 @@ class ACropViewController(
                     pageSize.setTargetWidth(parent.width)
                 }
             }
-            val view = APDFPageView(context, mMupdfDocument, pageSize!!, true)
+            val view = APDFView(context, mMupdfDocument, pageSize!!, true)
             var lp: RecyclerView.LayoutParams? = view.layoutParams as RecyclerView.LayoutParams?
             var width: Int = ViewGroup.LayoutParams.MATCH_PARENT
             var height: Int = ViewGroup.LayoutParams.MATCH_PARENT
@@ -248,7 +248,7 @@ class ACropViewController(
             return mMupdfDocument!!.countPages()
         }
 
-        inner class PdfHolder(internal var view: APDFPageView) : RecyclerView.ViewHolder(view) {
+        inner class PdfHolder(internal var view: APDFView) : RecyclerView.ViewHolder(view) {
             fun onBind(position: Int) {
                 val pageSize = mPageSizes.get(position)
                 //Logcat.d(String.format("bind:position:%s,width:%s,%s", position, pageSize.targetWidth, mRecyclerView.measuredWidth))
