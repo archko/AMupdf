@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import cn.archko.pdf.common.PDFBookmarkManager;
 import cn.archko.pdf.common.SensorHelper;
 
 /**
@@ -48,22 +49,24 @@ public class DocumentActivity extends AppCompatActivity {
     String path;
     Uri mUri;
 
-    private View         mButtonsView;
-    private boolean      mButtonsVisible;
-    private EditText     mPasswordView;
-    private TextView     mFilenameView;
-    private SeekBar      mPageSlider;
-    private int          mPageSliderRes;
-    private TextView     mPageNumberView;
-    private ImageButton  mSearchButton;
-    private ImageButton  mOutlineButton;
+    private View mButtonsView;
+    private boolean mButtonsVisible;
+    private EditText mPasswordView;
+    private TextView mFilenameView;
+    private SeekBar mPageSlider;
+    private int mPageSliderRes;
+    private TextView mPageNumberView;
+    private ImageButton mSearchButton;
+    private ImageButton mOutlineButton;
     private ViewAnimator mTopBarSwitcher;
-    private ImageButton  mLinkButton;
-    private ImageButton  mSearchBack;
-    private ImageButton  mSearchFwd;
-    private ImageButton  mSearchClose;
+    private ImageButton mLinkButton;
+    private ImageButton mSearchBack;
+    private ImageButton mSearchFwd;
+    private ImageButton mSearchClose;
     private EditText mSearchText;
     protected View mLayoutButton;
+
+    private PDFBookmarkManager pdfBookmarkManager;
 
     public static void start(Context context) {
         context.startActivity(new Intent(context, DocumentActivity.class));
@@ -86,7 +89,13 @@ public class DocumentActivity extends AppCompatActivity {
         initIntent();
 
         if (!TextUtils.isEmpty(path)) {
+            pdfBookmarkManager = new PDFBookmarkManager();
+            pdfBookmarkManager.setStartBookmark(path, 0);
             mDocView.start(mUri, false, new ViewingState(), null, "pdf");
+            int page = pdfBookmarkManager.getBookmark();
+            if (page > 0) {
+                mDocView.goToPage(page);
+            }
         }
     }
 
@@ -94,11 +103,15 @@ public class DocumentActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         sensorHelper.onPause();
-        mDocView.onPause(new Runnable() {
-            @Override
-            public void run() {
-
-            }
+        mDocView.onPause(() -> {
+            pdfBookmarkManager.saveCurrentPage(
+                    path,
+                    mDocView.getPageCount(),
+                    mDocView.getPageNumber(),
+                    1,
+                    -1,
+                    0
+            );
         });
     }
 
@@ -155,7 +168,8 @@ public class DocumentActivity extends AppCompatActivity {
                 //mDocView.setDisplayedViewIndex((seekBar.getProgress()+mPageSliderRes/2)/mPageSliderRes);
             }
 
-            public void onStartTrackingTouch(SeekBar seekBar) {}
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
 
             public void onProgressChanged(SeekBar seekBar, int progress,
                                           boolean fromUser) {
@@ -272,17 +286,17 @@ public class DocumentActivity extends AppCompatActivity {
 
     private void makeButtonsView() {
         mButtonsView = getLayoutInflater().inflate(com.artifex.mupdf.viewer.R.layout.document_activity, null);
-        mFilenameView = (TextView)mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.docNameText);
-        mPageSlider = (SeekBar)mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.pageSlider);
-        mPageNumberView = (TextView)mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.pageNumber);
-        mSearchButton = (ImageButton)mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchButton);
-        mOutlineButton = (ImageButton)mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.outlineButton);
-        mTopBarSwitcher = (ViewAnimator)mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.switcher);
-        mSearchBack = (ImageButton)mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchBack);
-        mSearchFwd = (ImageButton)mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchForward);
-        mSearchClose = (ImageButton)mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchClose);
-        mSearchText = (EditText)mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchText);
-        mLinkButton = (ImageButton)mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.linkButton);
+        mFilenameView = (TextView) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.docNameText);
+        mPageSlider = (SeekBar) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.pageSlider);
+        mPageNumberView = (TextView) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.pageNumber);
+        mSearchButton = (ImageButton) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchButton);
+        mOutlineButton = (ImageButton) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.outlineButton);
+        mTopBarSwitcher = (ViewAnimator) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.switcher);
+        mSearchBack = (ImageButton) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchBack);
+        mSearchFwd = (ImageButton) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchForward);
+        mSearchClose = (ImageButton) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchClose);
+        mSearchText = (EditText) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchText);
+        mLinkButton = (ImageButton) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.linkButton);
         mLayoutButton = mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.layoutButton);
         mTopBarSwitcher.setVisibility(View.INVISIBLE);
         mPageNumberView.setVisibility(View.INVISIBLE);
