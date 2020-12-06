@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.core.content.FileProvider
 import cn.archko.pdf.activities.AMuPDFRecyclerViewActivity
 import cn.archko.pdf.fragments.BrowserFragment
+import com.artifex.mupdf.viewer.DocumentActivity
 import com.umeng.analytics.MobclickAgent
 import org.vudroid.pdfdroid.PdfViewerActivity
 import java.io.File
@@ -16,7 +17,7 @@ import java.io.File
 /**
  * @author: archko 2020/1/4 :2:06 下午
  */
-class PDFViewerHelper {
+public class PDFViewerHelper {
 
     companion object {
 
@@ -70,7 +71,7 @@ class PDFViewerHelper {
                     val map = mapOf("type" to "Document", "name" to clickedFile.name)
                     MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
 
-                    intent.setClass(activity, cn.archko.pdf.activities.DocumentActivity::class.java)
+                    intent.setClass(activity, DocumentActivity::class.java)
                     // API>=21: intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT); /* launch as a new document */
                     activity.startActivity(intent)
                 }
