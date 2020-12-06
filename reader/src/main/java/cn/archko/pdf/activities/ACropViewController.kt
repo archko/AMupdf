@@ -184,14 +184,16 @@ class ACropViewController(
 
         val position = getCurrentPos()
         val zoomLevel = pdfBookmarkManager.bookmarkToRestore!!.zoomLevel
-        pdfBookmarkManager.saveCurrentPage(
-            mPath,
-            mMupdfDocument!!.countPages(),
-            position,
-            zoomLevel,
-            -1,
-            0
-        )
+        if (null != mMupdfDocument) {
+            pdfBookmarkManager.saveCurrentPage(
+                mPath,
+                mMupdfDocument!!.countPages(),
+                position,
+                zoomLevel,
+                -1,
+                0
+            )
+        }
     }
 
     //===========================================
