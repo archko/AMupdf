@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
@@ -30,6 +31,9 @@ import com.artifex.solib.ConfigOptions;
 import com.artifex.sonui.editor.DocumentView;
 import com.artifex.sonui.editor.ViewingState;
 
+import org.jetbrains.annotations.NotNull;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import cn.archko.pdf.common.SensorHelper;
 
@@ -90,12 +94,19 @@ public class DocumentActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         sensorHelper.onPause();
+        mDocView.onPause(new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         sensorHelper.onResume();
+        mDocView.onResume();
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
@@ -110,6 +121,12 @@ public class DocumentActivity extends AppCompatActivity {
                     View.SYSTEM_UI_FLAG_FULLSCREEN |
                     View.SYSTEM_UI_FLAG_IMMERSIVE);
         }
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull @NotNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mDocView.onConfigurationChange(newConfig);
     }
 
     private void createUI() {
