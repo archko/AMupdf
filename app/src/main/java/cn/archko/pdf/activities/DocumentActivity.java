@@ -82,6 +82,8 @@ public class DocumentActivity extends AppCompatActivity {
         if (!TextUtils.isEmpty(path)) {
             pdfBookmarkManager = new PDFBookmarkManager();
             pdfBookmarkManager.setStartBookmark(path, 0);
+
+            int page = pdfBookmarkManager.getBookmark();
             mDocView.setDocumentListener(new DocumentListener() {
                 @Override
                 public void onPageLoaded(int pagesLoaded) {
@@ -90,10 +92,7 @@ public class DocumentActivity extends AppCompatActivity {
 
                 @Override
                 public void onDocCompleted() {
-                    int page = pdfBookmarkManager.getBookmark();
-                    if (page > 0) {
-                        mDocView.goToPage(page);
-                    }
+                    mDocView.goToPage(page);
                 }
 
                 @Override
@@ -106,7 +105,7 @@ public class DocumentActivity extends AppCompatActivity {
 
                 }
             });
-            mDocView.start(mUri, false, new ViewingState(), null, "pdf");
+            mDocView.start(mUri, page, false);
         }
     }
 
@@ -114,7 +113,7 @@ public class DocumentActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         sensorHelper.onPause();
-        mDocView.onPause(() -> {
+        /*mDocView.onPause(() -> {
             pdfBookmarkManager.saveCurrentPage(
                     path,
                     mDocView.getPageCount(),
@@ -123,7 +122,7 @@ public class DocumentActivity extends AppCompatActivity {
                     -1,
                     0
             );
-        });
+        });*/
     }
 
     @Override
