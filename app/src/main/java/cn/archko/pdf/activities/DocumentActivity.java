@@ -7,27 +7,18 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.Editable;
 import android.text.TextUtils;
-import android.text.TextWatcher;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.inputmethod.EditorInfo;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.RelativeLayout;
-import android.widget.SeekBar;
-import android.widget.TextView;
-import android.widget.ViewAnimator;
+import android.widget.*;
 
-import com.artifex.mupdf.viewer.OutlineActivity;
-import com.artifex.mupdf.viewer.SearchTaskResult;
 import com.artifex.solib.ConfigOptions;
+import com.artifex.sonui.editor.DocumentListener;
 import com.artifex.sonui.editor.DocumentView;
 import com.artifex.sonui.editor.ViewingState;
 
@@ -91,11 +82,31 @@ public class DocumentActivity extends AppCompatActivity {
         if (!TextUtils.isEmpty(path)) {
             pdfBookmarkManager = new PDFBookmarkManager();
             pdfBookmarkManager.setStartBookmark(path, 0);
+            mDocView.setDocumentListener(new DocumentListener() {
+                @Override
+                public void onPageLoaded(int pagesLoaded) {
+
+                }
+
+                @Override
+                public void onDocCompleted() {
+                    int page = pdfBookmarkManager.getBookmark();
+                    if (page > 0) {
+                        mDocView.goToPage(page);
+                    }
+                }
+
+                @Override
+                public void onPasswordRequired() {
+
+                }
+
+                @Override
+                public void onViewChanged(float scale, int scrollX, int scrollY, Rect selectionRect) {
+
+                }
+            });
             mDocView.start(mUri, false, new ViewingState(), null, "pdf");
-            int page = pdfBookmarkManager.getBookmark();
-            if (page > 0) {
-                mDocView.goToPage(page);
-            }
         }
     }
 
