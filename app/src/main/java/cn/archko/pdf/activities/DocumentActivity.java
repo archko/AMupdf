@@ -113,16 +113,20 @@ public class DocumentActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         sensorHelper.onPause();
-        /*mDocView.onPause(() -> {
+        mDocView.onPause(() -> {
+            int currentPage = mDocView.getPageNumber();
+            if (currentPage > 0) {
+                currentPage--;
+            }
             pdfBookmarkManager.saveCurrentPage(
                     path,
                     mDocView.getPageCount(),
-                    mDocView.getPageNumber(),
+                    currentPage,
                     1,
                     -1,
                     0
             );
-        });*/
+        });
     }
 
     @Override
