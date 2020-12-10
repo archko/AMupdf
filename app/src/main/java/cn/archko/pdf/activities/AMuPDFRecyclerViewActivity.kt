@@ -60,13 +60,13 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     override fun initView() {
         super.initView()
 
-        mPageSeekBarControls?.updateTitle(mPath)
         mLeftDrawer = findViewById(R.id.left_drawer)
         mDrawerLayout = findViewById(R.id.drawerLayout)
 
         mControllerLayout = findViewById(R.id.layout)
 
         mPageSeekBarControls = createSeekControls()
+        mPageSeekBarControls?.updateTitle(mPath)
 
         val lp = RelativeLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,

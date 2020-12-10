@@ -3,7 +3,6 @@ package cn.archko.pdf.activities;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -15,17 +14,22 @@ import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.*;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.RelativeLayout;
+import android.widget.SeekBar;
+import android.widget.TextView;
+import android.widget.ViewAnimator;
 
 import com.artifex.solib.ConfigOptions;
 import com.artifex.sonui.editor.DocumentListener;
 import com.artifex.sonui.editor.DocumentView;
-import com.artifex.sonui.editor.ViewingState;
 
 import org.jetbrains.annotations.NotNull;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import cn.archko.mupdf.R;
 import cn.archko.pdf.common.PDFBookmarkManager;
 import cn.archko.pdf.common.SensorHelper;
 
@@ -66,8 +70,25 @@ public class DocumentActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        Window window = getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        window.requestFeature(Window.FEATURE_NO_TITLE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            WindowManager.LayoutParams lp = window.getAttributes();
+            lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            window.setAttributes(lp);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_IMMERSIVE);
+        }
+        window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE |
+                View.SYSTEM_UI_FLAG_FULLSCREEN |
+                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+
         //setContentView(R.layout.list_book_search);
 
         //aa();
@@ -93,6 +114,11 @@ public class DocumentActivity extends AppCompatActivity {
                 @Override
                 public void onDocCompleted() {
                     mDocView.goToPage(page);
+                    /*int smax = Math.max(mDocView.getPageCount() - 1, 1);
+                    mPageSliderRes = ((10 + smax - 1) / smax) * 2;
+                    mPageSlider.setMax((mDocView.getPageCount() - 1) * mPageSliderRes);
+                    mPageSlider.setProgress(mDocView.getPageNumber() * mPageSliderRes);
+                    mPageSlider.setVisibility(View.VISIBLE);*/
                 }
 
                 @Override
@@ -161,8 +187,6 @@ public class DocumentActivity extends AppCompatActivity {
         //setContentView(mDocView);
         mDocView.setDocConfigOptions(new ConfigOptions());
 
-        // Make the buttons overlay, and store all its
-        // controls in variables
         makeButtonsView();
 
         // Set up the page slider
@@ -179,14 +203,13 @@ public class DocumentActivity extends AppCompatActivity {
         // Activate the seekbar
         mPageSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             public void onStopTrackingTouch(SeekBar seekBar) {
-                //mDocView.setDisplayedViewIndex((seekBar.getProgress()+mPageSliderRes/2)/mPageSliderRes);
+                mDocView.goToPage((seekBar.getProgress() + mPageSliderRes / 2) / mPageSliderRes);
             }
 
             public void onStartTrackingTouch(SeekBar seekBar) {
             }
 
-            public void onProgressChanged(SeekBar seekBar, int progress,
-                                          boolean fromUser) {
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 //updatePageNumView((progress+mPageSliderRes/2)/mPageSliderRes);
             }
         });
@@ -286,11 +309,6 @@ public class DocumentActivity extends AppCompatActivity {
             mOutlineButton.setVisibility(View.GONE);
         }*/
 
-        // Reenstate last state if it was recorded
-        SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
-        //mDocView.setDisplayedViewIndex(prefs.getInt("page"+mFileKey, 0));
-
-        // Stick the document view and the buttons overlay into a parent view
         RelativeLayout layout = new RelativeLayout(this);
         layout.setBackgroundColor(Color.DKGRAY);
         layout.addView(mDocView);
@@ -300,17 +318,17 @@ public class DocumentActivity extends AppCompatActivity {
 
     private void makeButtonsView() {
         mButtonsView = getLayoutInflater().inflate(com.artifex.mupdf.viewer.R.layout.document_activity, null);
-        mFilenameView = (TextView) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.docNameText);
-        mPageSlider = (SeekBar) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.pageSlider);
-        mPageNumberView = (TextView) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.pageNumber);
-        mSearchButton = (ImageButton) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchButton);
-        mOutlineButton = (ImageButton) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.outlineButton);
-        mTopBarSwitcher = (ViewAnimator) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.switcher);
-        mSearchBack = (ImageButton) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchBack);
-        mSearchFwd = (ImageButton) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchForward);
-        mSearchClose = (ImageButton) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchClose);
-        mSearchText = (EditText) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchText);
-        mLinkButton = (ImageButton) mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.linkButton);
+        mFilenameView = mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.docNameText);
+        mPageSlider = mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.pageSlider);
+        mPageNumberView = mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.pageNumber);
+        mSearchButton = mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchButton);
+        mOutlineButton = mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.outlineButton);
+        mTopBarSwitcher = mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.switcher);
+        mSearchBack = mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchBack);
+        mSearchFwd = mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchForward);
+        mSearchClose = mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchClose);
+        mSearchText = mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.searchText);
+        mLinkButton = mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.linkButton);
         mLayoutButton = mButtonsView.findViewById(com.artifex.mupdf.viewer.R.id.layoutButton);
         mTopBarSwitcher.setVisibility(View.INVISIBLE);
         mPageNumberView.setVisibility(View.INVISIBLE);
