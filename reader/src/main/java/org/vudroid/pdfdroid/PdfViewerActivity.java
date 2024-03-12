@@ -1,6 +1,5 @@
 package org.vudroid.pdfdroid;
 
-import android.content.Intent;
 import android.view.View;
 
 import com.jeremyliao.liveeventbus.LiveEventBus;
@@ -61,18 +60,7 @@ public class PdfViewerActivity extends BaseViewerActivity implements OutlineList
             getPageSeekBarControls().getLayoutOutline().setVisibility(View.GONE);
         }
     }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case OUTLINE_REQUEST:
-                if (resultCode >= 0)
-                    getDocumentView().goToPage(resultCode - RESULT_FIRST_USER);
-                getPageSeekBarControls().hide();
-                break;
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
+    
 
     @Override
     public void onSelectedOutline(int index) {

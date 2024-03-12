@@ -1,328 +1,268 @@
-package org.vudroid.core;
+package org.vudroid.core
 
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.net.Uri;
-import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewConfiguration;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.FrameLayout;
-import android.widget.Toast;
+import android.content.res.Configuration
+import android.net.Uri
+import android.os.Bundle
+import android.preference.PreferenceManager
+import android.view.Gravity
+import android.view.View
+import android.view.ViewConfiguration
+import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.FrameLayout
+import android.widget.Toast
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
+import cn.archko.pdf.activities.PdfOptionsActivity
+import cn.archko.pdf.common.SensorHelper
+import cn.archko.pdf.common.StatusBarHelper
+import cn.archko.pdf.listeners.SimpleGestureListener
+import cn.archko.pdf.presenter.PageViewPresenter
+import cn.archko.pdf.viewmodel.PDFViewModel
+import cn.archko.pdf.widgets.APageSeekBarControls
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.vudroid.core.events.CurrentPageListener
+import org.vudroid.core.events.DecodingProgressListener
+import org.vudroid.core.models.CurrentPageModel
+import org.vudroid.core.models.DecodingProgressModel
+import org.vudroid.core.models.ZoomModel
+import org.vudroid.core.views.PageViewZoomControls
 
-import org.vudroid.core.events.CurrentPageListener;
-import org.vudroid.core.events.DecodingProgressListener;
-import org.vudroid.core.models.CurrentPageModel;
-import org.vudroid.core.models.DecodingProgressModel;
-import org.vudroid.core.models.ZoomModel;
-import org.vudroid.core.views.PageViewZoomControls;
+abstract class BaseViewerActivity : FragmentActivity(), DecodingProgressListener,
+    CurrentPageListener {
+    var decodeService: DecodeService? = null
+        private set
+    var documentView: DocumentView? = null
+        private set
+    private var pageNumberToast: Toast? = null
+    private var currentPageModel: CurrentPageModel? = null
+    var pageControls: PageViewZoomControls? = null
 
-import androidx.fragment.app.FragmentActivity;
-import cn.archko.pdf.activities.PdfOptionsActivity;
-import cn.archko.pdf.common.SensorHelper;
-import cn.archko.pdf.common.StatusBarHelper;
-import cn.archko.pdf.entity.BookProgress;
-import cn.archko.pdf.listeners.SimpleGestureListener;
-import cn.archko.pdf.presenter.PageViewPresenter;
-import cn.archko.pdf.viewmodel.PDFViewModel;
-import cn.archko.pdf.widgets.APageSeekBarControls;
-
-public abstract class BaseViewerActivity extends FragmentActivity implements DecodingProgressListener, CurrentPageListener {
-    private static final String TAG = "BaseViewer";
-    private DecodeService decodeService;
-    private DocumentView documentView;
-    private Toast pageNumberToast;
-    private CurrentPageModel currentPageModel;
-    PageViewZoomControls mPageControls;
     //private CurrentPageModel mPageModel;
-    APageSeekBarControls mPageSeekBarControls;
+    var pageSeekBarControls: APageSeekBarControls? = null
+    var pdfViewModel: PDFViewModel? = null
+    var sensorHelper: SensorHelper? = null
 
-    PDFViewModel pdfViewModel;
-    SensorHelper sensorHelper;
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        StatusBarHelper.hideSystemUI(this)
+        StatusBarHelper.setImmerseBarAppearance(window, true)
+        initDecodeService()
+        val zoomModel = ZoomModel()
+        pdfViewModel = PDFViewModel()
+        sensorHelper = SensorHelper(this)
+        val uri = intent.data
+        val absolutePath = Uri.decode(uri!!.encodedPath)
 
-    /**
-     * Called when the activity is first created.
-     */
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        val progressModel = DecodingProgressModel()
+        progressModel.addEventListener(this)
+        currentPageModel = CurrentPageModel()
+        currentPageModel!!.addEventListener(this)
+        documentView =
+            DocumentView(this, zoomModel, progressModel, currentPageModel, simpleGestureListener)
+        zoomModel.addEventListener(documentView)
+        documentView!!.layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        )
+        decodeService!!.setContainerView(documentView)
+        documentView!!.setDecodeService(decodeService)
+        decodeService!!.open(absolutePath)
+        val frameLayout = createMainContainer()
+        frameLayout.addView(documentView)
+        pageControls = createZoomControls(zoomModel)
+        frameLayout.addView(pageControls)
+        setContentView(frameLayout)
 
-        StatusBarHelper.hideSystemUI(this);
-        StatusBarHelper.setImmerseBarAppearance(getWindow(), true);
-
-        initDecodeService();
-        final ZoomModel zoomModel = new ZoomModel();
-        pdfViewModel = new PDFViewModel();
-        sensorHelper = new SensorHelper(this);
-
-        Uri uri = getIntent().getData();
-        String absolutePath = Uri.decode(uri.getEncodedPath());
-
-        int currentPage = 0;
-        int scrollX = 0;
-        int scrollY = 0;
-        BookProgress bookProgress = pdfViewModel.loadBookProgressByPath2(absolutePath);
-        if (null != bookProgress) {
-            currentPage = bookProgress.page;
-            zoomModel.setZoom(bookProgress.zoomLevel / 1000);
-            scrollX = bookProgress.offsetX;
-            scrollY = bookProgress.offsetY;
+        documentView!!.showDocument()
+        lifecycleScope.launch {
+            val bookProgress = withContext(Dispatchers.IO) {
+                return@withContext pdfViewModel!!.loadBookProgressByPath(absolutePath)
+            }
+            if (null != bookProgress) {
+                val currentPage = bookProgress.page
+                zoomModel.setZoom(bookProgress.zoomLevel / 1000)
+                val scrollX = bookProgress.offsetX
+                val scrollY = bookProgress.offsetY
+                if (0 < currentPage) {
+                    documentView!!.goToPage(currentPage, scrollX, scrollY)
+                }
+            }
         }
 
-        final DecodingProgressModel progressModel = new DecodingProgressModel();
-        progressModel.addEventListener(this);
-        currentPageModel = new CurrentPageModel();
-        currentPageModel.addEventListener(this);
-        documentView = new DocumentView(this, zoomModel, progressModel, currentPageModel, simpleGestureListener);
-        zoomModel.addEventListener(documentView);
-        documentView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        decodeService.setContainerView(documentView);
-        documentView.setDecodeService(decodeService);
-        decodeService.open(absolutePath);
-
-        final FrameLayout frameLayout = createMainContainer();
-        frameLayout.addView(documentView);
-        mPageControls = createZoomControls(zoomModel);
-        frameLayout.addView(mPageControls);
-
-        setContentView(frameLayout);
-
-        if (0 < currentPage) {
-            documentView.goToPage(currentPage, scrollX, scrollY);
-        }
-        documentView.showDocument();
-
-        mPageSeekBarControls = new APageSeekBarControls(this, new PageViewPresenter() {
-            @Override
-            public int getPageCount() {
-                return decodeService.getPageCount();
+        pageSeekBarControls = APageSeekBarControls(this, object : PageViewPresenter {
+            override fun getPageCount(): Int {
+                return decodeService!!.getPageCount()
             }
 
-            @Override
-            public int getCurrentPageIndex() {
-                return documentView.getCurrentPage();
+            override fun getCurrentPageIndex(): Int {
+                return documentView!!.getCurrentPage()
             }
 
-            @Override
-            public void goToPageIndex(int page) {
-                documentView.goToPage(page);
+            override fun goToPageIndex(page: Int) {
+                documentView!!.goToPage(page)
             }
 
-            @Override
-            public void showOutline() {
-                openOutline();
+            override fun showOutline() {
+                openOutline()
             }
 
-            @Override
-            public void back() {
-                BaseViewerActivity.this.finish();
+            override fun back() {
+                finish()
             }
 
-            @Override
-            public String getTitle() {
-                Uri uri = getIntent().getData();
-                String filePath = Uri.decode(uri.getEncodedPath());
-                return filePath;
+            override fun getTitle(): String {
+                val uri = intent.data
+                return Uri.decode(uri!!.encodedPath)
             }
 
-            @Override
-            public void reflow() {
-
-            }
-
-            @Override
-            public void autoCrop() {
-
-            }
-        });
-        frameLayout.addView(mPageSeekBarControls);
-        mPageSeekBarControls.hide();
-        mPageSeekBarControls.showReflow(true);
-        mPageSeekBarControls.updateTitle(absolutePath);
+            override fun reflow() {}
+            override fun autoCrop() {}
+        })
+        frameLayout.addView(pageSeekBarControls)
+        pageSeekBarControls!!.hide()
+        pageSeekBarControls!!.showReflow(true)
+        pageSeekBarControls!!.updateTitle(absolutePath)
     }
 
-    public void decodingProgressChanged(final int currentlyDecoding) {
-        //runOnUiThread(() -> getWindow().setFeatureInt(Window.FEATURE_INDETERMINATE_PROGRESS, currentlyDecoding == 0 ? 10000 : currentlyDecoding));
+    override fun decodingProgressChanged(currentlyDecoding: Int) {
     }
 
-    public void currentPageChanged(int pageIndex) {
-        showPageIndex(pageIndex);
-        documentView.goToPage(pageIndex);
+    override fun currentPageChanged(pageIndex: Int) {
+        showPageIndex(pageIndex)
+        documentView!!.goToPage(pageIndex)
     }
 
-    private void showPageIndex(int pageIndex) {
-        final String pageText = (pageIndex + 1) + "/" + decodeService.getPageCount();
+    private fun showPageIndex(pageIndex: Int) {
+        val pageText = (pageIndex + 1).toString() + "/" + decodeService!!.getPageCount()
         if (pageNumberToast != null) {
-            pageNumberToast.setText(pageText);
+            pageNumberToast!!.setText(pageText)
         } else {
-            pageNumberToast = Toast.makeText(this, pageText, Toast.LENGTH_SHORT);
+            pageNumberToast = Toast.makeText(this, pageText, Toast.LENGTH_SHORT)
         }
-        pageNumberToast.setGravity(Gravity.BOTTOM | Gravity.LEFT, 30, 0);
-        pageNumberToast.show();
+        pageNumberToast!!.setGravity(Gravity.BOTTOM or Gravity.LEFT, 30, 0)
+        pageNumberToast!!.show()
         //saveCurrentPage();
     }
 
-    private void setWindowTitle() {
-        //final String name = getIntent().getData().getLastPathSegment();
-        //getWindow().setTitle(name);
+    private fun setWindowTitle() {
     }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        setWindowTitle();
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+        setWindowTitle()
     }
 
-    private PageViewZoomControls createZoomControls(ZoomModel zoomModel) {
-        final PageViewZoomControls controls = new PageViewZoomControls(this, zoomModel);
-        controls.setGravity(Gravity.RIGHT | Gravity.BOTTOM);
-        zoomModel.addEventListener(controls);
-        return controls;
+    private fun createZoomControls(zoomModel: ZoomModel): PageViewZoomControls {
+        val controls = PageViewZoomControls(this, zoomModel)
+        controls.gravity = Gravity.RIGHT or Gravity.BOTTOM
+        zoomModel.addEventListener(controls)
+        return controls
     }
 
-    private FrameLayout createMainContainer() {
-        return new FrameLayout(this);
+    private fun createMainContainer(): FrameLayout {
+        return FrameLayout(this)
     }
 
-    private void initDecodeService() {
+    private fun initDecodeService() {
         if (decodeService == null) {
-            decodeService = createDecodeService();
+            decodeService = createDecodeService()
         }
     }
 
-    protected abstract DecodeService createDecodeService();
-
-    @Override
-    protected void onStop() {
-        super.onStop();
+    protected abstract fun createDecodeService(): DecodeService?
+    override fun onStop() {
+        super.onStop()
     }
 
-    @Override
-    protected void onDestroy() {
-        decodeService.recycle();
-        decodeService = null;
-        super.onDestroy();
+    override fun onDestroy() {
+        decodeService!!.recycle()
+        decodeService = null
+        super.onDestroy()
     }
 
-    public void openOutline() {
-    }
-
-    public DecodeService getDecodeService() {
-        return decodeService;
-    }
-
-    public DocumentView getDocumentView() {
-        return documentView;
-    }
-
-    public APageSeekBarControls getPageSeekBarControls() {
-        return mPageSeekBarControls;
-    }
-
-    public PageViewZoomControls getPageControls() {
-        return mPageControls;
-    }
+    open fun openOutline() {}
 
     //--------------------------------------
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
     }
 
-    protected void onResume() {
-        super.onResume();
-
-        sensorHelper.onResume();
-        SharedPreferences options = PreferenceManager.getDefaultSharedPreferences(this);
-
+    override fun onResume() {
+        super.onResume()
+        sensorHelper!!.onResume()
+        val options = PreferenceManager.getDefaultSharedPreferences(this)
         if (options.getBoolean(PdfOptionsActivity.PREF_KEEP_ON, false)) {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } else {
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
-
         if (options.getBoolean(PdfOptionsActivity.PREF_FULLSCREEN, true)) {
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            window.setFlags(
+                WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN
+            )
         } else {
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
         }
-        mPageControls.hide();
-        int height = documentView.getHeight();
-        if (height <= 0) {
-            height = new ViewConfiguration().getScaledTouchSlop() * 2;
+        pageControls!!.hide()
+        var height = documentView!!.height
+        height = if (height <= 0) {
+            ViewConfiguration().scaledTouchSlop * 2
         } else {
-            height = (int) (height * 0.03);
+            (height * 0.03).toInt()
         }
-        documentView.setScrollMargin(height);
-        documentView.setDecodePage(1/*options.getBoolean(PdfOptionsActivity.PREF_RENDER_AHEAD, true) ? 1 : 0*/);
+        documentView!!.setScrollMargin(height)
+        documentView!!.setDecodePage(1 /*options.getBoolean(PdfOptionsActivity.PREF_RENDER_AHEAD, true) ? 1 : 0*/)
     }
 
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
         if (hasFocus) {
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE);
+            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_IMMERSIVE)
         }
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Uri uri = getIntent().getData();
-        String filePath = Uri.decode(uri.getEncodedPath());
-        pdfViewModel.saveBookProgress(
-                filePath,
-                pdfViewModel.countPages(),
-                documentView.getCurrentPage() + 1,
-                pdfViewModel.getBookProgress().zoomLevel * 1000f,
-                documentView.getScrollX(),
-                documentView.getScrollY()
-        );
-
-        sensorHelper.onPause();
+    override fun onPause() {
+        super.onPause()
+        val uri = intent.data
+        val filePath = Uri.decode(uri!!.encodedPath)
+        pdfViewModel!!.saveBookProgress(
+            filePath,
+            decodeService?.pageCount ?: 1,
+            documentView!!.getCurrentPage() + 1,
+            pdfViewModel!!.bookProgress!!.zoomLevel * 1000f,
+            documentView!!.scrollX,
+            documentView!!.scrollY
+        )
+        sensorHelper!!.onPause()
     }
 
     //--------------------------------
 
-    protected final int OUTLINE_REQUEST = 0;
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case OUTLINE_REQUEST:
-                if (resultCode >= 0)
-                    documentView.goToPage(resultCode);
-                mPageSeekBarControls.hide();
-                break;
+    private var simpleGestureListener: SimpleGestureListener = object : SimpleGestureListener {
+        override fun onSingleTapConfirmed(currentPage: Int) {
+            currentPageChanged(currentPage)
         }
-        super.onActivityResult(requestCode, resultCode, data);
+
+        override fun onDoubleTapEvent(currentPage: Int) {
+            pageSeekBarControls!!.toggleSeekControls()
+            pageControls!!.toggleZoomControls()
+        }
     }
 
-    SimpleGestureListener simpleGestureListener = new SimpleGestureListener() {
-        @Override
-        public void onSingleTapConfirmed(int currentPage) {
-            currentPageChanged(currentPage);
-        }
+    protected fun currentPage(): Int {
+        return documentView!!.getCurrentPage()
+    }
 
-        @Override
-        public void onDoubleTapEvent(int currentPage) {
-            mPageSeekBarControls.toggleSeekControls();
-            mPageControls.toggleZoomControls();
-        }
-    };
-
-    protected int currentPage() {
-        return documentView.getCurrentPage();
+    companion object {
+        private const val TAG = "BaseViewer"
     }
 }

@@ -139,9 +139,7 @@ class PDFViewModel : ViewModel() {
         }
     }
 
-    suspend fun loadBookProgressByPath(
-        path: String,
-    ): BookProgress? {
+    suspend fun loadBookProgressByPath(path: String, ): BookProgress? {
         val bookProgress = withContext(Dispatchers.IO) {
             val crop = PreferenceManager.getDefaultSharedPreferences(App.instance)
                 .getBoolean(PdfOptionsActivity.PREF_AUTOCROP, true)
@@ -153,20 +151,6 @@ class PDFViewModel : ViewModel() {
             loadProgressAndBookmark(path, autoCrop)
             bookProgress
         }
-        return bookProgress
-    }
-
-    fun loadBookProgressByPath2(
-        path: String,
-    ): BookProgress? {
-        val crop = PreferenceManager.getDefaultSharedPreferences(App.instance)
-            .getBoolean(PdfOptionsActivity.PREF_AUTOCROP, true)
-
-        var autoCrop = 0
-        if (!crop) {
-            autoCrop = 1
-        }
-        loadProgressAndBookmark(path, autoCrop)
         return bookProgress
     }
 
