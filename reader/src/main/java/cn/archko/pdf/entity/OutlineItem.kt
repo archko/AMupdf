@@ -6,9 +6,9 @@ import java.io.Serializable
 /**
  * @author: archko 2020/10/31 :11:07 AM
  */
-class OutlineItem(var id: Int, private var pid: Int, private var title: String) : RvTree,
+class OutlineItem(var id: Int, private var pid: Int, private var title: String, var page: Int) :
+    RvTree,
     Serializable {
-    var page = 0
     var resId = 0
     override fun getNid(): Long {
         return id.toLong()

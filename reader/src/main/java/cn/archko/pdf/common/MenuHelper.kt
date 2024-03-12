@@ -9,20 +9,20 @@ import cn.archko.pdf.activities.MuPDFRecyclerViewActivity
 import cn.archko.pdf.adapters.BaseRecyclerAdapter
 import cn.archko.pdf.adapters.MenuAdapter
 import cn.archko.pdf.entity.MenuBean
-//import cn.archko.pdf.fragments.OutlineFragment
+import cn.archko.pdf.fragments.OutlineFragment
 import cn.archko.pdf.listeners.MenuListener
 import cn.archko.pdf.utils.FileUtils
 
 /**
  * @author: archko 2019/7/12 :19:47
  */
-class MenuHelper public constructor(
-    var mLeftDrawer: RecyclerView?,
+class MenuHelper(
+    private var mLeftDrawer: RecyclerView?,
     private var outlineHelper: OutlineHelper?,
     private var supportFragmentManager: FragmentManager
 ) {
 
-    //private var outlineFragment: OutlineFragment? = null
+    private var outlineFragment: OutlineFragment? = null
 
     fun setupMenu(mPath: String?, context: Context, menuListener: MenuListener?) {
         val menus = ArrayList<MenuBean>()
@@ -53,7 +53,7 @@ class MenuHelper public constructor(
     }
 
     fun setupOutline(currentPos: Int?) {
-        /*if (null == outlineFragment) {
+        if (null == outlineFragment) {
             outlineFragment = OutlineFragment()
             val bundle = Bundle()
             if (outlineHelper!!.hasOutline()) {
@@ -66,10 +66,10 @@ class MenuHelper public constructor(
 
         supportFragmentManager.beginTransaction()
             .add(R.id.layout_outline, outlineFragment!!)
-            .commit()*/
+            .commit()
     }
 
     fun updateSelection(pos: Int) {
-        //outlineFragment?.updateSelection(pos)
+        outlineFragment?.updateSelection(pos)
     }
 }
