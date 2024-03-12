@@ -1,10 +1,8 @@
 package cn.archko.pdf.activities
 
-import android.annotation.TargetApi
 import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.PointF
-import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import android.preference.PreferenceManager
@@ -13,7 +11,6 @@ import android.util.SparseArray
 import android.view.GestureDetector
 import android.view.Gravity
 import android.view.View
-import android.view.Window
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.Toast
@@ -25,6 +22,7 @@ import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.common.PDFBookmarkManager
 import cn.archko.pdf.common.PathFromUri
 import cn.archko.pdf.common.SensorHelper
+import cn.archko.pdf.common.StatusBarHelper
 import cn.archko.pdf.entity.APage
 import cn.archko.pdf.listeners.AViewController
 import cn.archko.pdf.mupdf.MupdfDocument
@@ -164,23 +162,9 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
     }
 
     open fun initView() {
-        window.requestFeature(Window.FEATURE_NO_TITLE)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val lp: WindowManager.LayoutParams = window.getAttributes()
-            lp.layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-            window.attributes = lp
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                    View.SYSTEM_UI_FLAG_IMMERSIVE
-        }
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LOW_PROFILE or
-                View.SYSTEM_UI_FLAG_FULLSCREEN or
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+        StatusBarHelper.hideSystemUI(this)
+        StatusBarHelper.setImmerseBarAppearance(window, true)
+
         setContentView(R.layout.reader)
     }
 
@@ -225,19 +209,9 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
 
-        if (options.getBoolean(PdfOptionsActivity.PREF_FULLSCREEN, true)) {
-            //getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-            window.setFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN
-            )
-        } else {
-            window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-        }
         Logcat.d("onResume ")
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) {

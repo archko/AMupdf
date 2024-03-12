@@ -8,6 +8,7 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import cn.archko.pdf.activities.AMuPDFRecyclerViewActivity
+import cn.archko.pdf.adapters.AdapterUtils
 import cn.archko.pdf.fragments.BrowserFragment
 import com.umeng.analytics.MobclickAgent
 import org.vudroid.pdfdroid.PdfViewerActivity
@@ -22,7 +23,7 @@ public class PDFViewerHelper {
 
         fun openWithDefaultViewer(f: File, activity: Activity) {
             Logcat.i(Logcat.TAG, "post intent to open file $f")
-            if (f.absolutePath.endsWith("txt", true)) {
+            if (AdapterUtils.isPlainTxt(f.absolutePath)) {
                 Toast.makeText(activity, "can't load f:${f.absolutePath}", Toast.LENGTH_SHORT)
                     .show()
                 return
@@ -89,7 +90,7 @@ public class PDFViewerHelper {
                         mimeType = "application/x-cbz";
                     } else if (name.endsWith("fb2", true)) {
                         mimeType = "application/fb2";
-                    } else if (name.endsWith("txt", true)) {
+                    } else if (AdapterUtils.isPlainTxt(name)) {
                         mimeType = "text/plain";
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

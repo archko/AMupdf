@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cn.archko.pdf.adapters.AdapterUtils
 import cn.archko.pdf.common.Event
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.common.ProgressScaner
@@ -17,7 +18,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileFilter
-import java.util.*
+import java.util.Arrays
+import java.util.Locale
 
 /**
  * @author: archko 2020/11/16 :11:23
@@ -44,33 +46,7 @@ class BookViewModel : ViewModel() {
             return@FileFilter true
         val fname = file.name.toLowerCase(Locale.ROOT)
 
-        if (fname.endsWith(".pdf"))
-            return@FileFilter true
-        if (fname.endsWith(".xps"))
-            return@FileFilter true
-        if (fname.endsWith(".cbz"))
-            return@FileFilter true
-        if (fname.endsWith(".png"))
-            return@FileFilter true
-        if (fname.endsWith(".jpe"))
-            return@FileFilter true
-        if (fname.endsWith(".jpeg"))
-            return@FileFilter true
-        if (fname.endsWith(".jpg"))
-            return@FileFilter true
-        if (fname.endsWith(".jfif"))
-            return@FileFilter true
-        if (fname.endsWith(".jfif-tbnl"))
-            return@FileFilter true
-        if (fname.endsWith(".tif"))
-            return@FileFilter true
-        if (fname.endsWith(".tiff"))
-            return@FileFilter true
-        if (fname.endsWith(".epub"))
-            return@FileFilter true
-        if (fname.endsWith(".txt"))
-            return@FileFilter true
-        false
+        return@FileFilter AdapterUtils.isSupportExt(fname)
     }
 
     fun loadFiles(home: String, mCurrentPath: String?, dirsFirst: Boolean, showExtension: Boolean) =

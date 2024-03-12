@@ -13,36 +13,24 @@ import cn.archko.pdf.entity.FileBean
 import cn.archko.pdf.listeners.OnItemClickListener
 import cn.archko.pdf.utils.FileUtils
 import cn.archko.pdf.utils.Utils
-import java.util.*
+import java.util.Locale
 
 /**
  * @author: archko 2018/12/12 :15:43
  */
-class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
+class BookAdapter(context: Context, itemClickListener: OnItemClickListener<FileBean>) :
+    HeaderAndFooterRecyclerAdapter<FileBean>(context) {
 
     private var mMode = TYPE_FILE
-    private var itemClickListener: OnItemClickListener<FileBean>? = null;
+    private var itemClickListener: OnItemClickListener<FileBean>? = itemClickListener
     var screenWidth = 1080
 
     internal fun setMode(mMode: Int) {
         this.mMode = mMode
     }
 
-    constructor(
-        context: Context,
-        itemClickListener: OnItemClickListener<FileBean>
-    ) : super(context) {
-        this.itemClickListener = itemClickListener
-
+    init {
         screenWidth = App.instance!!.screenWidth
-    }
-
-    constructor(
-        context: Context,
-        arrayList: List<FileBean>,
-        itemClickListener: OnItemClickListener<FileBean>
-    ) : super(context, arrayList) {
-        this.itemClickListener = itemClickListener
     }
 
     override fun doGetItemViewType(position: Int): Int {
@@ -50,31 +38,35 @@ class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
     }
 
     override fun doCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<FileBean> {
-        if (viewType == TYPE_FILE) {
-            val view = mInflater.inflate(R.layout.item_book_normal, parent, false)
-            return ViewHolder(view)
-        } else if (viewType == TYPE_RENCENT) {
-            val view = mInflater.inflate(R.layout.item_book_normal, parent, false)
-            return ViewHolder(view)
-        } else if (viewType == TYPE_SEARCH) {
-            val view = mInflater.inflate(R.layout.item_book_search, parent, false)
-            return SearchViewHolder(view)
-        } else if (viewType == TYPE_GRID) {
-            val view = mInflater.inflate(R.layout.item_book_grid, parent, false)
-            return GridViewHolder(view)
+        when (viewType) {
+            TYPE_FILE -> {
+                val view = mInflater.inflate(R.layout.item_book_normal, parent, false)
+                return ViewHolder(view)
+            }
+            TYPE_RENCENT -> {
+                val view = mInflater.inflate(R.layout.item_book_normal, parent, false)
+                return ViewHolder(view)
+            }
+            TYPE_SEARCH -> {
+                val view = mInflater.inflate(R.layout.item_book_search, parent, false)
+                return SearchViewHolder(view)
+            }
+            TYPE_GRID -> {
+                val view = mInflater.inflate(R.layout.item_book_grid, parent, false)
+                return GridViewHolder(view)
+            }
+            else -> return BaseViewHolder(parent)
         }
-        return BaseViewHolder(parent)
     }
 
     private inner class ViewHolder(itemView: View) : BaseViewHolder<FileBean>(itemView) {
 
-        internal var mName: TextView? = null
-        internal var mIcon: ImageView? = null
-        internal var mSize: TextView? = null
-        internal var mProgressBar: ProgressBar? = null
+        var mName: TextView? = null
+        var mIcon: ImageView? = null
+        var mSize: TextView? = null
+        var mProgressBar: ProgressBar? = null
 
         init {
-
             mIcon = itemView.findViewById(R.id.icon)
             mName = itemView.findViewById(R.id.name)
             mSize = itemView.findViewById(R.id.size)
@@ -125,16 +117,10 @@ class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
             } else if (entry.isUpFolder) {
                 mIcon!!.setImageResource(R.drawable.ic_explorer_fldr)
             } else {
-                if (null != bookProgress && null != bookProgress.ext) {
-                    val ext = bookProgress.ext!!.toLowerCase(Locale.ROOT)
+                if (bookProgress?.ext != null) {
+                    val ext = bookProgress.ext!!.lowercase(Locale.ROOT)
 
-                    if (ext.contains("pdf")) {
-                        mIcon!!.setImageResource(R.drawable.ic_item_book)
-                    } else if (ext.contains("epub")) {
-                        mIcon!!.setImageResource(R.drawable.ic_item_book)
-                    } else {
-                        mIcon!!.setImageResource(R.drawable.ic_explorer_any)
-                    }
+                    AdapterUtils.setIcon(ext, mIcon)
                 }
             }
         }
@@ -142,13 +128,12 @@ class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
 
     private inner class SearchViewHolder(itemView: View) : BaseViewHolder<FileBean>(itemView) {
 
-        internal var mName: TextView? = null
-        internal var mIcon: ImageView? = null
-        internal var mSize: TextView? = null
-        internal var mPath: TextView? = null
+        var mName: TextView? = null
+        var mIcon: ImageView? = null
+        var mSize: TextView? = null
+        var mPath: TextView? = null
 
         init {
-
             mIcon = itemView.findViewById(R.id.icon)
             mName = itemView.findViewById(R.id.name)
             mSize = itemView.findViewById(R.id.size)
@@ -184,29 +169,22 @@ class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
                 mPath!!.text = FileUtils.getDir(entry.file)
             }
             if (null != entry.bookProgress && null != entry.bookProgress!!.ext) {
-                val ext = entry.bookProgress!!.ext!!.toLowerCase(Locale.ROOT)
+                val ext = entry.bookProgress!!.ext!!.lowercase(Locale.ROOT)
 
-                if (ext.contains("pdf")) {
-                    mIcon!!.setImageResource(R.drawable.ic_item_book)
-                } else if (ext.contains("epub")) {
-                    mIcon!!.setImageResource(R.drawable.ic_item_book)
-                } else {
-                    mIcon!!.setImageResource(R.drawable.ic_explorer_any)
-                }
+                AdapterUtils.setIcon(ext, mIcon)
             }
         }
     }
 
     private inner class GridViewHolder(itemView: View) : BaseViewHolder<FileBean>(itemView) {
 
-        internal var mName: TextView? = null
-        internal var mIcon: ImageView? = null
+        var mName: TextView? = null
+        var mIcon: ImageView? = null
 
-        //internal var mSize: TextView? = null
-        internal var mProgressBar: ProgressBar? = null
+        // var mSize: TextView? = null
+        var mProgressBar: ProgressBar? = null
 
         init {
-
             mIcon = itemView.findViewById(R.id.icon)
             mName = itemView.findViewById(R.id.name)
             //mSize = itemView.findViewById(R.id.size)
@@ -250,19 +228,13 @@ class BookAdapter : HeaderAndFooterRecyclerAdapter<FileBean> {
                 //mSize!!.text = null
             }
 
-            if (null != bookProgress && null != bookProgress.ext) {
-                val ext = bookProgress.ext!!.toLowerCase(Locale.ROOT)
+            if (bookProgress?.ext != null) {
+                val ext = bookProgress.ext!!.lowercase(Locale.ROOT)
 
-                if (ext.contains("pdf")) {
-                    mIcon!!.setImageResource(R.drawable.ic_item_book)
-                } else if (ext.contains("epub")) {
-                    mIcon!!.setImageResource(R.drawable.ic_item_book)
-                } else {
-                    mIcon!!.setImageResource(R.drawable.ic_explorer_any)
-                }
+                AdapterUtils.setIcon(ext, mIcon)
 
                 ImageLoader.getInstance()
-                    .loadImage(entry.file?.absolutePath, 0, 1.0f, screenWidth, mIcon!!);
+                    .loadImage(entry.file?.absolutePath, 0, 1.0f, screenWidth, mIcon!!)
             }
         }
     }
