@@ -14,8 +14,7 @@
         android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginRight="8dp"
-        android:text="选择导出的分辨率,默认为1080宽,最小为原始图片宽,图片最大宽可达3600"
-        android:textColor="@android:color/white" />
+        android:text="选择导出的分辨率,默认为1080宽,最小为原始图片宽,图片最大宽可达3600" />
 
     <com.google.android.material.slider.Slider
         android:id="@+id/resolutionSlider"
@@ -41,22 +40,19 @@
             android:id="@+id/tvStart"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@android:color/white"
             tools:text="10" />
 
         <androidx.appcompat.widget.AppCompatTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:text="页面范围"
-            android:textColor="@android:color/white" />
+            android:text="页面范围" />
 
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/tvEnd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:textColor="@android:color/white"
             tools:ignore="RelativeOverlap"
             tools:text="10" />
     </RelativeLayout>

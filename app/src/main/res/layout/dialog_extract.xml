@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@color/bg_extract_color"
     android:orientation="vertical"
     android:padding="16dp"
     tools:minWidth="380dp">
@@ -22,7 +21,6 @@
             android:layout_centerVertical="true"
             android:clickable="true"
             android:text="返回"
-            android:textColor="@android:color/white"
             android:textSize="18sp" />
 
         <androidx.appcompat.widget.AppCompatTextView
@@ -30,7 +28,6 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:text="导出图片"
-            android:textColor="@android:color/white"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -58,8 +55,7 @@
             android:gravity="center"
             android:insetTop="0dp"
             android:insetBottom="0dp"
-            android:text="导出选中范围"
-            android:textColor="@android:color/white" />
+            android:text="导出选中范围" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnExtractSingle"
@@ -71,8 +67,7 @@
             android:gravity="center"
             android:insetTop="0dp"
             android:insetBottom="0dp"
-            android:text="导出当前页"
-            android:textColor="@android:color/white" />
+            android:text="导出当前页" />
     </LinearLayout>
 
 </LinearLayout>

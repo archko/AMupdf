@@ -61,7 +61,7 @@ class PdfOperationFragment : DialogFragment(R.layout.fragment_pdf_opt) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        var themeId = android.R.style.Theme_Material
+        var themeId = android.R.style.Theme_Material_Light
         setStyle(DialogFragment.STYLE_NO_TITLE, themeId)
 
         progressDialog = ProgressDialog(activity)

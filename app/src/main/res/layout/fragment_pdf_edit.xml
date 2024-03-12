@@ -16,7 +16,6 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:text="返回"
-            android:textColor="@android:color/white"
             android:textSize="18sp" />
 
         <androidx.appcompat.widget.AppCompatTextView
@@ -24,7 +23,6 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:text="编辑pdf"
-            android:textColor="@android:color/white"
             android:textSize="18sp" />
 
         <androidx.appcompat.widget.AppCompatTextView

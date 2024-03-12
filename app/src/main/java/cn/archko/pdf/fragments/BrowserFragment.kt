@@ -32,6 +32,7 @@ import cn.archko.pdf.entity.FileBean
 import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.listeners.OnItemClickListener
 import cn.archko.pdf.utils.FileUtils
+import cn.archko.pdf.widgets.ColorItemDecoration
 import com.umeng.analytics.MobclickAgent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -148,6 +149,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         this.filesListView = view.findViewById(R.id.files)
         filesListView.layoutManager =
             LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+        filesListView.addItemDecoration(ColorItemDecoration(requireContext()))
 
         mSwipeRefreshWidget = view.findViewById(R.id.swipe_refresh_widget) as SwipeRefreshLayout
         mSwipeRefreshWidget.apply {
