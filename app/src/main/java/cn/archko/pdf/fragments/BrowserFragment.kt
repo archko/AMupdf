@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -32,8 +33,10 @@ import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.listeners.OnItemClickListener
 import cn.archko.pdf.utils.FileUtils
 import com.umeng.analytics.MobclickAgent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.*
 
 /**
  * @description:file browser
@@ -149,8 +152,10 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         mSwipeRefreshWidget = view.findViewById(R.id.swipe_refresh_widget) as SwipeRefreshLayout
         mSwipeRefreshWidget.apply {
             setColorSchemeResources(
-                cn.archko.pdf.R.color.text_border_pressed, cn.archko.pdf.R.color.text_border_pressed,
-                cn.archko.pdf.R.color.text_border_pressed, cn.archko.pdf.R.color.text_border_pressed
+                cn.archko.pdf.R.color.text_border_pressed,
+                cn.archko.pdf.R.color.text_border_pressed,
+                cn.archko.pdf.R.color.text_border_pressed,
+                cn.archko.pdf.R.color.text_border_pressed
             )
             setOnRefreshListener(this@BrowserFragment)
         }
@@ -424,8 +429,12 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         } else if (item.itemId == removeContextMenuItem) {
             if (entry.type == FileBean.RECENT) {
                 MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, "remove")
-                bookViewModel.removeRecent(entry.file!!.absolutePath)
-                update()
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        bookViewModel.removeRecent(entry.file!!.absolutePath)
+                    }
+                    update()
+                }
             }
         } else {
             val clickedFile: File = entry.file!!

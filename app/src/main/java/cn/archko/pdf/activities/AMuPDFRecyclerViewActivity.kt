@@ -33,8 +33,10 @@ import cn.archko.pdf.presenter.PageViewPresenter
 import cn.archko.pdf.utils.Utils
 import cn.archko.pdf.viewmodel.PDFViewModel
 import cn.archko.pdf.widgets.APageSeekBarControls
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * @author: archko 2019/8/25 :12:43
@@ -294,7 +296,9 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
                 return
             }
             lifecycleScope.launch {
-                pdfViewModel.savePageSize(mCrop, mPageSizes).collectLatest { }
+                withContext(Dispatchers.IO) {
+                    pdfViewModel.savePageSize(mCrop, mPageSizes).collectLatest { }
+                }
             }
         }
     }
