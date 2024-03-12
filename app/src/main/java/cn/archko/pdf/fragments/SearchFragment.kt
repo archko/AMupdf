@@ -45,10 +45,7 @@ open class SearchFragment : DialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val themeId = R.style.AppDialogTheme
-        /*if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            themeId = android.R.style.Theme_Material_Light_Dialog;
-        }*/
-        setStyle(DialogFragment.STYLE_NORMAL, themeId)
+        setStyle(DialogFragment.STYLE_NO_TITLE, themeId)
     }
 
     override fun onResume() {

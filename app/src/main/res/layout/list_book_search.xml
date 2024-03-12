@@ -11,8 +11,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:navigationIcon="@drawable/ic_nav"
-        app:popupTheme="@style/ThemeOverlay.MaterialComponents.ActionBar"
+        app:navigationIcon="@drawable/ic_nav_black"
         app:title="@string/menu_search" />
 
     <RelativeLayout
@@ -35,7 +34,7 @@
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:layout_marginRight="4dp"
-            android:src="@drawable/ic_close_white_24dp" />
+            android:src="@drawable/ic_close_black_24dp" />
     </RelativeLayout>
 
     <androidx.recyclerview.widget.RecyclerView
