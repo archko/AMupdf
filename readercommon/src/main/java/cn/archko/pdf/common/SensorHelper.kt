@@ -107,13 +107,17 @@ class SensorHelper(private val activity: Activity) {
                     activity.requestedOrientation = prev
                     return true
                 }
+
                 4 -> activity.requestedOrientation =
                     ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT
+
                 5 -> activity.requestedOrientation =
                     ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+
                 6 -> activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
                 7 -> activity.requestedOrientation =
                     ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+
                 else -> {
                 }
             }

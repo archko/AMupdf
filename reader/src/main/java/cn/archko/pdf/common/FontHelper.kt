@@ -5,10 +5,8 @@ import android.content.SharedPreferences
 import android.graphics.Typeface
 import cn.archko.pdf.App
 import cn.archko.pdf.entity.FontBean
-
-import java.io.File
-
 import cn.archko.pdf.utils.FileUtils
+import java.io.File
 
 /**
  * @author: archko 2019-06-19 :12:27

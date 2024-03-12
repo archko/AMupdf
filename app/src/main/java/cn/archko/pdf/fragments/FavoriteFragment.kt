@@ -38,7 +38,7 @@ class FavoriteFragment : BrowserFragment() {
         LiveEventBus
             .get(Event.ACTION_FAVORITED, FileBean::class.java)
             .observe(this, object : Observer<FileBean> {
-                override fun onChanged(t: FileBean?) {
+                override fun onChanged(t: FileBean) {
                     Logcat.d(TAG, "FAVORITED:$t")
                     loadData()
                 }
@@ -46,7 +46,7 @@ class FavoriteFragment : BrowserFragment() {
         LiveEventBus
             .get(Event.ACTION_UNFAVORITED, FileBean::class.java)
             .observe(this, object : Observer<FileBean> {
-                override fun onChanged(t: FileBean?) {
+                override fun onChanged(t: FileBean) {
                     Logcat.d(TAG, "UNFAVORITED:$t")
                     loadData()
                 }

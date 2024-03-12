@@ -9,7 +9,6 @@ import android.widget.Toast
 import androidx.core.content.FileProvider
 import cn.archko.pdf.activities.AMuPDFRecyclerViewActivity
 import cn.archko.pdf.fragments.BrowserFragment
-import com.artifex.mupdf.viewer.DocumentActivity
 import com.umeng.analytics.MobclickAgent
 import org.vudroid.pdfdroid.PdfViewerActivity
 import java.io.File
@@ -54,6 +53,7 @@ public class PDFViewerHelper {
                     intent.setClass(activity, PdfViewerActivity::class.java)
                     activity.startActivity(intent)
                 }
+
                 BrowserFragment.mupdfContextMenuItem -> {
                     val map = mapOf("type" to "AMuPDF", "name" to clickedFile.name)
                     MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
@@ -71,10 +71,11 @@ public class PDFViewerHelper {
                     val map = mapOf("type" to "Document", "name" to clickedFile.name)
                     MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
 
-                    intent.setClass(activity, DocumentActivity::class.java)
+                    //intent.setClass(activity, DocumentActivity::class.java)
                     // API>=21: intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT); /* launch as a new document */
                     activity.startActivity(intent)
                 }
+
                 BrowserFragment.otherContextMenuItem -> {
                     val map = mapOf("type" to "other", "name" to clickedFile.name)
                     MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)

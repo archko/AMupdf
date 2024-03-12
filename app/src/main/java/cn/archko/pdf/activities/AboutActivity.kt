@@ -13,7 +13,6 @@ import android.widget.BaseExpandableListAdapter
 import android.widget.ExpandableListView
 import android.widget.TextView
 import cn.archko.mupdf.R
-import cn.archko.pdf.activities.AboutActivity
 import cn.archko.pdf.utils.FileUtils
 import cn.archko.pdf.utils.LengthUtils
 import com.google.android.material.appbar.MaterialToolbar

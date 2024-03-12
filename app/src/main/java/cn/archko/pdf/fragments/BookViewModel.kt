@@ -18,7 +18,6 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileFilter
 import java.util.*
-import kotlin.Comparator
 
 /**
  * @author: archko 2020/11/16 :11:23
@@ -172,11 +171,11 @@ class BookViewModel : ViewModel() {
     private fun postFavoriteEvent(entry: FileBean, isFavorited: Int) {
         if (isFavorited == 1) {
             LiveEventBus
-                .get(Event.ACTION_FAVORITED)
+                .get<FileBean>(Event.ACTION_FAVORITED)
                 .post(entry)
         } else {
             LiveEventBus
-                .get(Event.ACTION_UNFAVORITED)
+                .get<FileBean>(Event.ACTION_UNFAVORITED)
                 .post(entry)
         }
     }

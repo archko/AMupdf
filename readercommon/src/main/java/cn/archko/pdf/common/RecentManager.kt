@@ -16,7 +16,7 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
-import java.util.*
+import java.util.Arrays
 
 /**
  * 存储最近阅读的记录

@@ -3,7 +3,6 @@ package cn.archko.pdf.common
 import cn.archko.pdf.entity.ReflowBean
 import cn.archko.pdf.utils.StreamUtils
 import java.util.regex.Pattern
-import kotlin.collections.ArrayList
 
 /**
  * @author: archko 2019/2/18 :15:57

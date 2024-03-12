@@ -11,11 +11,10 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.view.View;
 
-import androidx.appcompat.app.AppCompatDelegate;
-
 import com.google.android.material.appbar.MaterialToolbar;
 import com.umeng.analytics.MobclickAgent;
 
+import androidx.appcompat.app.AppCompatDelegate;
 import cn.archko.pdf.R;
 import cn.archko.pdf.common.SensorHelper;
 

@@ -1,55 +1,53 @@
 apply plugin: 'com.android.library'
-
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-allopen'
-
-apply from: '../shared.gradle'
+apply plugin: 'kotlin-parcelize'
 
 android {
-    compileSdkVersion build_versions.compile_sdk
-    buildToolsVersion build_versions.build_tools
-    defaultConfig {
-        minSdkVersion build_versions.min_sdk
-        targetSdkVersion build_versions.target_sdk
-        // jni cropper
-        ndk.abiFilters 'armeabi-v7a', 'arm64-v8a'
-        externalNativeBuild {
-            cmake {
-                cppFlags ""
-            }
-        }
-    }
+    compileSdkVersion 34
+    buildToolsVersion '34.0.0'
+
+    namespace "cn.archko.pdf.common"
 
     compileOptions {
-        encoding "UTF-8"
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        minSdkVersion 21
+        versionCode 1
+        versionName "1.0"
     }
 
     kotlinOptions {
         jvmTarget = "1.8"
     }
 
+    buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
     lintOptions { abortOnError false }
-    sourceSets {
-        main {
-            jni.srcDirs = []
-            jniLibs.srcDirs = ['libs']
-        }
-    }
-    externalNativeBuild {
-        cmake {
-            path "src/main/cpp/CMakeLists.txt"
-        }
-    }
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
-    }
 }
+
 dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
+    api "io.github.jeremyliao:live-event-bus-x:1.8.0"
+    api "androidx.appcompat:appcompat:1.6.1"
+    api 'androidx.recyclerview:recyclerview:1.3.2'
 
-    api project(":viewer")
+    api project(":pdf-recyclerview")
+
+    api "com.artifex.mupdf:mupdf-fitz:1.0-SNAPSHOT"
+
+    api "com.umeng.umsdk:common:9.6.5"
+    api "com.umeng.umsdk:asms:1.8.0"// 必选
 }

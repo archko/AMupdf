@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.AsyncTask
 import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.awidget.ARecyclerView
 import cn.archko.pdf.App
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.common.ParseTextMain
@@ -45,7 +45,7 @@ class MuPDFReflowAdapter(
         val pdfView: ReflowTextViewHolder.PDFTextView =
             ReflowTextViewHolder.PDFTextView(mContext, styleHelper)
         val holder = ReflowTextViewHolder(pdfView)
-        val lp: RecyclerView.LayoutParams = RecyclerView.LayoutParams(
+        val lp: ARecyclerView.LayoutParams = ARecyclerView.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )

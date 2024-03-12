@@ -37,11 +37,6 @@ import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.widget.RelativeLayout;
-import android.widget.RelativeLayout.LayoutParams;
 
 /**
  * @author: archko 2019/9/30 :14:23

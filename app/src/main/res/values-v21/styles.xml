@@ -5,8 +5,7 @@
         <item name="android:windowBackground">@drawable/bg_window_tiled</item>
     </style>
 
-    <style name="AppFullscreen" parent="Theme.AppCompat.Light.NoActionBar">
-    </style>
+    <style name="AppFullscreen" parent="Theme.AppCompat.Light.NoActionBar"></style>
 
     <style name="AppDialogTheme" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:windowBackground">@drawable/bg_window_tiled</item>

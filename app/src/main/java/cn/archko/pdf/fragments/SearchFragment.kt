@@ -70,7 +70,7 @@ open class SearchFragment : DialogFragment() {
         val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
         toolbar.setNavigationOnClickListener(View.OnClickListener { dismiss() })
 
-        dialog?.setTitle(R.string.menu_search)
+        dialog?.setTitle(cn.archko.pdf.R.string.menu_search)
         editView = view.findViewById(R.id.searchEdit)
         imgClose = view.findViewById(R.id.img_close)
         filesListView = view.findViewById(R.id.files)

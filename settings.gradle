@@ -4,4 +4,4 @@ include ':readercommon'
 include ':vudroid'
 
 // git clone
-include ':viewer'
+include ':pdf-recyclerview'

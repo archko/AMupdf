@@ -1,17 +1,27 @@
 apply plugin: 'com.android.application'
-
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-allopen'
-
-apply from: '../shared.gradle'
+apply plugin: 'kotlin-parcelize'
 
 def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
 android {
+    compileSdkVersion 34
+    buildToolsVersion '34.0.0'
+
+    namespace "cn.archko.mupdf"
+
+    ndkVersion "25.2.9519653"
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = '11'
+    }
+
     signingConfigs {
         release {
             v1SigningEnabled true
@@ -22,40 +32,26 @@ android {
             storePassword keystoreProperties['storePassword']
         }
     }
-    compileSdkVersion build_versions.compile_sdk
-    buildToolsVersion build_versions.build_tools
+
     defaultConfig {
-        applicationId 'cn.archko.mupdf'
-        minSdkVersion build_versions.min_sdk
-        targetSdkVersion build_versions.target_sdk
-        versionCode VERSION_CODE as int
-        versionName VERSION_NAME
-        signingConfig signingConfigs.release
-        ndk.abiFilters 'armeabi-v7a', 'arm64-v8a'
-        externalNativeBuild {
-            cmake {
-                cppFlags ""
-            }
+        applicationId 'com.archko.mupdf'
+        minSdkVersion 21
+        targetSdkVersion 33
+        versionCode 15
+        versionName "1.2"
+        vectorDrawables {
+            useSupportLibrary true
         }
-    }
+        signingConfig signingConfigs.release
 
-    //dataBinding {
-    //    enabled = true
-    //}
-    compileOptions {
-        encoding "UTF-8"
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        ndk.abiFilters 'arm64-v8a'
     }
-
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-
     buildTypes {
         debug {
             signingConfig signingConfigs.release
+            minifyEnabled false
             jniDebuggable true
+            //proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         release {
             signingConfig signingConfigs.release
@@ -63,27 +59,18 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+        }
 
-    lintOptions { abortOnError false }
-    sourceSets {
-        main {
-            jni.srcDirs = []
-            jniLibs.srcDirs = ['libs']
-            main.java.srcDirs += 'src/main/kotlin'
-        }
-    }
-    externalNativeBuild {
-        cmake {
-            //path "src/main/cpp/CMakeLists.txt"
-        }
-    }
-}
 dependencies {
-    api fileTree(include: ['*.jar'], dir: 'libs')
-    api deps.multidex
-    api deps.constraint_layout
-    api deps.constraintlayout_solver
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation('androidx.appcompat:appcompat:1.6.1')
+    api "androidx.multidex:multidex:2.0.1"
+    //api 'androidx.recyclerview:recyclerview:1.3.2'
+    api "androidx.constraintlayout:constraintlayout:2.1.4"
+
+    api "androidx.fragment:fragment:.1.6.2"
+    api "androidx.fragment:fragment-ktx:1.6.2"
 
     api project(':reader')
-    api project(':viewer')
+    api project(':pdf-recyclerview')
 }

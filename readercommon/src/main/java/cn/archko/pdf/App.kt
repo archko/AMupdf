@@ -7,9 +7,10 @@ import com.jeremyliao.liveeventbus.LiveEventBus
 import com.umeng.commonsdk.UMConfigure
 
 class App : Application() {
+
     private val appkey = "5c15f639f1f556978b0009c8"
-    var screenHeight = 720
-    var screenWidth = 1080
+    var screenHeight = 1080
+    var screenWidth = 1920
     override fun onCreate() {
         super.onCreate()
         instance = this
@@ -22,7 +23,6 @@ class App : Application() {
         UMConfigure.init(this, appkey, "archko", UMConfigure.DEVICE_TYPE_PHONE, null)
         LiveEventBus
             .config()
-            .supportBroadcast(this)
             .lifecycleObserverAlwaysActive(true)
             .autoClear(false)
     }

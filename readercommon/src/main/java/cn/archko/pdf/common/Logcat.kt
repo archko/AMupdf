@@ -17,42 +17,42 @@ object Logcat {
      */
     @JvmField
     var loggable = true
-    fun v(tag: String?, msg: String?) {
+    fun v(tag: String?, msg: String) {
         if (loggable) {
             Log.v(tag, msg)
         }
     }
 
     @JvmStatic
-    fun d(msg: String?) {
+    fun d(msg: String) {
         if (loggable) {
             Log.d(TAG, msg)
         }
     }
 
     @JvmStatic
-    fun d(tag: String?, msg: String?) {
+    fun d(tag: String?, msg: String) {
         if (loggable) {
             Log.d(tag, msg)
         }
     }
 
     @JvmStatic
-    fun i(tag: String?, msg: String?) {
+    fun i(tag: String?, msg: String) {
         if (loggable) {
             Log.i(tag, msg)
         }
     }
 
     @JvmStatic
-    fun w(tag: String?, msg: String?) {
+    fun w(tag: String?, msg: String) {
         if (loggable) {
             Log.w(tag, msg)
         }
     }
 
     @JvmStatic
-    fun e(tag: String?, msg: String?) {
+    fun e(tag: String?, msg: String) {
         if (loggable) {
             Log.e(tag, msg)
         }

@@ -2,7 +2,6 @@ package cn.archko.pdf.common
 
 import cn.archko.pdf.entity.BookProgress
 import cn.archko.pdf.entity.FileBean
-import java.util.*
 
 /**
  * @author: archko 2018/2/24 :14:58

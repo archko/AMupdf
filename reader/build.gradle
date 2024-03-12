@@ -1,52 +1,53 @@
 apply plugin: 'com.android.library'
-
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-allopen'
-
-apply from: '../shared.gradle'
+apply plugin: 'kotlin-parcelize'
 
 android {
-    compileSdkVersion build_versions.compile_sdk
-    buildToolsVersion build_versions.build_tools
-    defaultConfig {
-        minSdkVersion build_versions.min_sdk
-        targetSdkVersion build_versions.target_sdk
-    }
+    compileSdkVersion 34
+    buildToolsVersion '34.0.0'
+
+    namespace "cn.archko.pdf"
 
     compileOptions {
-        encoding "UTF-8"
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        minSdkVersion 21
+        versionCode 1
+        versionName "1.0"
     }
 
     kotlinOptions {
         jvmTarget = "1.8"
     }
 
-    lintOptions { abortOnError false }
-    sourceSets {
-        main {
-            jni.srcDirs = []
-            jniLibs.srcDirs = ['libs']
-            main.java.srcDirs += 'src/main/kotlin'
+    buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    lintOptions { abortOnError false }
 }
 dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
-    api deps.vectordrawable
-    api deps.swiperefreshlayout
+    api "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
 
-    api(deps.viewpager2) {
-        exclude group: 'androidx.recyclerview'
-    }
+    api "androidx.vectordrawable:vectordrawable:1.2.0-beta01"
+    api "androidx.viewpager2:viewpager2:1.1.0-beta02"
+    api "androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0"
 
-    api(deps.material) {
-        exclude group: 'androidx.recyclerview'
-    }
+    api "com.google.android.material:material:1.11.0"
 
     api project(":readercommon")
-    api project(":viewer")
+    api project(":pdf-recyclerview")
     api project(":vudroid")
 }

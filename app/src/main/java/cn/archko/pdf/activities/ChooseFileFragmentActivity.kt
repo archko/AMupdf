@@ -1,17 +1,24 @@
 package cn.archko.pdf.activities
 
 import android.Manifest
+import android.app.AlertDialog
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.Settings
+import android.util.Log
 import android.util.SparseArray
 import android.widget.Toast
-import androidx.lifecycle.Observer
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import cn.archko.mupdf.R
@@ -32,7 +39,7 @@ import java.util.*
 /**
  * @author archko
  */
-open class ChooseFileFragmentActivity : AnalysticActivity() {
+open class ChooseFileFragmentActivity : AnalysticActivity(), OnPermissionGranted {
 
     private lateinit var mViewPager: ViewPager2
     private lateinit var mPagerAdapter: TabsAdapter
@@ -41,6 +48,8 @@ open class ChooseFileFragmentActivity : AnalysticActivity() {
 
     private lateinit var tabLayout: TabLayout
     internal var mTabs: MutableList<SamplePagerItem> = ArrayList()
+    private val permissionCallbacks = arrayOfNulls<OnPermissionGranted>(PERMISSION_LENGTH)
+    private var permissionDialog: Dialog? = null
 
     internal data class SamplePagerItem(
         var clss: Class<*>,
@@ -64,10 +73,12 @@ open class ChooseFileFragmentActivity : AnalysticActivity() {
                         AboutActivity::class.java
                     )
                 )
+
                 R.id.action_options -> PdfOptionsActivity.start(this@ChooseFileFragmentActivity)
                 R.id.action_search -> {
                     showSearchDialog()
                 }
+
                 else -> {
                     val fragment: Fragment? = mPagerAdapter.getItemFragment(mViewPager.currentItem)
                     Logcat.d("menu:" + id + " fragment:" + fragment + " index:" + mViewPager.currentItem)
@@ -77,7 +88,7 @@ open class ChooseFileFragmentActivity : AnalysticActivity() {
             false
         }
 
-        checkSdcardPermission()
+        checkForExternalPermission()
 
         // 设置为U-APP场景
         MobclickAgent.setScenarioType(this, MobclickAgent.EScenarioType.E_UM_NORMAL);
@@ -87,7 +98,7 @@ open class ChooseFileFragmentActivity : AnalysticActivity() {
         LiveEventBus
             .get(Event.ACTION_ISFIRST, Boolean::class.java)
             .observe(this, object : Observer<Boolean> {
-                override fun onChanged(t: Boolean?) {
+                override fun onChanged(t: Boolean) {
                     mViewPager.currentItem = 1
                 }
             })
@@ -105,49 +116,84 @@ open class ChooseFileFragmentActivity : AnalysticActivity() {
         //MobclickAgent.onPause(mContext); // BaseActivity中已经统一调用，此处无需再调用
     }
 
-
-    private fun checkSdcardPermission() {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // WRITE_EXTERNAL_STORAGE permission has not been granted.
-
-            requestSdcardPermission()
-        } else {
-            loadView()
+    private fun checkForExternalPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!checkStoragePermission()) {
+                requestStoragePermission(this, true)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                requestAllFilesAccess(this)
+            }
         }
     }
 
-    /**
-     * Requests the sdcard permission.
-     * If the permission has been denied previously, a SnackBar will prompt the user to grant the
-     * permission, otherwise it is requested directly.
-     */
-    private fun requestSdcardPermission() {
-        Logcat.d(TAG, "sdcard permission has NOT been granted. Requesting permission.")
+    private fun checkStoragePermission(): Boolean {
+        return (ActivityCompat.checkSelfPermission(
+            this,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
+                == PackageManager.PERMISSION_GRANTED)
+    }
 
-        if (ActivityCompat.shouldShowRequestPermissionRationale(
-                this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            )
-        ) {
-            // Provide an additional rationale to the user if the permission was not granted
-            // and the user would benefit from additional context for the use of the permission.
-            // For example if the user has previously denied the permission.
-            ActivityCompat.requestPermissions(
-                this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                REQUEST_PERMISSION_CODE
-            )
-        } else {
-
-            // sdcard permission has not been granted yet. Request it directly.
-            ActivityCompat.requestPermissions(
-                this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                REQUEST_PERMISSION_CODE
-            )
+    open fun requestStoragePermission(
+        onPermissionGranted: OnPermissionGranted, isInitialStart: Boolean
+    ) {
+        val permission = Manifest.permission.WRITE_EXTERNAL_STORAGE
+        permissionCallbacks[STORAGE_PERMISSION] = onPermissionGranted
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
+            val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+            builder.setTitle("R.string.grant_files_permission")
+                .setMessage("R.string.grant_files_permission")
+                .setPositiveButton("R.string.grant_cancel") { _, _ ->
+                    finish()
+                }
+                .setNegativeButton("R.string.grant_ok") { _, _ ->
+                    ActivityCompat.requestPermissions(
+                        this, arrayOf(permission), STORAGE_PERMISSION
+                    )
+                    permissionDialog?.run {
+                        permissionDialog!!.dismiss()
+                    }
+                }
+            builder.setCancelable(false)
+            builder.create().show()
+        } else if (isInitialStart) {
+            ActivityCompat.requestPermissions(this, arrayOf(permission), STORAGE_PERMISSION)
         }
+    }
+
+    open fun requestAllFilesAccess(onPermissionGranted: OnPermissionGranted) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
+            val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+            builder.setTitle("R.string.grant_all_files_permission")
+                .setMessage("R.string.grant_all_files_permission")
+                .setPositiveButton("R.string.grant_cancel") { _, _ ->
+                    finish()
+                }
+                .setNegativeButton("R.string.grant_ok") { _, _ ->
+                    permissionCallbacks[ALL_FILES_PERMISSION] = onPermissionGranted
+                    try {
+                        val intent =
+                            Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                                .setData(Uri.parse("package:$packageName"))
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        Log.e(
+                            TAG,
+                            "Failed to initial activity to grant all files access",
+                            e
+                        )
+                        Toast.makeText(this, "没有获取sdcard的读取权限", Toast.LENGTH_LONG)
+                            .show()
+                    }
+                }
+            builder.setCancelable(false)
+            builder.create().show()
+        }
+    }
+
+    private fun isGranted(grantResults: IntArray): Boolean {
+        return grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED
     }
 
     override fun onRequestPermissionsResult(
@@ -155,18 +201,27 @@ open class ChooseFileFragmentActivity : AnalysticActivity() {
         permissions: Array<String>,
         grantResults: IntArray
     ) {
-        if (requestCode == REQUEST_PERMISSION_CODE) {
-            if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                //  权限通过
-                //((RefreshableFragment) (mPagerAdapter.getItem(mViewPager.getCurrentItem()))).update();
-                loadView()
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == STORAGE_PERMISSION) {
+            if (isGranted(grantResults)) {
+                permissionCallbacks[STORAGE_PERMISSION]!!
+                    .onPermissionGranted()
+                permissionCallbacks[STORAGE_PERMISSION] =
+                    null
             } else {
-                // 权限拒绝
-                Toast.makeText(this, "没有获取sdcard的读取权限", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "R.string.grantfailed", Toast.LENGTH_SHORT).show()
+                permissionCallbacks[STORAGE_PERMISSION]?.let {
+                    requestStoragePermission(
+                        it,
+                        false
+                    )
+                }
             }
         }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
 
+    override fun onPermissionGranted() {
+        loadView()
     }
 
     //========================================
@@ -201,9 +256,9 @@ open class ChooseFileFragmentActivity : AnalysticActivity() {
     }
 
     protected fun addTab() {
-        titles[0] = getString(R.string.tab_history)
-        titles[1] = getString(R.string.tab_browser)
-        titles[2] = getString(R.string.tab_favorite)
+        titles[0] = getString(cn.archko.pdf.R.string.tab_history)
+        titles[1] = getString(cn.archko.pdf.R.string.tab_browser)
+        titles[2] = getString(cn.archko.pdf.R.string.tab_favorite)
 
         var title = titles[0]
         var bundle = Bundle()
@@ -297,6 +352,9 @@ open class ChooseFileFragmentActivity : AnalysticActivity() {
 
         @JvmField
         val PREF_HOME = "Home"
-        private val REQUEST_PERMISSION_CODE = 0x001
+
+        const val PERMISSION_LENGTH = 2
+        var STORAGE_PERMISSION = 0
+        const val ALL_FILES_PERMISSION = 1
     }
 }

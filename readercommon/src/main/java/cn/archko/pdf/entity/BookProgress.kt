@@ -3,7 +3,6 @@ package cn.archko.pdf.entity
 import cn.archko.pdf.utils.FileUtils
 import java.io.File
 import java.io.Serializable
-import java.util.*
 
 /**
  * @author: archko 2014/4/17 :16:27

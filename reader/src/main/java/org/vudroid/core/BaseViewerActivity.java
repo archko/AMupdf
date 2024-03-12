@@ -16,29 +16,22 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
-import androidx.fragment.app.FragmentActivity;
+import org.vudroid.core.events.CurrentPageListener;
+import org.vudroid.core.events.DecodingProgressListener;
+import org.vudroid.core.models.CurrentPageModel;
+import org.vudroid.core.models.DecodingProgressModel;
+import org.vudroid.core.models.ZoomModel;
+import org.vudroid.core.views.PageViewZoomControls;
 
+import androidx.fragment.app.FragmentActivity;
+import cn.archko.pdf.R;
 import cn.archko.pdf.activities.PdfOptionsActivity;
 import cn.archko.pdf.common.BitmapCache;
 import cn.archko.pdf.common.PDFBookmarkManager;
 import cn.archko.pdf.common.SensorHelper;
-
 import cn.archko.pdf.listeners.SimpleGestureListener;
-
-import org.vudroid.core.events.CurrentPageListener;
-import org.vudroid.core.events.DecodingProgressListener;
-
 import cn.archko.pdf.presenter.PageViewPresenter;
-
-import org.vudroid.core.models.CurrentPageModel;
-import org.vudroid.core.models.DecodingProgressModel;
-import org.vudroid.core.models.ZoomModel;
-
 import cn.archko.pdf.widgets.APageSeekBarControls;
-
-import org.vudroid.core.views.PageViewZoomControls;
-
-import cn.archko.pdf.R;
 
 public abstract class BaseViewerActivity extends FragmentActivity implements DecodingProgressListener, CurrentPageListener {
     private static final int MENU_EXIT = 0;

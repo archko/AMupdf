@@ -58,21 +58,21 @@ class HistoryFragment : BrowserFragment() {
         LiveEventBus
             .get(Event.ACTION_STOPPED, FileBean::class.java)
             .observe(this, object : Observer<FileBean> {
-                override fun onChanged(t: FileBean?) {
+                override fun onChanged(t: FileBean) {
                     loadData()
                 }
             })
         LiveEventBus
             .get(Event.ACTION_FAVORITED, FileBean::class.java)
             .observe(this, object : Observer<FileBean> {
-                override fun onChanged(t: FileBean?) {
+                override fun onChanged(t: FileBean) {
                     updateItem(t)
                 }
             })
         LiveEventBus
             .get(Event.ACTION_UNFAVORITED, FileBean::class.java)
             .observe(this, object : Observer<FileBean> {
-                override fun onChanged(t: FileBean?) {
+                override fun onChanged(t: FileBean) {
                     updateItem(t)
                 }
             })
@@ -269,10 +269,10 @@ class HistoryFragment : BrowserFragment() {
         } else {
             Logcat.d("fileListAdapter!!.normalCount <= 0")
             mListMoreView.onLoadingStateChanged(IMoreView.STATE_NO_MORE)
-            val sp = context!!.getSharedPreferences(PREF_BROWSER, Context.MODE_PRIVATE)
+            val sp = requireContext().getSharedPreferences(PREF_BROWSER, Context.MODE_PRIVATE)
             val isFirst = sp.getBoolean(PREF_BROWSER_KEY_FIRST, true)
             if (isFirst) {
-                LiveEventBus.get(Event.ACTION_ISFIRST)
+                LiveEventBus.get<Boolean>(Event.ACTION_ISFIRST)
                     .post(true)
                 sp.edit()
                     .putBoolean(PREF_BROWSER_KEY_FIRST, false)

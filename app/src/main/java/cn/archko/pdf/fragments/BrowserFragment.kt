@@ -135,8 +135,8 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         mSwipeRefreshWidget = view.findViewById(R.id.swipe_refresh_widget) as SwipeRefreshLayout
         mSwipeRefreshWidget.apply {
             setColorSchemeResources(
-                R.color.text_border_pressed, R.color.text_border_pressed,
-                R.color.text_border_pressed, R.color.text_border_pressed
+                cn.archko.pdf.R.color.text_border_pressed, cn.archko.pdf.R.color.text_border_pressed,
+                cn.archko.pdf.R.color.text_border_pressed, cn.archko.pdf.R.color.text_border_pressed
             )
             setOnRefreshListener(this@BrowserFragment)
         }
@@ -190,7 +190,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
 
     open fun loadData() {
         bookViewModel.loadFiles(
-            resources.getString(R.string.go_home),
+            resources.getString(cn.archko.pdf.R.string.go_home),
             mCurrentPath,
             dirsFirst,
             showExtension
@@ -293,7 +293,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
             MobclickAgent.onEvent(activity, AnalysticsHelper.A_FILE, map)
 
             currentBean = clickedEntry
-            PDFViewerHelper.openWithDefaultViewer(Uri.fromFile(clickedFile), activity!!)
+            PDFViewerHelper.openWithDefaultViewer(Uri.fromFile(clickedFile), requireActivity())
         }
     }
 
@@ -446,7 +446,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
                 }
 
                 currentBean = entry
-                PDFViewerHelper.openViewer(clickedFile, item, activity!!)
+                PDFViewerHelper.openViewer(clickedFile, item, requireActivity())
             }
         }
         return false

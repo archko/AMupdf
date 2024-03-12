@@ -78,7 +78,7 @@ class AReflowViewController(
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
             setItemViewCacheSize(0)
 
-            addItemDecoration(ViewerDividerItemDecoration(context, LinearLayoutManager.VERTICAL))
+            //addItemDecoration(ViewerDividerItemDecoration(context, LinearLayoutManager.VERTICAL))
             addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                     if (newState == RecyclerView.SCROLL_STATE_IDLE) {

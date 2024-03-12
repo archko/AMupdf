@@ -59,7 +59,7 @@ open class BackupFragment : DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.item_font, container, false)
+        val view = inflater.inflate(cn.archko.pdf.R.layout.item_font, container, false)
         view.findViewById<View>(R.id.layout_search).visibility = View.GONE
         val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
         toolbar.setNavigationOnClickListener({ dismiss() })
@@ -89,7 +89,7 @@ open class BackupFragment : DialogFragment() {
         adapter = object : BaseRecyclerAdapter<File>(activity) {
 
             override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<*> {
-                val view = mInflater.inflate(R.layout.item_outline, parent, false)
+                val view = mInflater.inflate(cn.archko.pdf.R.layout.item_outline, parent, false)
                 return ItemHolder(view)
             }
         }
@@ -104,7 +104,7 @@ open class BackupFragment : DialogFragment() {
 
     inner class ItemHolder(itemView: View?) : BaseViewHolder<File>(itemView) {
 
-        private var title: TextView = itemView!!.findViewById(R.id.title)
+        private var title: TextView = itemView!!.findViewById(cn.archko.pdf.R.id.title)
 
         init {
             itemView!!.minimumHeight = Utils.dipToPixel(48f)
