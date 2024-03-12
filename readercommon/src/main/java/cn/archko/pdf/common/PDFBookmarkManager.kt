@@ -8,7 +8,7 @@ import cn.archko.pdf.utils.FileUtils
 /**
  * @author: archko 2018/7/22 :12:43
  */
-class PDFBookmarkManager {
+    class PDFBookmarkManager {
     var bookmarkToRestore: BookProgress? = null
         private set
 

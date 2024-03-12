@@ -7,6 +7,7 @@ import android.content.res.Configuration
 import android.util.SparseArray
 import android.view.GestureDetector
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RelativeLayout
@@ -29,14 +30,12 @@ import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.listeners.OutlineListener
 import cn.archko.pdf.mupdf.MupdfDocument
 import cn.archko.pdf.widgets.APageSeekBarControls
-import cn.archko.pdf.widgets.ViewerDividerItemDecoration
 
 /**
  * @author: archko 2020/5/15 :12:43
  */
 class AReflowViewController(
     private var context: Context,
-    private var contentView: View,
     private val mControllerLayout: RelativeLayout,
     private var pdfBookmarkManager: PDFBookmarkManager,
     private var mPath: String,
@@ -155,8 +154,26 @@ class AReflowViewController(
         return position
     }
 
+    override fun getCount(): Int {
+        return mPageSizes.size()
+    }
+
+    override fun setOriention(ori: Int) {
+    }
+
+    override fun setCrop(crop: Boolean) {
+    }
+
     override fun scrollToPosition(page: Int) {
         mRecyclerView.layoutManager?.scrollToPosition(page)
+    }
+
+    override fun scrollPage(y: Int, top: Int, bottom: Int, margin: Int): Boolean {
+        return false
+    }
+
+    override fun tryHyperlink(ev: MotionEvent): Boolean {
+        return false
     }
 
     override fun onSingleTap() {
@@ -201,6 +218,9 @@ class AReflowViewController(
         mRecyclerView.adapter?.notifyDataSetChanged()
     }
 
+    override fun notifyItemChanged(pos: Int) {
+    }
+
     //--------------------------------------
 
     override fun onResume() {
@@ -229,6 +249,9 @@ class AReflowViewController(
         if (null != mRecyclerView.adapter && mRecyclerView.adapter is MuPDFReflowAdapter) {
             (mRecyclerView.adapter as MuPDFReflowAdapter).clearCacheViews()
         }
+    }
+
+    override fun onDestroy() {
     }
 
     //===========================================

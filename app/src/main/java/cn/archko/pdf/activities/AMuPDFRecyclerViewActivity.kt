@@ -123,10 +123,10 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     private fun initTouchParams() {
         val view = mDocumentView!!
         var margin = view.height
-        if (margin <= 0) {
-            margin = ViewConfiguration.get(this).scaledTouchSlop * 2
+        margin = if (margin <= 0) {
+            ViewConfiguration.get(this).scaledTouchSlop * 2
         } else {
-            margin = (margin * 0.03).toInt()
+            (margin * 0.03).toInt()
         }
         gestureDetector = GestureDetector(this, object : GestureDetector.OnGestureListener {
 
@@ -205,7 +205,6 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             viewControllerCache,
             viewMode,
             this@AMuPDFRecyclerViewActivity,
-            mContentView,
             mControllerLayout, pdfBookmarkManager!!, mPath!!,
             mPageSeekBarControls!!, gestureDetector
         )
@@ -276,7 +275,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     override fun preparePageSize(cp: Int) {
         val mRecyclerView = viewController?.getDocumentView()!!
         val width = mRecyclerView.width
-        var start = SystemClock.uptimeMillis()
+        var start: Long
         var pageSizeBean: APageSizeLoader.PageSizeBean? = null
         /*if (pdfBookmarkManager != null && pdfBookmarkManager!!.bookmarkToRestore != null) {
             pageSizeBean = APageSizeLoader.loadPageSizeFromFile(
@@ -325,14 +324,14 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     }
 
     private fun toggleReflow() {
-        if (mReflow) {  //如果原来是文本重排模式,则切换为切割或普通模式
+        viewMode = if (mReflow) {  //如果原来是文本重排模式,则切换为切割或普通模式
             if (mCrop) {
-                viewMode = ViewMode.CROP
+                ViewMode.CROP
             } else {
-                viewMode = ViewMode.NORMAL
+                ViewMode.NORMAL
             }
         } else {
-            viewMode = ViewMode.REFLOW
+            ViewMode.REFLOW
         }
         changeViewMode()
 
@@ -439,15 +438,15 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     }
 
     private fun toggleCrop() {
-        var flag = cropModeSet(!mCrop)
+        val flag = cropModeSet(!mCrop)
         if (flag) {
             BitmapCache.getInstance().clear()
             viewController?.notifyDataSetChanged()
             mCrop = !mCrop
-            if (mCrop) {
-                viewMode = ViewMode.CROP
+            viewMode = if (mCrop) {
+                ViewMode.CROP
             } else {
-                viewMode = ViewMode.NORMAL
+                ViewMode.NORMAL
             }
             changeViewMode()
         }
@@ -455,7 +454,11 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
     private fun cropModeSet(crop: Boolean): Boolean {
         if (mReflow) {
-            Toast.makeText(this, getString(cn.archko.pdf.R.string.in_reflow_mode), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this,
+                getString(cn.archko.pdf.R.string.in_reflow_mode),
+                Toast.LENGTH_SHORT
+            ).show()
             mPageSeekBarControls?.reflowButton!!.setColorFilter(Color.argb(0xFF, 172, 114, 37))
             mPageSeekBarControls?.autoCropButton!!.setColorFilter(Color.argb(0xFF, 255, 255, 255))
             return false
@@ -569,7 +572,6 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             viewControllerCache: SparseArray<AViewController>,
             viewMode: ViewMode,
             context: Context,
-            contentView: View,
             controllerLayout: RelativeLayout,
             pdfBookmarkManager: PDFBookmarkManager,
             path: String,
@@ -583,7 +585,6 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             return createViewController(
                 viewMode,
                 context,
-                contentView,
                 controllerLayout,
                 pdfBookmarkManager,
                 path,
@@ -594,7 +595,6 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
         fun createViewController(
             viewMode: ViewMode, context: Context,
-            contentView: View,
             controllerLayout: RelativeLayout,
             pdfBookmarkManager: PDFBookmarkManager,
             path: String,
@@ -604,7 +604,6 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             if (viewMode == ViewMode.CROP) {
                 return ACropViewController(
                     context,
-                    contentView,
                     controllerLayout,
                     pdfBookmarkManager,
                     path,
@@ -614,7 +613,6 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             } else if (viewMode == ViewMode.REFLOW) {
                 return AReflowViewController(
                     context,
-                    contentView,
                     controllerLayout,
                     pdfBookmarkManager,
                     path,
@@ -624,7 +622,6 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             } else {
                 return ANormalViewController(
                     context,
-                    contentView,
                     controllerLayout,
                     pdfBookmarkManager,
                     path,

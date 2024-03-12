@@ -7,6 +7,7 @@ import android.content.res.Configuration
 import android.util.SparseArray
 import android.view.GestureDetector
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -34,7 +35,6 @@ import org.vudroid.pdfdroid.codec.PdfDocument
  */
 class ANormalViewController(
     private var context: Context,
-    private var contentView: View,
     private val mControllerLayout: RelativeLayout,
     private var pdfBookmarkManager: PDFBookmarkManager,
     private var mPath: String,
@@ -125,7 +125,7 @@ class ANormalViewController(
         }
     }
 
-    private fun createZoomControls(zoomModel: ZoomModel): PageViewZoomControls? {
+    private fun createZoomControls(zoomModel: ZoomModel): PageViewZoomControls {
         val controls = PageViewZoomControls(context, zoomModel)
         controls.gravity = Gravity.RIGHT or Gravity.BOTTOM
         zoomModel.addEventListener(controls)
@@ -181,8 +181,26 @@ class ANormalViewController(
         return position
     }
 
+    override fun getCount(): Int {
+        return mPageSizes.size()
+    }
+
+    override fun setOriention(ori: Int) {
+    }
+
+    override fun setCrop(crop: Boolean) {
+    }
+
     override fun scrollToPosition(page: Int) {
         documentView.goToPage(page)
+    }
+
+    override fun scrollPage(y: Int, top: Int, bottom: Int, margin: Int): Boolean {
+        return false
+    }
+
+    override fun tryHyperlink(ev: MotionEvent): Boolean {
+        return false
     }
 
     override fun onSingleTap() {
@@ -218,6 +236,9 @@ class ANormalViewController(
     override fun notifyDataSetChanged() {
     }
 
+    override fun notifyItemChanged(pos: Int) {
+    }
+
     //--------------------------------------
 
     override fun onResume() {
@@ -230,6 +251,9 @@ class ANormalViewController(
             mPath, mMupdfDocument!!.countPages(), documentView.currentPage,
             documentView.zoomModel.zoom * 1000f, documentView.scrollX, documentView.scrollY
         )
+    }
+
+    override fun onDestroy() {
     }
 
     //===========================================

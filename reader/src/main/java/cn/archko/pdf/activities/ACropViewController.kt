@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.util.SparseArray
 import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RelativeLayout
@@ -26,7 +27,6 @@ import cn.archko.pdf.widgets.ViewerDividerItemDecoration
  */
 class ACropViewController(
     private var context: Context,
-    private var contentView: View,
     private val mControllerLayout: RelativeLayout,
     private var pdfBookmarkManager: PDFBookmarkManager,
     private var mPath: String,
@@ -128,8 +128,26 @@ class ACropViewController(
         return position
     }
 
+    override fun getCount(): Int {
+        return mPageSizes.size()
+    }
+
+    override fun setOriention(ori: Int) {
+    }
+
+    override fun setCrop(crop: Boolean) {
+    }
+
     override fun scrollToPosition(page: Int) {
         mRecyclerView.layoutManager?.scrollToPosition(page)
+    }
+
+    override fun scrollPage(y: Int, top: Int, bottom: Int, margin: Int): Boolean {
+        return false
+    }
+
+    override fun tryHyperlink(ev: MotionEvent): Boolean {
+        return false
     }
 
     override fun onSingleTap() {
@@ -167,6 +185,9 @@ class ACropViewController(
         mRecyclerView.adapter?.notifyDataSetChanged()
     }
 
+    override fun notifyItemChanged(pos: Int) {
+    }
+
     //--------------------------------------
 
     override fun onResume() {
@@ -196,26 +217,34 @@ class ACropViewController(
         }
     }
 
+    override fun onDestroy() {
+    }
+
     //===========================================
     override fun showController() {
     }
 
+    var defaultWidth = 1080
+    var defaultHeight = 1080
+
     private inner class PDFRecyclerAdapter : ARecyclerView.Adapter<ARecyclerView.ViewHolder>() {
 
         var pos: Int = 0
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ARecyclerView.ViewHolder {
+        override fun onCreateViewHolder(
+            parent: ViewGroup,
+            viewType: Int
+        ): ARecyclerView.ViewHolder {
             var pageSize: APage? = null
             if (mPageSizes.size() > pos) {
                 pageSize = mPageSizes.get(pos)
                 if (pageSize.getTargetWidth() <= 0) {
-                    Logcat.d(String.format("create:%s", mRecyclerView.measuredWidth))
-                    pageSize.setTargetWidth(parent.width)
+                    pageSize.setTargetWidth(defaultWidth)
                 }
             }
             val view = APDFView(context, mMupdfDocument, pageSize!!, true)
             var lp: ARecyclerView.LayoutParams? = view.layoutParams as ARecyclerView.LayoutParams?
-            var width: Int = ViewGroup.LayoutParams.MATCH_PARENT
-            var height: Int = ViewGroup.LayoutParams.MATCH_PARENT
+            var width: Int
+            var height: Int
             pageSize.let {
                 width = it.effectivePagesWidth
                 height = it.effectivePagesHeight
@@ -233,7 +262,7 @@ class ACropViewController(
         }
 
         override fun onBindViewHolder(viewHolder: ARecyclerView.ViewHolder, position: Int) {
-            pos = viewHolder.adapterPosition
+            pos = viewHolder.bindingAdapterPosition
             val pdfHolder = viewHolder as PdfHolder
 
             pdfHolder.onBind(position)
