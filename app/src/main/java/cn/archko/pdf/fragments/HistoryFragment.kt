@@ -10,7 +10,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -31,7 +30,6 @@ import cn.archko.pdf.widgets.IMoreView
 import cn.archko.pdf.widgets.ListMoreView
 import com.jeremyliao.liveeventbus.LiveEventBus
 import java.io.File
-import java.util.*
 
 /**
  * @description:history list
@@ -57,25 +55,13 @@ class HistoryFragment : BrowserFragment() {
         filter.addAction(ACTION_UNFAVORITED)
         LiveEventBus
             .get(Event.ACTION_STOPPED, FileBean::class.java)
-            .observe(this, object : Observer<FileBean> {
-                override fun onChanged(t: FileBean) {
-                    loadData()
-                }
-            })
+            .observe(this) { loadData() }
         LiveEventBus
             .get(Event.ACTION_FAVORITED, FileBean::class.java)
-            .observe(this, object : Observer<FileBean> {
-                override fun onChanged(t: FileBean) {
-                    updateItem(t)
-                }
-            })
+            .observe(this) { t -> updateItem(t) }
         LiveEventBus
             .get(Event.ACTION_UNFAVORITED, FileBean::class.java)
-            .observe(this, object : Observer<FileBean> {
-                override fun onChanged(t: FileBean) {
-                    updateItem(t)
-                }
-            })
+            .observe(this) { t -> updateItem(t) }
         historyViewModel = HistoryViewModel()
 
         progressDialog = ProgressDialog(activity)
@@ -118,6 +104,8 @@ class HistoryFragment : BrowserFragment() {
         when (menuItem.itemId) {
             R.id.action_backup -> backup()
             R.id.action_restore -> restore()
+            R.id.action_extract -> extractImage()
+            R.id.action_create -> createPdf()
             R.id.action_style -> {
                 if (mStyle == STYLE_LIST) {
                     mStyle = STYLE_GRID
@@ -133,6 +121,18 @@ class HistoryFragment : BrowserFragment() {
         }
 
         return super.onOptionsItemSelected(menuItem)
+    }
+
+    private fun extractImage() {
+        PdfOperationFragment.showCreateDialog(
+            PdfOperationFragment.TYPE_MERGE,
+            requireActivity(),
+            null
+        )
+    }
+
+    private fun createPdf() {
+        PdfCreationFragment.showCreateDialog(requireActivity(), null)
     }
 
     private fun backup() {
@@ -194,11 +194,11 @@ class HistoryFragment : BrowserFragment() {
     }
 
     private fun addObserver() {
-        historyViewModel.uiFileModel.observe(viewLifecycleOwner, { it ->
+        historyViewModel.uiFileModel.observe(viewLifecycleOwner) { it ->
             updateHistoryBeans(it)
-        })
+        }
 
-        historyViewModel.uiBackupModel.observe(viewLifecycleOwner, { filepath ->
+        historyViewModel.uiBackupModel.observe(viewLifecycleOwner) { filepath ->
             kotlin.run {
                 progressDialog.dismiss()
                 if (!LengthUtils.isEmpty(filepath)) {
@@ -208,9 +208,9 @@ class HistoryFragment : BrowserFragment() {
                     Toast.makeText(App.instance, "备份失败", Toast.LENGTH_LONG).show()
                 }
             }
-        })
+        }
 
-        historyViewModel.uiRestorepModel.observe(viewLifecycleOwner, { flag ->
+        historyViewModel.uiRestorepModel.observe(viewLifecycleOwner) { flag ->
             kotlin.run {
                 progressDialog.dismiss()
                 if (flag) {
@@ -220,7 +220,7 @@ class HistoryFragment : BrowserFragment() {
                     Toast.makeText(App.instance, "恢复失败", Toast.LENGTH_LONG).show()
                 }
             }
-        })
+        }
     }
 
     private fun getHistory() {
@@ -237,7 +237,6 @@ class HistoryFragment : BrowserFragment() {
             if (entryList.size > 0) {
                 if (curPage == 0) {
                     data = entryList
-                    //submitList(fileListAdapter!!.data, entryList, fileListAdapter!!, totalCount)
                     notifyDataSetChanged()
                 } else {
                     val index = itemCount
@@ -328,54 +327,8 @@ class HistoryFragment : BrowserFragment() {
         const val PREF_BROWSER = "pref_browser"
         const val PREF_BROWSER_KEY_FIRST = "pref_browser_key_first"
 
-        @JvmField
-        val STYLE_LIST = 0
+        const val STYLE_LIST = 0
 
-        @JvmField
-        val STYLE_GRID = 1
+        const val STYLE_GRID = 1
     }
-
-
-    /*fun submitList(oldList: List<FileBean>, newList: List<FileBean>, adapter: BookAdapter, totalCount: Int) {
-        AppExecutors.instance.diskIO().execute(object : Runnable {
-            override fun run() {
-                var diffResult: DiffUtil.DiffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-
-                    override fun getOldListSize(): Int {
-                        // 返回旧数据的长度
-                        return if (oldList == null) {
-                            0
-                        } else {
-                            oldList.size
-                        }
-                    }
-
-                    override fun getNewListSize(): Int {
-                        // 返回新数据的长度
-                        if (newList == null) {
-                            return 0
-                        } else {
-                            return oldList.size
-                        }
-                    }
-
-                    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                        return TextUtils.equals(oldList.get(oldItemPosition).bookProgress.name, newList.get(oldItemPosition).bookProgress.name);
-                    }
-
-                    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                        return oldList.get(oldItemPosition).bookProgress.progress == newList.get(newItemPosition).bookProgress.progress;
-                    }
-                });
-                AppExecutors.instance.mainThread().execute(object : Runnable {
-                    override fun run() {
-                        adapter.setData(newList);
-                        diffResult.dispatchUpdatesTo(adapter)
-                        curPage++
-                        updateLoadingStatus(totalCount)
-                    }
-                })
-            }
-        })
-    }*/
 }

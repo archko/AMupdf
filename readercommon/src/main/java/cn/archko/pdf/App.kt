@@ -4,6 +4,7 @@ import android.app.Application
 import cn.archko.pdf.common.CrashHandler
 import cn.archko.pdf.common.RecentManager
 import com.jeremyliao.liveeventbus.LiveEventBus
+import com.tencent.mmkv.MMKV
 import com.umeng.commonsdk.UMConfigure
 
 class App : Application() {
@@ -25,6 +26,8 @@ class App : Application() {
             .config()
             .lifecycleObserverAlwaysActive(true)
             .autoClear(false)
+
+        MMKV.initialize(this)
     }
 
     companion object {

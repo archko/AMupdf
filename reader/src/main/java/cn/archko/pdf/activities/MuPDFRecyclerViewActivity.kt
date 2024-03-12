@@ -3,9 +3,7 @@ package cn.archko.pdf.activities
 import android.annotation.TargetApi
 import android.app.ProgressDialog
 import android.content.Intent
-import android.database.Cursor
 import android.graphics.PointF
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
@@ -25,6 +23,7 @@ import cn.archko.pdf.common.BitmapCache
 import cn.archko.pdf.common.Event
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.common.PDFBookmarkManager
+import cn.archko.pdf.common.PathFromUri
 import cn.archko.pdf.common.SensorHelper
 import cn.archko.pdf.entity.APage
 import cn.archko.pdf.listeners.AViewController
@@ -124,39 +123,23 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
         if (TextUtils.isEmpty(mPath)) {
             val intent = intent
 
+            //pos = getIntent().getIntExtra("pos", 0)
             if (Intent.ACTION_VIEW == intent.action) {
-                var uri = intent.data
-                Logcat.d("URI to open is: $uri")
-                if (uri.toString().startsWith("content://")) {
-                    var reason: String? = null
-                    var cursor: Cursor? = null
-                    try {
-                        cursor = contentResolver.query(uri!!, arrayOf("_data"), null, null, null)
-                        if (cursor!!.moveToFirst()) {
-                            val str = cursor.getString(0)
-                            if (str == null) {
-                                reason = "Couldn't parse data in intent"
-                            } else {
-                                uri = Uri.parse(str)
-                            }
-                        }
-                    } catch (e2: Exception) {
-                        Logcat.d("Exception in Transformer Prime file manager code: " + e2)
-                        reason = e2.toString()
-                    } finally {
-                        cursor?.close()
-                    }
+                val uri = getIntent().data
+                mPath = if (null == uri) {
+                    val path = PathFromUri.getFilePathByUri(this, uri)
+                    path
+                } else {
+                    getIntent().getStringExtra("path")
                 }
-                var path: String? = Uri.decode(uri?.encodedPath)
-                if (path == null) {
-                    path = uri.toString()
-                }
-                mPath = path
             } else {
                 if (!TextUtils.isEmpty(getIntent().getStringExtra("path"))) {
                     mPath = getIntent().getStringExtra("path")
                 }
             }
+        }
+        if (TextUtils.isEmpty(mPath)) {
+            finish()
         }
     }
 

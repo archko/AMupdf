@@ -14,6 +14,8 @@
     <string name="menu_restore">Restore History</string>
     <string name="menu_about">About</string>
     <string name="menu_style">List Style(List/Grid)</string>
+    <string name="menu_extract">Extract Images</string>
+    <string name="menu_create">Create Pdf</string>
 
     <string name="menu_progress_outline">Progress/OutLine/Crop/Reflow</string>
     <string name="menu_zoom">Zoom</string>
@@ -49,7 +51,7 @@
         <item>7</item>
     </string-array>
 
-    <string name="opts_default_list_style">1</string>
+    <string name="opts_default_list_style">0</string>
     <string name="opts_list_style">List Style</string>
     <string-array name="opts_list_style_labels">
         <item>List</item>

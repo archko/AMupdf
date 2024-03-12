@@ -39,6 +39,9 @@ class APage {
             : PointF? = null
         private set
 
+    var width: Float = 0f
+    var height: Float = 0f
+
     /**
      * view zoom
      */
@@ -87,10 +90,13 @@ class APage {
     private var cropWidth = 0
     private var cropHeight = 0
 
-    constructor() {}
-    constructor(pageNumber: Int, pageSize: PointF?, zoom: Float, targetWidth: Int) {
+    constructor()
+    constructor(pageNumber: Int, pageSize: PointF, zoom: Float, targetWidth: Int) {
         index = pageNumber
         this.pageSize = pageSize
+        this.width = pageSize.x
+        this.height = pageSize.y
+
         this.zoom = zoom
         setTargetWidth(targetWidth)
         initSourceBounds(1.0f)

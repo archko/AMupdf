@@ -10,6 +10,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
@@ -160,5 +161,54 @@ public class Utils {
         } else {
             action.run();
         }
+    }
+
+    public static final String getName(final String absPath) {
+        if (absPath == null) {
+            return "";
+        }
+        final int index = absPath.lastIndexOf("/");
+        if (index == -1) {
+            return "";
+        }
+        return absPath.substring(index + 1);
+    }
+
+    public static final String getNameWithoutExt(final String absPath) {
+        if (absPath == null) {
+            return "";
+        }
+        final int index = absPath.lastIndexOf("/");
+        if (index == -1) {
+            return "";
+        }
+        final int end = absPath.lastIndexOf(".");
+        if (end == -1) {
+            return "";
+        }
+        return absPath.substring(index + 1, end);
+    }
+
+    public static final String getExtension(final File file) {
+        if (file == null) {
+            return "";
+        }
+        final String name = file.getName();
+        final int index = name.lastIndexOf(".");
+        if (index == -1) {
+            return "";
+        }
+        return name.substring(index + 1);
+    }
+
+    public static final String getExtension(String name) {
+        if (TextUtils.isEmpty(name)) {
+            return name;
+        }
+        final int index = name.lastIndexOf(".");
+        if (index == -1) {
+            return "";
+        }
+        return name.substring(index + 1);
     }
 }

@@ -28,7 +28,6 @@
         android:paddingRight="0dp"
         android:paddingBottom="8dp"
         android:text="111"
-        android:textColor="#FFbfbfbf"
         android:textSize="12sp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

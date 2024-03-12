@@ -14,6 +14,8 @@
     <string name="menu_restore">恢复历史</string>
     <string name="menu_about">关于</string>
     <string name="menu_style">样式(列表/网格)</string>
+    <string name="menu_extract">导出图片</string>
+    <string name="menu_create">创建pdf</string>
 
     <string name="menu_progress_outline">进度/目录/切割/重排</string>
     <string name="menu_zoom">缩放</string>
