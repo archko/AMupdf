@@ -30,4 +30,10 @@
 
     <string name="dialog_title_backup">选择备份</string>
     <string name="dialog_sub_title_backup">选择备份文件恢复</string>
+
+    <string name="grant_files_permission">请求存储权限</string>
+    <string name="grant_all_files_permission">请求所有文件管理权限</string>
+    <string name="grantfailed">文件管理权限请求失败</string>
+    <string name="grant_cancel">取消授权</string>
+    <string name="grant_ok">授权</string>
 </resources>

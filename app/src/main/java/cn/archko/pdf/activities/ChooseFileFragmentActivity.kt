@@ -142,12 +142,12 @@ open class ChooseFileFragmentActivity : AnalysticActivity(), OnPermissionGranted
         permissionCallbacks[STORAGE_PERMISSION] = onPermissionGranted
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
             val builder: AlertDialog.Builder = AlertDialog.Builder(this)
-            builder.setTitle("R.string.grant_files_permission")
-                .setMessage("R.string.grant_files_permission")
-                .setPositiveButton("R.string.grant_cancel") { _, _ ->
+            builder.setTitle(R.string.grant_files_permission)
+                .setMessage(R.string.grant_files_permission)
+                .setPositiveButton(R.string.grant_cancel) { _, _ ->
                     finish()
                 }
-                .setNegativeButton("R.string.grant_ok") { _, _ ->
+                .setNegativeButton(R.string.grant_ok) { _, _ ->
                     ActivityCompat.requestPermissions(
                         this, arrayOf(permission), STORAGE_PERMISSION
                     )
@@ -165,12 +165,12 @@ open class ChooseFileFragmentActivity : AnalysticActivity(), OnPermissionGranted
     open fun requestAllFilesAccess(onPermissionGranted: OnPermissionGranted) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
             val builder: AlertDialog.Builder = AlertDialog.Builder(this)
-            builder.setTitle("R.string.grant_all_files_permission")
-                .setMessage("R.string.grant_all_files_permission")
-                .setPositiveButton("R.string.grant_cancel") { _, _ ->
+            builder.setTitle(R.string.grant_all_files_permission)
+                .setMessage(R.string.grant_all_files_permission)
+                .setPositiveButton(R.string.grant_cancel) { _, _ ->
                     finish()
                 }
-                .setNegativeButton("R.string.grant_ok") { _, _ ->
+                .setNegativeButton(R.string.grant_ok) { _, _ ->
                     permissionCallbacks[ALL_FILES_PERMISSION] = onPermissionGranted
                     try {
                         val intent =
@@ -209,7 +209,7 @@ open class ChooseFileFragmentActivity : AnalysticActivity(), OnPermissionGranted
                 permissionCallbacks[STORAGE_PERMISSION] =
                     null
             } else {
-                Toast.makeText(this, "R.string.grantfailed", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.grantfailed, Toast.LENGTH_SHORT).show()
                 permissionCallbacks[STORAGE_PERMISSION]?.let {
                     requestStoragePermission(
                         it,

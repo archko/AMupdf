@@ -30,4 +30,10 @@
 
     <string name="dialog_title_backup">Select Backup</string>
     <string name="dialog_sub_title_backup">Select Backup file to restore</string>
+
+    <string name="grant_files_permission">grant file permission</string>
+    <string name="grant_all_files_permission">grant all files permission</string>
+    <string name="grantfailed">grant failed</string>
+    <string name="grant_cancel">cancel grant</string>
+    <string name="grant_ok">grant</string>
 </resources>
