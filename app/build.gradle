@@ -37,8 +37,8 @@ android {
         applicationId 'cn.archko.mupdf'
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 15
-        versionName "1.2"
+        versionCode 350
+        versionName "6.0.0"
         vectorDrawables {
             useSupportLibrary true
         }
