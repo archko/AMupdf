@@ -34,7 +34,7 @@ android {
     }
 
     defaultConfig {
-        applicationId 'com.archko.mupdf'
+        applicationId 'cn.archko.mupdf'
         minSdkVersion 21
         targetSdkVersion 33
         versionCode 15

@@ -29,7 +29,7 @@
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.archko.mupdf.fileProvider"
+            android:authorities="cn.archko.mupdf.fileProvider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

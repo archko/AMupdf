@@ -126,11 +126,10 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
             //pos = getIntent().getIntExtra("pos", 0)
             if (Intent.ACTION_VIEW == intent.action) {
                 val uri = getIntent().data
-                mPath = if (null == uri) {
+                mPath = getIntent().getStringExtra("path")
+                if (TextUtils.isEmpty(mPath)) {
                     val path = PathFromUri.getFilePathByUri(this, uri)
-                    path
-                } else {
-                    getIntent().getStringExtra("path")
+                    mPath = path
                 }
             } else {
                 if (!TextUtils.isEmpty(getIntent().getStringExtra("path"))) {
