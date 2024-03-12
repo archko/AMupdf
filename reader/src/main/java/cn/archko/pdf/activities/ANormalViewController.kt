@@ -181,7 +181,8 @@ class ANormalViewController(
         return mPageSizes.size()
     }
 
-    override fun setOriention(ori: Int) {
+    override fun setOrientation(ori: Int) {
+        documentView.oriention = ori
     }
 
     override fun setCrop(crop: Boolean) {

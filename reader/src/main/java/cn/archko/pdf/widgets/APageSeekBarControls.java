@@ -32,10 +32,12 @@ public class APageSeekBarControls extends LinearLayout implements View.OnClickLi
     private ImageButton mReflowButton;
     private ImageButton mOutlineButton;
     private ImageButton mAutoCropButton;
+    private ImageButton mOriButton;
     private TextView mPath;
     private TextView mTitle;
     private ImageButton mBackButton;
     private FrameLayout mLayoutOutline;
+    private int ori = LinearLayout.VERTICAL;
 
     public APageSeekBarControls(Context context, PageViewPresenter pageViewPresenter) {
         super(context);
@@ -53,6 +55,7 @@ public class APageSeekBarControls extends LinearLayout implements View.OnClickLi
         mReflowButton = findViewById(R.id.reflowButton);
         mOutlineButton = findViewById(R.id.outlineButton);
         mAutoCropButton = findViewById(R.id.autoCropButton);
+        mOriButton = findViewById(R.id.oriButton);
         mPath = findViewById(R.id.path);
         mTitle = findViewById(R.id.title);
         mBackButton = findViewById(R.id.back_button);
@@ -62,6 +65,7 @@ public class APageSeekBarControls extends LinearLayout implements View.OnClickLi
         mReflowButton.setOnClickListener(this);
         mOutlineButton.setOnClickListener(this);
         mAutoCropButton.setOnClickListener(this);
+        mOriButton.setOnClickListener(this);
         mBackButton.setOnClickListener(this);
 
         mPageSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -79,11 +83,7 @@ public class APageSeekBarControls extends LinearLayout implements View.OnClickLi
                 showPageSlider(false);
             }
         });
-        this.gotoPageRunnable = new Runnable() {
-            public void run() {
-                fadePageSlider();
-            }
-        };
+        this.gotoPageRunnable = () -> fadePageSlider();
     }
 
     public void showPageSlider(boolean force) {
@@ -137,6 +137,22 @@ public class APageSeekBarControls extends LinearLayout implements View.OnClickLi
         }
     }
 
+    public int getOrientation() {
+        return ori;
+    }
+
+    public void setOrientation(int ori) {
+        this.ori = ori;
+    }
+
+    private void updateOrientation() {
+        if (ori == LinearLayout.VERTICAL) {
+            mOriButton.setImageResource(R.drawable.viewer_menu_viewmode_vscroll);
+        } else {
+            mOriButton.setImageResource(R.drawable.viewer_menu_viewmode_hscroll);
+        }
+    }
+
     public void show() {
         setVisibility(VISIBLE);
         showGotoPageView();
@@ -148,12 +164,7 @@ public class APageSeekBarControls extends LinearLayout implements View.OnClickLi
 
     public void fade() {
         show();
-        postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                hide();
-            }
-        }, 3000);
+        postDelayed(() -> hide(), 3000);
     }
 
     public void showReflow(boolean reflow) {
@@ -178,6 +189,14 @@ public class APageSeekBarControls extends LinearLayout implements View.OnClickLi
             mPageViewPresenter.reflow();
         } else if (R.id.autoCropButton == v.getId()) {
             mPageViewPresenter.autoCrop();
+        } else if (R.id.oriButton == v.getId()) {
+            if (ori == LinearLayout.VERTICAL) {
+                ori = LinearLayout.HORIZONTAL;
+            } else {
+                ori = LinearLayout.VERTICAL;
+            }
+            updateOrientation();
+            mPageViewPresenter.changeOrientation(ori);
         }
     }
 

@@ -129,7 +129,9 @@ class ACropViewController(
         return mPageSizes.size()
     }
 
-    override fun setOriention(ori: Int) {
+    override fun setOrientation(ori: Int) {
+        (mRecyclerView.layoutManager as LinearLayoutManager).orientation = (ori)
+        mRecyclerView.adapter?.notifyDataSetChanged()
     }
 
     override fun setCrop(crop: Boolean) {

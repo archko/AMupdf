@@ -159,7 +159,7 @@ class AReflowViewController(
         return mPageSizes.size()
     }
 
-    override fun setOriention(ori: Int) {
+    override fun setOrientation(ori: Int) {
     }
 
     override fun setCrop(crop: Boolean) {

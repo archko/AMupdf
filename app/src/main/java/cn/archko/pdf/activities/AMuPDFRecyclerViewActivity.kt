@@ -442,6 +442,10 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             override fun autoCrop() {
                 toggleCrop()
             }
+
+            override fun changeOrientation(ori: Int) {
+                viewController?.setOrientation(ori)
+            }
         })
         return mPageSeekBarControls!!
     }

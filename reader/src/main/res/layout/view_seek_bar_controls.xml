@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center_horizontal"
@@ -9,6 +10,7 @@
         android:id="@+id/layout_title"
         android:layout_width="match_parent"
         android:layout_height="38dp"
+        android:paddingRight="8dp"
         android:background="@color/menu_bg"
         android:gravity="center_vertical"
         android:orientation="horizontal">
@@ -59,6 +61,7 @@
             android:background="@drawable/button"
             android:contentDescription="@string/auto_crop"
             android:src="@drawable/ic_crop"
+            tools:visibility="visible"
             android:visibility="gone" />
 
         <ImageButton
@@ -77,6 +80,14 @@
             android:background="@drawable/button"
             android:contentDescription="@string/outline_title"
             android:src="@drawable/ic_toc_white_24dp" />
+
+        <ImageButton
+            android:id="@+id/oriButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button"
+            android:contentDescription="@string/outline_ori"
+            android:src="@drawable/viewer_menu_viewmode_vscroll" />
     </LinearLayout>
 
     <SeekBar

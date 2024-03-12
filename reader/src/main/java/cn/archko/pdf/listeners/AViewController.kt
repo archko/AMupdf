@@ -20,7 +20,7 @@ interface AViewController {
 
     fun getCurrentPos(): Int
     fun getCount(): Int
-    fun setOriention(ori: Int)
+    fun setOrientation(ori: Int)
     fun setCrop(crop: Boolean)
     fun onSelectedOutline(resultCode: Int)
     fun scrollToPosition(page: Int)
