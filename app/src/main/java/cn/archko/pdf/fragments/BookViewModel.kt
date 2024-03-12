@@ -284,7 +284,8 @@ class BookViewModel : ViewModel() {
         }
     }
 
-    fun removeRecent(path: String) {
+    fun removeRecent(absolutePath: String) {
+        val path = FileUtils.getName(absolutePath)
         progressDao.deleteProgress(path)
     }
 }
