@@ -7,8 +7,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
@@ -24,27 +22,18 @@ import org.vudroid.core.models.ZoomModel;
 import org.vudroid.core.views.PageViewZoomControls;
 
 import androidx.fragment.app.FragmentActivity;
-import cn.archko.pdf.R;
 import cn.archko.pdf.activities.PdfOptionsActivity;
-import cn.archko.pdf.common.BitmapCache;
 import cn.archko.pdf.common.PDFBookmarkManager;
 import cn.archko.pdf.common.SensorHelper;
+import cn.archko.pdf.common.StatusBarHelper;
 import cn.archko.pdf.listeners.SimpleGestureListener;
 import cn.archko.pdf.presenter.PageViewPresenter;
 import cn.archko.pdf.widgets.APageSeekBarControls;
 
 public abstract class BaseViewerActivity extends FragmentActivity implements DecodingProgressListener, CurrentPageListener {
-    private static final int MENU_EXIT = 0;
-    private static final int MENU_GOTO = 1;
-    private static final int MENU_FULL_SCREEN = 2;
-    private static final int MENU_OPTIONS = 3;
-    private static final int MENU_OUTLINE = 4;
-    private static final int DIALOG_GOTO = 0;
     private static final String TAG = "BaseViewer";
-    //private static final String DOCUMENT_VIEW_STATE_PREFERENCES = "DjvuDocumentViewState";
     private DecodeService decodeService;
     private DocumentView documentView;
-    //private ViewerPreferences viewerPreferences;
     private Toast pageNumberToast;
     private CurrentPageModel currentPageModel;
     PageViewZoomControls mPageControls;
@@ -61,7 +50,9 @@ public abstract class BaseViewerActivity extends FragmentActivity implements Dec
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        BitmapCache.getInstance().resize(BitmapCache.CAPACITY_FOR_VUDROID);
+        StatusBarHelper.hideSystemUI(this);
+        StatusBarHelper.setImmerseBarAppearance(getWindow(), true);
+
         initDecodeService();
         final ZoomModel zoomModel = new ZoomModel();
         pdfBookmarkManager = new PDFBookmarkManager();
@@ -80,12 +71,9 @@ public abstract class BaseViewerActivity extends FragmentActivity implements Dec
         documentView = new DocumentView(this, zoomModel, progressModel, currentPageModel, simpleGestureListener);
         zoomModel.addEventListener(documentView);
         documentView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        decodeService.setContentResolver(getContentResolver());
         decodeService.setContainerView(documentView);
         documentView.setDecodeService(decodeService);
-        decodeService.open(getIntent().getData());
-
-        //viewerPreferences = new ViewerPreferences(this);
+        decodeService.open(absolutePath);
 
         final FrameLayout frameLayout = createMainContainer();
         frameLayout.addView(documentView);
@@ -94,28 +82,12 @@ public abstract class BaseViewerActivity extends FragmentActivity implements Dec
 
         setContentView(frameLayout);
 
-        /*final SharedPreferences sharedPreferences = getSharedPreferences(DOCUMENT_VIEW_STATE_PREFERENCES, 0);
-        documentView.goToPage(sharedPreferences.getInt(getIntent().getData().toString(), 0));*/
         int currentPage = pdfBookmarkManager.restoreBookmark(decodeService.getPageCount());
         if (0 < currentPage) {
             documentView.goToPage(currentPage, pdfBookmarkManager.getBookmarkToRestore().offsetX, pdfBookmarkManager.getBookmarkToRestore().offsetY);
         }
         documentView.showDocument();
 
-        //viewerPreferences.addRecent(getIntent().getData());
-
-        /*mPageModel=new CurrentPageModel();
-        mPageModel.addEventListener(new CurrentPageListener() {
-            @Override
-            public void currentPageChanged(int pageIndex) {
-                Log.d(TAG, "currentPageChanged:"+pageIndex);
-                if (documentView.getCurrentPage()!=pageIndex) {
-                    documentView.goToPage(pageIndex);
-                }
-            }
-        });
-        documentView.setPageModel(mPageModel);
-        mPageSeekBarControls=createSeekControls(mPageModel);*/
         mPageSeekBarControls = new APageSeekBarControls(this, new PageViewPresenter() {
             @Override
             public int getPageCount() {
@@ -166,14 +138,15 @@ public abstract class BaseViewerActivity extends FragmentActivity implements Dec
     }
 
     public void decodingProgressChanged(final int currentlyDecoding) {
-        runOnUiThread(new Runnable() {
-            public void run() {
-                //getWindow().setFeatureInt(Window.FEATURE_INDETERMINATE_PROGRESS, currentlyDecoding == 0 ? 10000 : currentlyDecoding);
-            }
-        });
+        //runOnUiThread(() -> getWindow().setFeatureInt(Window.FEATURE_INDETERMINATE_PROGRESS, currentlyDecoding == 0 ? 10000 : currentlyDecoding));
     }
 
     public void currentPageChanged(int pageIndex) {
+        showPageIndex(pageIndex);
+        documentView.goToPage(pageIndex);
+    }
+
+    private void showPageIndex(int pageIndex) {
         final String pageText = (pageIndex + 1) + "/" + decodeService.getPageCount();
         if (pageNumberToast != null) {
             pageNumberToast.setText(pageText);
@@ -186,8 +159,8 @@ public abstract class BaseViewerActivity extends FragmentActivity implements Dec
     }
 
     private void setWindowTitle() {
-        final String name = getIntent().getData().getLastPathSegment();
-        getWindow().setTitle(name);
+        //final String name = getIntent().getData().getLastPathSegment();
+        //getWindow().setTitle(name);
     }
 
     @Override
@@ -196,32 +169,12 @@ public abstract class BaseViewerActivity extends FragmentActivity implements Dec
         setWindowTitle();
     }
 
-    private void setFullScreen() {
-        /*if (viewerPreferences.isFullScreen())
-        {
-            getWindow().requestFeature(Window.FEATURE_NO_TITLE);
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        }
-        else
-        {
-            getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-        }*/
-    }
-
     private PageViewZoomControls createZoomControls(ZoomModel zoomModel) {
         final PageViewZoomControls controls = new PageViewZoomControls(this, zoomModel);
         controls.setGravity(Gravity.RIGHT | Gravity.BOTTOM);
         zoomModel.addEventListener(controls);
         return controls;
     }
-
-    /*private PageSeekBarControls createSeekControls(CurrentPageModel pageModel)
-    {
-        final PageSeekBarControls controls = new APageSeekBarControls(this, pageModel);
-        //controls.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.TOP);
-        pageModel.addEventListener(controls);
-        return controls;
-    }*/
 
     private FrameLayout createMainContainer() {
         return new FrameLayout(this);
@@ -245,52 +198,6 @@ public abstract class BaseViewerActivity extends FragmentActivity implements Dec
         decodeService.recycle();
         decodeService = null;
         super.onDestroy();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(0, MENU_EXIT, 0, "Exit");
-        menu.add(1, MENU_GOTO, 0, getString(R.string.menu_goto_page));
-        menu.add(2, MENU_OUTLINE, 0, getString(R.string.opts_table_of_contents));
-        menu.add(3, MENU_OPTIONS, 0, getString(R.string.options));
-        /*final MenuItem menuItem = menu.add(0, MENU_FULL_SCREEN, 0, "Full screen").setCheckable(true).setChecked(viewerPreferences.isFullScreen());
-        setFullScreenMenuItemText(menuItem);*/
-        return true;
-    }
-
-    private void setFullScreenMenuItemText(MenuItem menuItem) {
-        menuItem.setTitle("Full screen " + (menuItem.isChecked() ? "on" : "off"));
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case MENU_EXIT:
-                finish();
-                return true;
-            case MENU_GOTO:
-                //showDialog(DIALOG_GOTO);
-                //mPageModel.setCurrentPage(currentPageModel.getCurrentPageIndex());
-                //mPageModel.setPageCount(decodeService.getPageCount());
-                mPageSeekBarControls.fade();
-                return true;
-            case MENU_FULL_SCREEN: {
-                item.setChecked(!item.isChecked());
-                setFullScreenMenuItemText(item);
-                //viewerPreferences.setFullScreen(item.isChecked());
-
-                finish();
-                startActivity(getIntent());
-                return true;
-            }
-            case MENU_OUTLINE: {
-                openOutline();
-                return true;
-            }
-            case MENU_OPTIONS:
-                startActivity(new Intent(this, PdfOptionsActivity.class));
-        }
-        return false;
     }
 
     public void openOutline() {
@@ -331,29 +238,7 @@ public abstract class BaseViewerActivity extends FragmentActivity implements Dec
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
 
-        /*setZoomLayout(options);
-
-        pagesView.setZoomLayout(zoomLayout);*/
-
-        documentView.setVerticalScrollLock(options.getBoolean(PdfOptionsActivity.PREF_VERTICAL_SCROLL_LOCK, true));
-
-        /*int zoomAnimNumber = Integer.parseInt(options.getString(PdfOptionsActivity.PREF_ZOOM_ANIMATION, "2"));
-
-        if (zoomAnimNumber == PdfOptionsActivity.ZOOM_BUTTONS_DISABLED)
-            zoomAnim = null;
-        else
-            zoomAnim = AnimationUtils.loadAnimation(this,
-                zoomAnimations[zoomAnimNumber]);
-        int pageNumberAnimNumber = Integer.parseInt(options.getString(PdfOptionsActivity.PREF_PAGE_ANIMATION, "3"));
-
-        if (pageNumberAnimNumber == PdfOptionsActivity.PAGE_NUMBER_DISABLED)
-            pageNumberAnim = null;
-        else
-            pageNumberAnim = AnimationUtils.loadAnimation(this,
-                pageNumberAnimations[pageNumberAnimNumber]);*/
-
         if (options.getBoolean(PdfOptionsActivity.PREF_FULLSCREEN, true)) {
-            //getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);

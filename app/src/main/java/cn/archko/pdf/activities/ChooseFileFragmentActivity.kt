@@ -18,7 +18,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import cn.archko.mupdf.R
@@ -34,7 +33,6 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.jeremyliao.liveeventbus.LiveEventBus
 import com.umeng.analytics.MobclickAgent
 import java.lang.ref.WeakReference
-import java.util.*
 
 /**
  * @author archko
@@ -44,7 +42,7 @@ open class ChooseFileFragmentActivity : AnalysticActivity(), OnPermissionGranted
     private lateinit var mViewPager: ViewPager2
     private lateinit var mPagerAdapter: TabsAdapter
     private lateinit var toolbar: MaterialToolbar
-    internal val titles = arrayOfNulls<String>(3)
+    private val titles = arrayOfNulls<String>(3)
 
     private lateinit var tabLayout: TabLayout
     internal var mTabs: MutableList<SamplePagerItem> = ArrayList()
@@ -97,11 +95,7 @@ open class ChooseFileFragmentActivity : AnalysticActivity(), OnPermissionGranted
         filter.addAction(Event.ACTION_ISFIRST)
         LiveEventBus
             .get(Event.ACTION_ISFIRST, Boolean::class.java)
-            .observe(this, object : Observer<Boolean> {
-                override fun onChanged(t: Boolean) {
-                    mViewPager.currentItem = 1
-                }
-            })
+            .observe(this) { mViewPager.currentItem = 1 }
     }
 
     public override fun onResume() {
@@ -124,6 +118,8 @@ open class ChooseFileFragmentActivity : AnalysticActivity(), OnPermissionGranted
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 requestAllFilesAccess(this)
             }
+        } else {
+            loadView()
         }
     }
 
@@ -189,6 +185,8 @@ open class ChooseFileFragmentActivity : AnalysticActivity(), OnPermissionGranted
                 }
             builder.setCancelable(false)
             builder.create().show()
+        } else {
+            loadView()
         }
     }
 
@@ -204,17 +202,12 @@ open class ChooseFileFragmentActivity : AnalysticActivity(), OnPermissionGranted
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == STORAGE_PERMISSION) {
             if (isGranted(grantResults)) {
-                permissionCallbacks[STORAGE_PERMISSION]!!
-                    .onPermissionGranted()
-                permissionCallbacks[STORAGE_PERMISSION] =
-                    null
+                permissionCallbacks[STORAGE_PERMISSION]!!.onPermissionGranted()
+                permissionCallbacks[STORAGE_PERMISSION] = null
             } else {
                 Toast.makeText(this, R.string.grantfailed, Toast.LENGTH_SHORT).show()
                 permissionCallbacks[STORAGE_PERMISSION]?.let {
-                    requestStoragePermission(
-                        it,
-                        false
-                    )
+                    requestStoragePermission(it, false)
                 }
             }
         }

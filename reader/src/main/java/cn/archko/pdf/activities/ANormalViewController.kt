@@ -20,8 +20,8 @@ import cn.archko.pdf.listeners.OutlineListener
 import cn.archko.pdf.listeners.SimpleGestureListener
 import cn.archko.pdf.mupdf.MupdfDocument
 import cn.archko.pdf.widgets.APageSeekBarControls
-import org.vudroid.core.AKDecodeService
 import org.vudroid.core.DecodeService
+import org.vudroid.core.DecodeServiceBase
 import org.vudroid.core.DocumentView
 import org.vudroid.core.models.CurrentPageModel
 import org.vudroid.core.models.DecodingProgressModel
@@ -142,8 +142,8 @@ class ANormalViewController(
         }
     }
 
-    private fun createDecodeService(): DecodeService? {
-        return AKDecodeService()
+    private fun createDecodeService(): DecodeService {
+        return DecodeServiceBase()
     }
 
     override fun getDocumentView(): View {
@@ -161,7 +161,7 @@ class ANormalViewController(
     private fun setNormalMode(pos: Int) {
         val document = PdfDocument()
         document.core = mMupdfDocument?.document
-        (decodeService as AKDecodeService).document = document
+        (decodeService as DecodeServiceBase).document = document
         if (pos > 0) {
             documentView.goToPage(
                 pos,
