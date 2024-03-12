@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cn.archko.pdf.common.RecentManager
+import cn.archko.pdf.common.Graph
 import cn.archko.pdf.entity.FileBean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,6 +17,8 @@ import java.io.File
  */
 class FavoriteViewModel : ViewModel() {
 
+    private val progressDao by lazy { Graph.database.progressDao() }
+
     private val _uiFileModel = MutableLiveData<Array<Any?>>()
     val uiFileModel: LiveData<Array<Any?>>
         get() = _uiFileModel
@@ -26,11 +28,11 @@ class FavoriteViewModel : ViewModel() {
             val args = withContext(Dispatchers.IO) {
                 var totalCount = 0
 
-                val recent = RecentManager.instance
-                totalCount = recent.favoriteProgressCount
-                val progresses = recent.readFavoriteFromDb(
+                totalCount = progressDao.getFavoriteProgressCount(1)
+                val progresses = progressDao.getFavoriteProgresses(
                     FavoriteFragment.PAGE_SIZE * (curPage),
-                    FavoriteFragment.PAGE_SIZE
+                    FavoriteFragment.PAGE_SIZE,
+                    1
                 )
                 val entryList = ArrayList<FileBean>()
 

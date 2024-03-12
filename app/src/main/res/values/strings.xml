@@ -36,4 +36,8 @@
     <string name="grantfailed">grant failed</string>
     <string name="grant_cancel">cancel grant</string>
     <string name="grant_ok">grant</string>
+
+    <string name="password_for_document">password</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancelw</string>
 </resources>

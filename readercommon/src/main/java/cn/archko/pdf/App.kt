@@ -2,7 +2,7 @@ package cn.archko.pdf
 
 import android.app.Application
 import cn.archko.pdf.common.CrashHandler
-import cn.archko.pdf.common.RecentManager
+import cn.archko.pdf.common.Graph
 import com.jeremyliao.liveeventbus.LiveEventBus
 import com.tencent.mmkv.MMKV
 import com.umeng.commonsdk.UMConfigure
@@ -15,9 +15,12 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        Graph.provide(this)
+        MMKV.initialize(this)
+
         uiThread = Thread.currentThread()
-        RecentManager.instance.recentTableManager.open()
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler())
+
         val displayMetrics = resources.displayMetrics
         screenHeight = displayMetrics.heightPixels
         screenWidth = displayMetrics.widthPixels
@@ -27,7 +30,6 @@ class App : Application() {
             .lifecycleObserverAlwaysActive(true)
             .autoClear(false)
 
-        MMKV.initialize(this)
     }
 
     companion object {

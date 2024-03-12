@@ -5,15 +5,14 @@ import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.View
 import cn.archko.pdf.entity.APage
-import cn.archko.pdf.mupdf.MupdfDocument
 
 /**
  * @author: archko 2020/5/15 :12:43
  */
 interface AViewController {
 
-    fun init(pageSizes: SparseArray<APage>, mupdfDocument: MupdfDocument?, pos: Int)
-    fun doLoadDoc(pageSizes: SparseArray<APage>, mupdfDocument: MupdfDocument, pos: Int)
+    fun init(pageSizes: SparseArray<APage>, pos: Int)
+    fun doLoadDoc(pageSizes: SparseArray<APage>, pos: Int)
 
     fun getDocumentView(): View
     fun onSingleTap()

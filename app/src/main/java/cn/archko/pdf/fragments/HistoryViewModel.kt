@@ -5,12 +5,20 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cn.archko.pdf.common.RecentManager
+import cn.archko.pdf.common.BookProgressParser
+import cn.archko.pdf.common.Graph
+import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.entity.FileBean
+import cn.archko.pdf.utils.DateUtils
+import cn.archko.pdf.utils.FileUtils
+import cn.archko.pdf.utils.StreamUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
 import java.io.File
 
 /**
@@ -19,15 +27,18 @@ import java.io.File
 class HistoryViewModel : ViewModel() {
     companion object {
 
-        const val PAGE_SIZE = 21
+        const val PAGE_SIZE = 20
+        const val MAX_TIME = 1300L
     }
+
+    private val progressDao by lazy { Graph.database.progressDao() }
 
     private val _uiFileModel = MutableLiveData<Array<Any?>>()
     val uiFileModel: LiveData<Array<Any?>>
         get() = _uiFileModel
 
-    private val _uiBackupModel = MutableLiveData<String>()
-    val uiBackupModel: LiveData<String>
+    private val _uiBackupModel = MutableLiveData<String?>()
+    val uiBackupModel: LiveData<String?>
         get() = _uiBackupModel
 
     private val _uiRestorepModel = MutableLiveData<Boolean>()
@@ -39,9 +50,8 @@ class HistoryViewModel : ViewModel() {
             val args = withContext(Dispatchers.IO) {
                 var totalCount = 0
 
-                val recent = RecentManager.instance
-                totalCount = recent.progressCount
-                val progresses = recent.readRecentFromDb(
+                totalCount = progressDao.progressCount()
+                val progresses = progressDao.getProgresses(
                     PAGE_SIZE * (curPage),
                     PAGE_SIZE
                 )
@@ -68,11 +78,39 @@ class HistoryViewModel : ViewModel() {
     fun backupFromDb() {
         val now = System.currentTimeMillis()
         viewModelScope.launch {
-            val filepath = withContext(Dispatchers.IO) {
-                val filepath = RecentManager.instance.backupFromDb()
+            val path = withContext(Dispatchers.IO) {
+                val name = "mupdf_" + DateUtils.formatTime(
+                    System.currentTimeMillis(),
+                    "yyyy-MM-dd-HH-mm-ss"
+                )
+                var filepath: String? = null
+
+                try {
+                    val list = progressDao.getAllProgress()
+                    val root = JSONObject()
+                    val ja = JSONArray()
+                    root.put("root", ja)
+                    root.put("name", name)
+                    list?.run {
+                        for (progress in list) {
+                            BookProgressParser.addProgressToJson(progress, ja)
+                        }
+                    }
+                    val dir = FileUtils.getStorageDir("amupdf")
+                    if (dir != null && dir.exists()) {
+                        filepath = dir.absolutePath + File.separator + name
+                        Logcat.d("backup.name:$filepath root:$root")
+                        StreamUtils.copyStringToFile(root.toString(), filepath)
+                    }
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
                 var newTime = System.currentTimeMillis() - now
-                if (newTime < 1500L) {
-                    newTime = 1500L - newTime
+                if (newTime < MAX_TIME) {
+                    newTime = MAX_TIME - newTime
                 } else {
                     newTime = 0
                 }
@@ -82,7 +120,7 @@ class HistoryViewModel : ViewModel() {
             }
 
             withContext(Dispatchers.Main) {
-                _uiBackupModel.value = filepath
+                _uiBackupModel.value = path
             }
         }
     }
@@ -91,10 +129,26 @@ class HistoryViewModel : ViewModel() {
         val now = System.currentTimeMillis()
         viewModelScope.launch {
             val flag = withContext(Dispatchers.IO) {
-                val flag: Boolean = RecentManager.instance.restoreToDb(file)
+                var flag: Boolean
+                try {
+                    val content = StreamUtils.readStringFromFile(file)
+                    Logcat.longLog(
+                        Logcat.TAG,
+                        "restore.file:" + file.absolutePath + " content:" + content
+                    )
+                    val progresses = BookProgressParser.parseProgresses(content)
+                    Graph.database.runInTransaction {
+                        Graph.database.progressDao().deleteAllProgress()
+                        Graph.database.progressDao().addProgresses(progresses)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                flag = true
+
                 var newTime = System.currentTimeMillis() - now
-                if (newTime < 1300L) {
-                    newTime = 1300L - newTime
+                if (newTime < MAX_TIME) {
+                    newTime = MAX_TIME - newTime
                 } else {
                     newTime = 0
                 }

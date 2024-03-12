@@ -6,14 +6,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.archko.pdf.adapters.AdapterUtils
 import cn.archko.pdf.common.Event
+import cn.archko.pdf.common.Graph
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.common.ProgressScaner
-import cn.archko.pdf.common.RecentManager
 import cn.archko.pdf.entity.BookProgress
 import cn.archko.pdf.entity.FileBean
+import cn.archko.pdf.entity.LoadResult
+import cn.archko.pdf.entity.State
 import cn.archko.pdf.utils.FileUtils
 import com.jeremyliao.liveeventbus.LiveEventBus
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -25,6 +32,13 @@ import java.util.Locale
  * @author: archko 2020/11/16 :11:23
  */
 class BookViewModel : ViewModel() {
+    companion object {
+
+        const val PAGE_SIZE = 20
+        const val MAX_TIME = 1300L
+    }
+
+    private val progressDao by lazy { Graph.database.progressDao() }
 
     private var mScanner: ProgressScaner = ProgressScaner()
 
@@ -40,6 +54,14 @@ class BookViewModel : ViewModel() {
     val uiItemModel: LiveData<Boolean>
         get() = _uiItemModel
 
+    private val _uiFavoritiesModel =
+        MutableStateFlow<LoadResult<Any, FileBean>>(LoadResult(State.INIT))
+    val uiFavoritiesModel: StateFlow<LoadResult<Any, FileBean>>
+        get() = _uiFavoritiesModel
+
+    var sdcardRoot: String = "/sdcard/"
+    private var dirsFirst: Boolean = true
+    private var showExtension: Boolean = true
     private val fileFilter: FileFilter = FileFilter { file ->
         //return (file.isDirectory() || file.getName().toLowerCase().endsWith(".pdf"));
         if (file.isDirectory)
@@ -98,10 +120,11 @@ class BookViewModel : ViewModel() {
             }
         }
 
-    fun startGetProgress(fileList: List<FileBean>, currentPath: String) {
+    fun startGetProgress(fileList: List<FileBean>?, currentPath: String) {
         viewModelScope.launch {
             val args = withContext(Dispatchers.IO) {
-                return@withContext mScanner.startScan(fileList, currentPath)
+                mScanner.startScan(fileList, progressDao)
+                return@withContext arrayOf(currentPath, fileList)
             }
 
             withContext(Dispatchers.Main) {
@@ -110,30 +133,89 @@ class BookViewModel : ViewModel() {
         }
     }
 
+    fun loadFavorities(refresh: Boolean = false) {
+        _uiFavoritiesModel.value = _uiFavoritiesModel.value.copy(State.LOADING)
+        viewModelScope.launch {
+            flow {
+                val count = progressDao.getFavoriteProgressCount(1)
+                var nKey = _uiFavoritiesModel.value.nextKey ?: 0
+                if (refresh) {
+                    nKey = 0
+                }
+                val progresses: List<BookProgress>? = progressDao.getFavoriteProgresses(
+                    PAGE_SIZE * nKey,
+                    PAGE_SIZE,
+                    1
+                )
+
+                val entryList = ArrayList<FileBean>()
+
+                var entry: FileBean
+                var file: File
+                val path = sdcardRoot
+                progresses?.map {
+                    file = File(path + "/" + it.path)
+                    entry = FileBean(FileBean.FAVORITE, file, showExtension)
+                    entry.bookProgress = it
+                    entryList.add(entry)
+                }
+
+                var hasMore = false
+                val oldSize = _uiFavoritiesModel.value.list?.size
+                if (entryList.size > 0 && oldSize != null) {
+                    if (count > (oldSize + entryList.size)) {
+                        hasMore = true
+                    }
+                }
+                if (hasMore) {
+                    _uiFavoritiesModel.value.nextKey = nKey.plus(1)
+                } else {
+                    _uiFavoritiesModel.value.nextKey = null
+                }
+                Logcat.d("loadFavorities, nKey:$nKey,count:$count, hasMore:$hasMore .value:${_uiFavoritiesModel.value.nextKey}")
+                val oldList = if (refresh) ArrayList() else _uiFavoritiesModel.value.list
+                val nList = ArrayList(oldList)
+                nList.addAll(entryList)
+                emit(nList)
+            }.catch { e ->
+                Logcat.d("Exception:$e")
+                emit(ArrayList<FileBean>())
+            }.flowOn(Dispatchers.IO)
+                .collect { list ->
+                    _uiFavoritiesModel.value =
+                        LoadResult(
+                            State.FINISHED,
+                            list = list,
+                            prevKey = _uiFavoritiesModel.value.prevKey,
+                            nextKey = _uiFavoritiesModel.value.nextKey
+                        )
+                }
+        }
+    }
+
     fun favorite(entry: FileBean, isFavorited: Int) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 try {
-                    val recentManager = RecentManager.instance.recentTableManager
                     val filepath = FileUtils.getStoragePath(entry.bookProgress!!.path)
                     val file = File(filepath)
-                    var bookProgress = recentManager.getProgress(file.name, BookProgress.ALL)
+                    var bookProgress = progressDao.getProgress(file.name)
                     if (null == bookProgress) {
                         if (isFavorited == 0) {
-                            Logcat.w(BrowserFragment.TAG, "some error:$entry")
+                            Logcat.w("", "some error:$entry")
                             return@withContext
                         }
                         bookProgress = BookProgress(FileUtils.getRealPath(file.absolutePath))
                         entry.bookProgress = bookProgress
                         entry.bookProgress!!.inRecent = BookProgress.NOT_IN_RECENT
                         entry.bookProgress!!.isFavorited = isFavorited
-                        Logcat.d(BrowserFragment.TAG, "add favorite entry:${entry.bookProgress}")
-                        recentManager.addProgress(entry.bookProgress!!)
+                        Logcat.d("add favorite entry:${entry.bookProgress}")
+                        progressDao.addProgress(entry.bookProgress!!)
                     } else {
                         entry.bookProgress = bookProgress
                         entry.bookProgress!!.isFavorited = isFavorited
-                        Logcat.d(BrowserFragment.TAG, "update favorite entry:${entry.bookProgress}")
-                        recentManager.updateProgress(entry.bookProgress!!)
+                        Logcat.d("update favorite entry:${entry.bookProgress}")
+                        progressDao.updateProgress(entry.bookProgress!!)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -141,6 +223,7 @@ class BookViewModel : ViewModel() {
             }
 
             postFavoriteEvent(entry, isFavorited)
+            //loadFavorities(true)
         }
     }
 
@@ -160,9 +243,7 @@ class BookViewModel : ViewModel() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 try {
-                    val recentManager = RecentManager.instance
-                    val progress =
-                        recentManager.readRecentFromDb(file.absolutePath, BookProgress.ALL);
+                    val progress = progressDao.getProgress(file.absolutePath)
                     if (null != progress) {
                         Logcat.d(BrowserFragment.TAG, "refresh entry:${progress}")
                         for (fb in list) {
@@ -173,7 +254,7 @@ class BookViewModel : ViewModel() {
                                         BrowserFragment.TAG,
                                         "update new entry:${fb.bookProgress}"
                                     )
-                                    recentManager.recentTableManager.updateProgress(fb.bookProgress!!)
+                                    progressDao.updateProgress(fb.bookProgress!!)
                                 } else {
                                     fb.bookProgress!!.page = progress.page
                                     fb.bookProgress!!.isFavorited = progress.isFavorited
@@ -201,5 +282,9 @@ class BookViewModel : ViewModel() {
                 }
             }
         }
+    }
+
+    fun removeRecent(path: String) {
+        progressDao.deleteProgress(path)
     }
 }

@@ -38,7 +38,7 @@ class MuPDFReflowAdapter(
     }
 
     override fun getItemCount(): Int {
-        return mupdfDocument?.countPages()!!
+        return mupdfDocument?.countPages() ?: 0
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<*> {

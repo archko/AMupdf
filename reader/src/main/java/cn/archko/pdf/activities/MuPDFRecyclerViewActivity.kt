@@ -19,19 +19,17 @@ import cn.archko.pdf.R
 import cn.archko.pdf.common.BitmapCache
 import cn.archko.pdf.common.Event
 import cn.archko.pdf.common.Logcat
-import cn.archko.pdf.common.PDFBookmarkManager
 import cn.archko.pdf.common.PathFromUri
 import cn.archko.pdf.common.SensorHelper
 import cn.archko.pdf.common.StatusBarHelper
 import cn.archko.pdf.entity.APage
+import cn.archko.pdf.entity.State
 import cn.archko.pdf.listeners.AViewController
-import cn.archko.pdf.mupdf.MupdfDocument
 import cn.archko.pdf.utils.Utils
+import cn.archko.pdf.viewmodel.PDFViewModel
 import com.jeremyliao.liveeventbus.LiveEventBus
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * @author: archko 2016/5/9 :12:43
@@ -46,9 +44,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
     protected var gestureDetector: GestureDetector? = null
     protected var pageNumberToast: Toast? = null
 
-    protected var pdfBookmarkManager: PDFBookmarkManager? = null
     protected var sensorHelper: SensorHelper? = null
-    protected var mMupdfDocument: MupdfDocument? = null
     protected var mPageSizes = SparseArray<APage>()
 
     protected var mReflow = false
@@ -57,6 +53,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
 
     protected var mDocumentView: FrameLayout? = null
     protected var viewController: AViewController? = null
+    protected val pdfViewModel: PDFViewModel = PDFViewModel()
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,23 +81,21 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
         loadBookmark()
         initView()
 
-        loadDoc()
+        loadDoc(null)
     }
 
     open fun loadBookmark() {
-        mCrop = PreferenceManager.getDefaultSharedPreferences(this)
-            .getBoolean(PdfOptionsActivity.PREF_AUTOCROP, true)
+        lifecycleScope.launch {
+            mCrop = PreferenceManager.getDefaultSharedPreferences(this@MuPDFRecyclerViewActivity)
+                .getBoolean(PdfOptionsActivity.PREF_AUTOCROP, true)
 
-        pdfBookmarkManager = PDFBookmarkManager()
-        var autoCrop = 0
-        if (!mCrop) {
-            autoCrop = 1
-        }
-        pdfBookmarkManager!!.setStartBookmark(mPath, autoCrop)
-        val bookmark = pdfBookmarkManager?.bookmarkToRestore
-        bookmark?.let {
-            mCrop = it.autoCrop == 0
-            mReflow = it.reflow == 1
+            mPath?.run {
+                val bookProgress = pdfViewModel.loadBookProgressByPath(this)
+                bookProgress?.let {
+                    mCrop = it.autoCrop == 0
+                    mReflow = it.reflow == 1
+                }
+            }
         }
     }
 
@@ -156,7 +151,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
         LiveEventBus
             .get<String>(Event.ACTION_STOPPED)
             .post(null)
-        mMupdfDocument?.destroy()
+        pdfViewModel.destroy()
         //progressDialog.dismiss()
         BitmapCache.getInstance().clear()
     }
@@ -186,7 +181,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
             return
         }
         val pos = getCurrentPos()
-        val pageText = (pos + 1).toString() + "/" + mMupdfDocument!!.countPages()
+        val pageText = (pos + 1).toString() + "/" + pdfViewModel.countPages()
         if (pageNumberToast != null) {
             pageNumberToast!!.setText(pageText)
         } else {
@@ -224,12 +219,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) {
-            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                    View.SYSTEM_UI_FLAG_FULLSCREEN or
-                    View.SYSTEM_UI_FLAG_IMMERSIVE
+            StatusBarHelper.hideSystemUI(this)
         }
     }
 
@@ -240,7 +230,10 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
     }
 
     open fun getCurrentPos(): Int {
-        return viewController?.getCurrentPos()!!
+        if (null == viewController) {
+            return 0
+        }
+        return viewController!!.getCurrentPos()
     }
 
     open fun getPassword(): String? {
@@ -260,49 +253,45 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
         const val TYPE_SETTINGS = 5
     }
 
-    open fun loadDoc() {
+    open fun loadDoc(password: String?) {
         //progressDialog.setMessage(mPath)
         //progressDialog.show()
         lifecycleScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                try {
-                    var start = SystemClock.uptimeMillis()
-                    mMupdfDocument = MupdfDocument(this@MuPDFRecyclerViewActivity)
-                    mMupdfDocument?.newDocument(mPath, getPassword())
-                    var res = true
-                    mMupdfDocument?.let {
-                        if (it.document.needsPassword()) {
-                            res = it.document.authenticatePassword(getPassword())
-                        }
+            val start = SystemClock.uptimeMillis()
+            pdfViewModel.loadPdfDoc(this@MuPDFRecyclerViewActivity, mPath!!, password)
+            pdfViewModel.pageFlow
+                .collectLatest {
+                    if (it.state == State.PASS) {
+                        showPasswordDialog()
+                        return@collectLatest
                     }
+                    val cp = pdfViewModel.countPages()
+                    if (cp > 0) {
+                        Logcat.d(TAG, "open:" + (SystemClock.uptimeMillis() - start) + " cp:" + cp)
 
-                    val cp = mMupdfDocument!!.countPages()
-                    Logcat.d(TAG, "open:" + (SystemClock.uptimeMillis() - start) + " cp:" + cp)
-
-                    //val loc = mDocument!!.layout(mLayoutW, mLayoutH, mLayoutEM)
-
-                    preparePageSize(cp)
-                    Logcat.d(TAG, "open:end." + mPageSizes.size())
-                    val mill = SystemClock.uptimeMillis() - start
-                    if (mill < 500L) {
-                        delay(500L - mill)
+                        postLoadDoc(cp)
+                    } else {
+                        finish()
                     }
-                    return@withContext true
-                } catch (e: Exception) {
-                    e.printStackTrace()
                 }
-                return@withContext false
-            }
-            if (result) {
-                doLoadDoc()
-            } else {
-                finish()
-            }
         }
     }
 
+    open fun postLoadDoc(cp: Int) {
+        preparePageSize(cp)
+        Logcat.d(TAG, "open:end." + mPageSizes.size())
+        //val mill = SystemClock.uptimeMillis() - start
+        //if (mill < 500L) {
+        //    delay(500L - mill)
+        //}
+
+        doLoadDoc()
+    }
+
+    abstract fun showPasswordDialog()
+
     open fun getPageSize(pageNum: Int): APage? {
-        val p = mMupdfDocument?.loadPage(pageNum) ?: return null
+        val p = pdfViewModel.loadPage(pageNum) ?: return null
 
         Logcat.d(TAG, "open:getPageSize.$pageNum page:$p")
         val b = p.bounds

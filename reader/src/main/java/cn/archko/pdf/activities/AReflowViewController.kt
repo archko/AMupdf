@@ -20,7 +20,6 @@ import cn.archko.pdf.R
 import cn.archko.pdf.adapters.MuPDFReflowAdapter
 import cn.archko.pdf.colorpicker.ColorPickerDialog
 import cn.archko.pdf.common.Logcat
-import cn.archko.pdf.common.PDFBookmarkManager
 import cn.archko.pdf.common.StyleHelper
 import cn.archko.pdf.entity.APage
 import cn.archko.pdf.entity.FontBean
@@ -29,6 +28,7 @@ import cn.archko.pdf.listeners.AViewController
 import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.listeners.OutlineListener
 import cn.archko.pdf.mupdf.MupdfDocument
+import cn.archko.pdf.viewmodel.PDFViewModel
 import cn.archko.pdf.widgets.APageSeekBarControls
 
 /**
@@ -37,7 +37,7 @@ import cn.archko.pdf.widgets.APageSeekBarControls
 class AReflowViewController(
     private var context: Context,
     private val mControllerLayout: RelativeLayout,
-    private var pdfBookmarkManager: PDFBookmarkManager,
+    private var pdfViewModel: PDFViewModel,
     private var mPath: String,
     private var mPageSeekBarControls: APageSeekBarControls?,
     private var gestureDetector: GestureDetector?
@@ -91,12 +91,11 @@ class AReflowViewController(
         }
     }
 
-    override fun init(pageSizes: SparseArray<APage>, mupdfDocument: MupdfDocument?, pos: Int) {
+    override fun init(pageSizes: SparseArray<APage>, pos: Int) {
         try {
             Logcat.d("init:$this")
-            if (null != mupdfDocument) {
+            if (null != pdfViewModel.mupdfDocument) {
                 this.mPageSizes = pageSizes
-                this.mMupdfDocument = mupdfDocument
 
                 setReflowMode(pos)
             }
@@ -107,11 +106,10 @@ class AReflowViewController(
         }
     }
 
-    override fun doLoadDoc(pageSizes: SparseArray<APage>, mupdfDocument: MupdfDocument, pos: Int) {
+    override fun doLoadDoc(pageSizes: SparseArray<APage>, pos: Int) {
         try {
             Logcat.d("doLoadDoc:$this")
             this.mPageSizes = pageSizes
-            this.mMupdfDocument = mupdfDocument
 
             setReflowMode(pos)
         } catch (e: Exception) {
@@ -146,6 +144,9 @@ class AReflowViewController(
     }
 
     override fun getCurrentPos(): Int {
+        if (null == mRecyclerView.layoutManager) {
+            return 0
+        }
         var position =
             (mRecyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
         if (position < 0) {
@@ -165,10 +166,24 @@ class AReflowViewController(
     }
 
     override fun scrollToPosition(page: Int) {
-        mRecyclerView.layoutManager?.scrollToPosition(page)
+        mRecyclerView.layoutManager?.run {
+            val layoutManager: LinearLayoutManager = this as LinearLayoutManager
+            layoutManager.scrollToPositionWithOffset(page - 1, 0)
+        }
     }
 
     override fun scrollPage(y: Int, top: Int, bottom: Int, margin: Int): Boolean {
+        if (y < top) {
+            var scrollY = mRecyclerView.scrollY
+            scrollY -= mRecyclerView.height
+            mRecyclerView.scrollBy(0, scrollY + margin)
+            return true
+        } else if (y > bottom) {
+            var scrollY = mRecyclerView.scrollY
+            scrollY += mRecyclerView.height
+            mRecyclerView.scrollBy(0, scrollY - margin)
+            return true
+        }
         return false
     }
 
@@ -209,7 +224,7 @@ class AReflowViewController(
     }
 
     fun updateProgress(index: Int) {
-        if (mMupdfDocument != null && mPageSeekBarControls?.visibility == View.VISIBLE) {
+        if (pdfViewModel.mupdfDocument != null && mPageSeekBarControls?.visibility == View.VISIBLE) {
             mPageSeekBarControls?.updatePageProgress(index)
         }
     }
@@ -219,33 +234,32 @@ class AReflowViewController(
     }
 
     override fun notifyItemChanged(pos: Int) {
+        mRecyclerView.adapter?.notifyItemChanged(pos)
     }
 
     //--------------------------------------
 
     override fun onResume() {
-        //mPageSeekBarControls?.hide()
         mStyleControls?.visibility = View.GONE
 
-        mRecyclerView.postDelayed(object : Runnable {
-            override fun run() {
-                mRecyclerView.adapter?.notifyDataSetChanged()
-            }
-        }, 250L)
+        mRecyclerView.postDelayed({ mRecyclerView.adapter?.notifyDataSetChanged() }, 250L)
     }
 
     override fun onPause() {
-        pdfBookmarkManager.bookmarkToRestore?.reflow = 1
-        val position = getCurrentPos()
-        val zoomLevel = pdfBookmarkManager.bookmarkToRestore!!.zoomLevel;
-        pdfBookmarkManager.saveCurrentPage(
-            mPath,
-            mMupdfDocument!!.countPages(),
-            position,
-            zoomLevel,
-            -1,
-            0
-        )
+        if (null != pdfViewModel.mupdfDocument) {
+            pdfViewModel.bookProgress?.run {
+                reflow = 1
+                val position = getCurrentPos()
+                pdfViewModel.saveBookProgress(
+                    mPath,
+                    pdfViewModel.countPages(),
+                    position + 1,
+                    pdfViewModel.bookProgress!!.zoomLevel,
+                    -1,
+                    0
+                )
+            }
+        }
         if (null != mRecyclerView.adapter && mRecyclerView.adapter is MuPDFReflowAdapter) {
             (mRecyclerView.adapter as MuPDFReflowAdapter).clearCacheViews()
         }

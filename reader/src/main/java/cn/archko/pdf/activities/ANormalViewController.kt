@@ -14,12 +14,11 @@ import android.widget.FrameLayout
 import android.widget.RelativeLayout
 import cn.archko.pdf.common.BitmapCache
 import cn.archko.pdf.common.Logcat
-import cn.archko.pdf.common.PDFBookmarkManager
 import cn.archko.pdf.entity.APage
 import cn.archko.pdf.listeners.AViewController
 import cn.archko.pdf.listeners.OutlineListener
 import cn.archko.pdf.listeners.SimpleGestureListener
-import cn.archko.pdf.mupdf.MupdfDocument
+import cn.archko.pdf.viewmodel.PDFViewModel
 import cn.archko.pdf.widgets.APageSeekBarControls
 import org.vudroid.core.DecodeService
 import org.vudroid.core.DecodeServiceBase
@@ -36,7 +35,7 @@ import org.vudroid.pdfdroid.codec.PdfDocument
 class ANormalViewController(
     private var context: Context,
     private val mControllerLayout: RelativeLayout,
-    private var pdfBookmarkManager: PDFBookmarkManager,
+    private var pdfViewModel: PDFViewModel,
     private var mPath: String,
     private var mPageSeekBarControls: APageSeekBarControls?,
     private var gestureDetector: GestureDetector?
@@ -50,7 +49,6 @@ class ANormalViewController(
     private lateinit var currentPageModel: CurrentPageModel
     private var mPageControls: PageViewZoomControls? = null
 
-    private var mMupdfDocument: MupdfDocument? = null
     private lateinit var mPageSizes: SparseArray<APage>
 
     init {
@@ -62,8 +60,8 @@ class ANormalViewController(
         initDecodeService()
         val zoomModel = ZoomModel()
 
-        if (null != pdfBookmarkManager.bookmarkToRestore) {
-            zoomModel.zoom = pdfBookmarkManager.bookmarkToRestore!!.zoomLevel / 1000
+        pdfViewModel.bookProgress?.run {
+            zoomModel.zoom = this.zoomLevel / 1000
         }
         val progressModel = DecodingProgressModel()
         progressModel.addEventListener(this)
@@ -95,12 +93,11 @@ class ANormalViewController(
         mControllerLayout.addView(mPageControls, lp)
     }
 
-    override fun init(pageSizes: SparseArray<APage>, mupdfDocument: MupdfDocument?, pos: Int) {
+    override fun init(pageSizes: SparseArray<APage>, pos: Int) {
         try {
             Logcat.d("init:$this")
-            if (null != mupdfDocument) {
+            if (null != pdfViewModel.mupdfDocument) {
                 this.mPageSizes = pageSizes
-                this.mMupdfDocument = mupdfDocument
 
                 setNormalMode(pos)
             }
@@ -111,11 +108,10 @@ class ANormalViewController(
         }
     }
 
-    override fun doLoadDoc(pageSizes: SparseArray<APage>, mupdfDocument: MupdfDocument, pos: Int) {
+    override fun doLoadDoc(pageSizes: SparseArray<APage>, pos: Int) {
         try {
             Logcat.d("doLoadDoc:$this")
             this.mPageSizes = pageSizes
-            this.mMupdfDocument = mupdfDocument
 
             setNormalMode(pos)
             addGesture()
@@ -127,7 +123,7 @@ class ANormalViewController(
 
     private fun createZoomControls(zoomModel: ZoomModel): PageViewZoomControls {
         val controls = PageViewZoomControls(context, zoomModel)
-        controls.gravity = Gravity.RIGHT or Gravity.BOTTOM
+        controls.gravity = Gravity.END or Gravity.BOTTOM
         zoomModel.addEventListener(controls)
         return controls
     }
@@ -160,13 +156,13 @@ class ANormalViewController(
 
     private fun setNormalMode(pos: Int) {
         val document = PdfDocument()
-        document.core = mMupdfDocument?.document
+        document.core = pdfViewModel.mupdfDocument?.document
         (decodeService as DecodeServiceBase).document = document
         if (pos > 0) {
             documentView.goToPage(
                 pos,
-                pdfBookmarkManager.bookmarkToRestore!!.offsetX,
-                pdfBookmarkManager.bookmarkToRestore!!.offsetY
+                pdfViewModel.bookProgress!!.offsetX,
+                pdfViewModel.bookProgress!!.offsetY
             )
         }
         documentView.showDocument()
@@ -192,10 +188,17 @@ class ANormalViewController(
     }
 
     override fun scrollToPosition(page: Int) {
-        documentView.goToPage(page)
+        documentView.goToPage(page - 1)
     }
 
     override fun scrollPage(y: Int, top: Int, bottom: Int, margin: Int): Boolean {
+        if (y < top) {
+            //documentView.scrollPage(-frameLayout.height + margin);
+            return true
+        } else if (y > bottom) {
+            //documentView.scrollPage(frameLayout.height - margin);
+            return true
+        }
         return false
     }
 
@@ -228,7 +231,7 @@ class ANormalViewController(
     }
 
     private fun updateProgress(index: Int) {
-        if (mMupdfDocument != null && mPageSeekBarControls?.visibility == View.VISIBLE) {
+        if (pdfViewModel.mupdfDocument != null && mPageSeekBarControls?.visibility == View.VISIBLE) {
             mPageSeekBarControls?.updatePageProgress(index)
         }
     }
@@ -247,10 +250,19 @@ class ANormalViewController(
     }
 
     override fun onPause() {
-        pdfBookmarkManager.saveCurrentPage(
-            mPath, mMupdfDocument!!.countPages(), documentView.currentPage,
-            documentView.zoomModel.zoom * 1000f, documentView.scrollX, documentView.scrollY
-        )
+        if (null != pdfViewModel.mupdfDocument) {
+            pdfViewModel.bookProgress?.run {
+                val position = documentView.currentPage
+                pdfViewModel.saveBookProgress(
+                    mPath,
+                    pdfViewModel.countPages(),
+                    position + 1,
+                    documentView.zoomModel.zoom * 1000f,
+                    documentView.scrollX,
+                    documentView.scrollY
+                )
+            }
+        }
     }
 
     override fun onDestroy() {

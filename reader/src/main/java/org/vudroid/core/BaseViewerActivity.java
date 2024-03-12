@@ -23,11 +23,12 @@ import org.vudroid.core.views.PageViewZoomControls;
 
 import androidx.fragment.app.FragmentActivity;
 import cn.archko.pdf.activities.PdfOptionsActivity;
-import cn.archko.pdf.common.PDFBookmarkManager;
 import cn.archko.pdf.common.SensorHelper;
 import cn.archko.pdf.common.StatusBarHelper;
+import cn.archko.pdf.entity.BookProgress;
 import cn.archko.pdf.listeners.SimpleGestureListener;
 import cn.archko.pdf.presenter.PageViewPresenter;
+import cn.archko.pdf.viewmodel.PDFViewModel;
 import cn.archko.pdf.widgets.APageSeekBarControls;
 
 public abstract class BaseViewerActivity extends FragmentActivity implements DecodingProgressListener, CurrentPageListener {
@@ -40,7 +41,7 @@ public abstract class BaseViewerActivity extends FragmentActivity implements Dec
     //private CurrentPageModel mPageModel;
     APageSeekBarControls mPageSeekBarControls;
 
-    PDFBookmarkManager pdfBookmarkManager;
+    PDFViewModel pdfViewModel;
     SensorHelper sensorHelper;
 
     /**
@@ -55,15 +56,23 @@ public abstract class BaseViewerActivity extends FragmentActivity implements Dec
 
         initDecodeService();
         final ZoomModel zoomModel = new ZoomModel();
-        pdfBookmarkManager = new PDFBookmarkManager();
+        pdfViewModel = new PDFViewModel();
         sensorHelper = new SensorHelper(this);
 
         Uri uri = getIntent().getData();
         String absolutePath = Uri.decode(uri.getEncodedPath());
-        pdfBookmarkManager.setStartBookmark(absolutePath, 0);
-        if (null != pdfBookmarkManager.getBookmarkToRestore()) {
-            zoomModel.setZoom(pdfBookmarkManager.getBookmarkToRestore().zoomLevel / 1000);
+
+        int currentPage = 0;
+        int scrollX = 0;
+        int scrollY = 0;
+        BookProgress bookProgress = pdfViewModel.loadBookProgressByPath2(absolutePath);
+        if (null != bookProgress) {
+            currentPage = bookProgress.page;
+            zoomModel.setZoom(bookProgress.zoomLevel / 1000);
+            scrollX = bookProgress.offsetX;
+            scrollY = bookProgress.offsetY;
         }
+
         final DecodingProgressModel progressModel = new DecodingProgressModel();
         progressModel.addEventListener(this);
         currentPageModel = new CurrentPageModel();
@@ -82,9 +91,8 @@ public abstract class BaseViewerActivity extends FragmentActivity implements Dec
 
         setContentView(frameLayout);
 
-        int currentPage = pdfBookmarkManager.restoreBookmark(decodeService.getPageCount());
         if (0 < currentPage) {
-            documentView.goToPage(currentPage, pdfBookmarkManager.getBookmarkToRestore().offsetX, pdfBookmarkManager.getBookmarkToRestore().offsetY);
+            documentView.goToPage(currentPage, scrollX, scrollY);
         }
         documentView.showDocument();
 
@@ -273,8 +281,14 @@ public abstract class BaseViewerActivity extends FragmentActivity implements Dec
         super.onPause();
         Uri uri = getIntent().getData();
         String filePath = Uri.decode(uri.getEncodedPath());
-        pdfBookmarkManager.saveCurrentPage(filePath, decodeService.getPageCount(), documentView.getCurrentPage(),
-                documentView.getZoomModel().getZoom() * 1000f, documentView.getScrollX(), documentView.getScrollY());
+        pdfViewModel.saveBookProgress(
+                filePath,
+                pdfViewModel.countPages(),
+                documentView.getCurrentPage() + 1,
+                pdfViewModel.getBookProgress().zoomLevel * 1000f,
+                documentView.getScrollX(),
+                documentView.getScrollY()
+        );
 
         sensorHelper.onPause();
     }

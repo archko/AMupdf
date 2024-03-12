@@ -1,6 +1,5 @@
 package cn.archko.pdf.common
 
-import cn.archko.pdf.entity.BookProgress
 import cn.archko.pdf.entity.FileBean
 
 /**
@@ -8,7 +7,7 @@ import cn.archko.pdf.entity.FileBean
  */
 class ProgressScaner {
 
-    fun startScan(fileListEntries: List<FileBean>, currentPath: String): Array<Any?> {
+    /*fun startScan(fileListEntries: List<FileBean>, currentPath: String): Array<Any?> {
         val entries: MutableList<FileBean> = ArrayList()
         val recent = RecentManager.instance
         for (entry in fileListEntries) {
@@ -22,5 +21,18 @@ class ProgressScaner {
             }
         }
         return arrayOf(currentPath, entries)
+    }*/
+
+    fun startScan(fileListEntries: List<FileBean>?, progressDao: ProgressDao) {
+        if (null != fileListEntries) {
+            for (entry in fileListEntries) {
+                if (!entry.isDirectory && entry.file != null) {
+                    val progress = progressDao.getProgress(entry.file!!.name)
+                    if (null != progress) {
+                        entry.bookProgress = progress
+                    }
+                }
+            }
+        }
     }
 }
