@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="5dp"
+    android:minHeight="52dp"
     android:paddingLeft="4dp"
     android:paddingTop="4dp"
     android:paddingRight="8dp"
@@ -12,7 +12,7 @@
 
     <ImageView
         android:id="@+id/icon"
-        android:layout_width="40dp"
+        android:layout_width="44dp"
         android:layout_height="42dp"
         android:layout_centerVertical="true"
         android:src="@drawable/browser_icon_any"
@@ -65,7 +65,7 @@
         android:paddingTop="4dp"
         android:paddingRight="0dp"
         android:paddingBottom="0dp"
-        android:textSize="16sp"
+        android:textSize="17sp"
         app:layout_constraintEnd_toStartOf="@+id/size"
         app:layout_constraintStart_toEndOf="@+id/icon"
         app:layout_constraintTop_toTopOf="parent"

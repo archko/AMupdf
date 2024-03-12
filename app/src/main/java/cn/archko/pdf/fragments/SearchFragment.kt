@@ -21,6 +21,7 @@ import cn.archko.pdf.common.PDFViewerHelper
 import cn.archko.pdf.entity.FileBean
 import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.listeners.OnItemClickListener
+import cn.archko.pdf.widgets.ColorItemDecoration
 import com.google.android.material.appbar.MaterialToolbar
 import com.umeng.analytics.MobclickAgent
 import java.io.File
@@ -44,7 +45,7 @@ open class SearchFragment : DialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val themeId = R.style.AppDialogTheme
+        val themeId = R.style.AppTheme
         setStyle(DialogFragment.STYLE_NO_TITLE, themeId)
     }
 
@@ -73,6 +74,7 @@ open class SearchFragment : DialogFragment() {
         filesListView = view.findViewById(R.id.files)
         filesListView.layoutManager =
             LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+        filesListView.addItemDecoration(ColorItemDecoration(requireContext()))
 
         imgClose.setOnClickListener { clear() }
 

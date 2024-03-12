@@ -235,6 +235,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
         mSwipeRefreshWidget.isRefreshing = false
 
         bookViewModel.startGetProgress(fileList, mCurrentPath!!)
+        pathTextView.text = mCurrentPath
     }
 
     private fun emitScannerBean(args: Array<Any?>) {
