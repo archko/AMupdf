@@ -1,6 +1,5 @@
 package cn.archko.pdf.activities
 
-import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.PointF
 import android.os.Bundle
@@ -11,6 +10,7 @@ import android.util.SparseArray
 import android.view.GestureDetector
 import android.view.Gravity
 import android.view.View
+import android.view.Window
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.Toast
@@ -41,7 +41,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
     protected val OUTLINE_REQUEST = 0
     protected var mPath: String? = null
 
-    protected lateinit var progressDialog: ProgressDialog
+    //protected lateinit var progressDialog: ProgressDialog
 
     protected var gestureDetector: GestureDetector? = null
     protected var pageNumberToast: Toast? = null
@@ -61,7 +61,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        progressDialog = ProgressDialog(this)
+        //progressDialog = ProgressDialog(this)
 
         if (null != savedInstanceState) {
             mPath = savedInstanceState.getString("path", null)
@@ -105,16 +105,16 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
     }
 
     open fun doLoadDoc() {
-        try {
-            progressDialog.setMessage("Loading menu")
+        //try {
+        //progressDialog.setMessage("Loading menu")
 
-            isDocLoaded = true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            finish()
-        } finally {
-            progressDialog.dismiss()
-        }
+        isDocLoaded = true
+        //} catch (e: Exception) {
+        //    e.printStackTrace()
+        //    finish()
+        //} finally {
+        //    //progressDialog.dismiss()
+        //}
     }
 
     private fun parseIntent() {
@@ -157,15 +157,24 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
             .get<String>(Event.ACTION_STOPPED)
             .post(null)
         mMupdfDocument?.destroy()
-        progressDialog.dismiss()
+        //progressDialog.dismiss()
         BitmapCache.getInstance().clear()
     }
 
     open fun initView() {
         StatusBarHelper.hideSystemUI(this)
-        StatusBarHelper.setImmerseBarAppearance(window, true)
+        StatusBarHelper.setStatusBarImmerse(window)
+        setFullScreen()
 
         setContentView(R.layout.reader)
+    }
+
+    private fun setFullScreen() {
+        window.requestFeature(Window.FEATURE_NO_TITLE)
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            WindowManager.LayoutParams.FLAG_FULLSCREEN
+        )
     }
 
     open fun getDocumentView(): View? {
@@ -252,8 +261,8 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
     }
 
     open fun loadDoc() {
-        progressDialog.setMessage(mPath)
-        progressDialog.show()
+        //progressDialog.setMessage(mPath)
+        //progressDialog.show()
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 try {
@@ -305,9 +314,12 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
     }
 
     open fun preparePageSize(cp: Int) {
-        for (i in 0 until cp) {
-            val pointF = getPageSize(i)
-            mPageSizes.put(i, pointF)
+        val page = getPageSize(0)
+        if (null != page) {
+            for (i in 0 until cp) {
+                val pointF = PointF(page.width, page.height)
+                mPageSizes.put(i, APage(i, pointF, 1.0f, 0))
+            }
         }
     }
 }

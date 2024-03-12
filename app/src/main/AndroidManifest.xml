@@ -39,9 +39,10 @@
 
         <activity
             android:name="cn.archko.pdf.activities.ChooseFileFragmentActivity"
-            android:exported="true"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/app_name">
+            android:exported="true"
+            android:label="@string/app_name"
+            android:screenOrientation="fullSensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -60,10 +61,10 @@
 
         <activity
             android:name="cn.archko.pdf.activities.AMuPDFRecyclerViewActivity"
-            android:exported="true"
             android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="true"
             android:label="@string/app_name"
-            android:screenOrientation="sensor"
+            android:screenOrientation="fullSensor"
             android:theme="@style/AppFullscreen">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -90,6 +91,17 @@
                 <data android:pathPattern=".*\\.cbz" />
                 <data android:pathPattern=".*\\.epub" />
                 <data android:pathPattern=".*\\.fb2" />
+                <data android:pathPattern=".*\\.mobi" />
+                <data android:pathPattern=".*\\.txt" />
+                <data android:pathPattern=".*\\.json" />
+                <data android:pathPattern=".*\\.html" />
+                <data android:pathPattern=".*\\.js" />
+                <data android:pathPattern=".*\\.doc" />
+                <data android:pathPattern=".*\\.docx" />
+                <data android:pathPattern=".*\\.ppt" />
+                <data android:pathPattern=".*\\.pptx" />
+                <data android:pathPattern=".*\\.xls" />
+                <data android:pathPattern=".*\\.xlsx" />
             </intent-filter>
         </activity>
 

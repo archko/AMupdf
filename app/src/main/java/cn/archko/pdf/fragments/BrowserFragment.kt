@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
+import android.os.Looper
 import android.preference.PreferenceManager
 import android.view.LayoutInflater
 import android.view.Menu
@@ -43,7 +44,7 @@ import java.util.*
 open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefreshListener,
     PopupMenu.OnMenuItemClickListener {
 
-    protected val mHandler = Handler()
+    protected val mHandler = Handler(Looper.getMainLooper())
     private var mCurrentPath: String? = null
 
     protected lateinit var mSwipeRefreshWidget: SwipeRefreshLayout
@@ -70,8 +71,22 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
     override fun onOptionsItemSelected(menuItem: MenuItem): Boolean {
         when (menuItem.itemId) {
             R.id.action_set_as_home -> setAsHome()
+            R.id.action_extract -> extractImage()
+            R.id.action_create -> createPdf()
         }
         return super.onOptionsItemSelected(menuItem)
+    }
+
+    fun extractImage() {
+        PdfOperationFragment.showCreateDialog(
+            PdfOperationFragment.TYPE_MERGE,
+            requireActivity(),
+            null
+        )
+    }
+
+    fun createPdf() {
+        PdfCreationFragment.showCreateDialog(requireActivity(), null)
     }
 
     private fun setAsHome() {

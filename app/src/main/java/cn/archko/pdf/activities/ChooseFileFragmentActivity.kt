@@ -15,9 +15,9 @@ import android.provider.Settings
 import android.util.Log
 import android.util.SparseArray
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import cn.archko.mupdf.R
@@ -303,7 +303,7 @@ open class ChooseFileFragmentActivity : AnalysticActivity(), OnPermissionGranted
         fileInfoFragment.show(ft, "dialog")
     }
 
-    inner class TabsAdapter(activity: AppCompatActivity) : FragmentStateAdapter(activity) {
+    inner class TabsAdapter(activity: FragmentActivity) : FragmentStateAdapter(activity) {
 
         private val mContext: Context
         private val mFragmentArray = SparseArray<WeakReference<Fragment>>()

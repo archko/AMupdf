@@ -123,18 +123,6 @@ class HistoryFragment : BrowserFragment() {
         return super.onOptionsItemSelected(menuItem)
     }
 
-    private fun extractImage() {
-        PdfOperationFragment.showCreateDialog(
-            PdfOperationFragment.TYPE_MERGE,
-            requireActivity(),
-            null
-        )
-    }
-
-    private fun createPdf() {
-        PdfCreationFragment.showCreateDialog(requireActivity(), null)
-    }
-
     private fun backup() {
         progressDialog.show()
         historyViewModel.backupFromDb()

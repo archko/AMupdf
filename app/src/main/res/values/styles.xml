@@ -3,6 +3,11 @@
 
     <style name="AppBaseTheme" parent="Theme.Material3.Light.NoActionBar">
         <!--<item name="android:windowBackground">@drawable/bg_window_tiled</item>-->
+
+        <!-- Customize your theme here. -->
+        <!--<item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>-->
+        <item name="colorAccent">@color/colorAccent</item>
     </style>
 
     <style name="AppFullscreen" parent="Theme.Material3.Light.NoActionBar"></style>

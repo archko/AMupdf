@@ -18,7 +18,6 @@ import android.widget.Toast
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import cn.archko.mupdf.R
 import cn.archko.pdf.common.APageSizeLoader
 import cn.archko.pdf.common.BitmapCache
 import cn.archko.pdf.common.Logcat
@@ -33,7 +32,6 @@ import cn.archko.pdf.listeners.OutlineListener
 import cn.archko.pdf.presenter.PageViewPresenter
 import cn.archko.pdf.utils.FileUtils
 import cn.archko.pdf.widgets.APageSeekBarControls
-import cn.archko.pdf.widgets.ViewerDividerItemDecoration
 
 /**
  * @author: archko 2019/8/25 :12:43
@@ -221,7 +219,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
     override fun doLoadDoc() {
         try {
-            progressDialog.setMessage("Loading menu")
+            //progressDialog.setMessage("Loading menu")
 
             Logcat.d("doLoadDoc:mCrop:$mCrop,mReflow:$mReflow")
             setCropButton(mCrop)
@@ -253,7 +251,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             e.printStackTrace()
             finish()
         } finally {
-            progressDialog.dismiss()
+            //progressDialog.dismiss()
         }
     }
 
