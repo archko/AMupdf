@@ -1,6 +1,5 @@
 package cn.archko.pdf.fragments
 
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -30,28 +29,25 @@ open class BackupFragment : DialogFragment() {
     var mDataListener: DataListener? = null
     private lateinit var backupViewModel: BackupViewModel
 
-    public fun setListener(dataListener: DataListener?) {
+    fun setListener(dataListener: DataListener?) {
         mDataListener = dataListener
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        var themeId = android.R.style.Theme_Holo_Dialog
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            themeId = android.R.style.Theme_Material_Dialog;
-        }
+        var themeId = android.R.style.Theme_Material_Dialog
         setStyle(DialogFragment.STYLE_NO_FRAME, themeId)
         backupViewModel = BackupViewModel()
     }
 
     override fun onResume() {
         super.onResume()
-        MobclickAgent.onPageStart(TAG);
+        MobclickAgent.onPageStart(TAG)
     }
 
     override fun onPause() {
         super.onPause()
-        MobclickAgent.onPageEnd(TAG);
+        MobclickAgent.onPageEnd(TAG)
     }
 
     override fun onCreateView(

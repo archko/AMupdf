@@ -236,21 +236,25 @@ class RecentManager private constructor() {
         }
     val backupFiles: List<File>?
         get() {
+            var files: Array<File>? = null
             val dir = FileUtils.getStorageDir("amupdf")
-            if (!dir.exists()) {
-                return null
-            }
-            val files = dir.listFiles { pathname: File -> pathname.name.startsWith("mupdf_") }
-            Arrays.sort(files) { f1: File?, f2: File? ->
-                if (f1 == null) throw RuntimeException("f1 is null inside sort")
-                if (f2 == null) throw RuntimeException("f2 is null inside sort")
-                try {
-                    return@sort (f2.lastModified() - f1.lastModified()).toInt()
-                } catch (e: NullPointerException) {
-                    throw RuntimeException("failed to compare $f1 and $f2", e)
+            if (dir.exists()) {
+                files = dir.listFiles { pathname: File -> pathname.name.startsWith("mupdf_") }
+                if (files != null) {
+                    Arrays.sort(files) { f1: File?, f2: File? ->
+                        if (f1 == null) throw RuntimeException("f1 is null inside sort")
+                        if (f2 == null) throw RuntimeException("f2 is null inside sort")
+                        return@sort f2.lastModified().compareTo(f1.lastModified())
+                    }
                 }
             }
-            return Arrays.asList(*files)
+            val list = ArrayList<File>()
+            if (files != null) {
+                for (f in files) {
+                    list.add(f)
+                }
+            }
+            return list
         }
 
     //===================== favorite =====================
