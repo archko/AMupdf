@@ -40,12 +40,11 @@ class APage {
 
     var width: Float = 0f
     var height: Float = 0f
-    var ratio: Float = 1f
 
     /**
      * view zoom
      */
-    var zoom = 0f
+    var zoom = 1f
     //private var targetWidth = 0
 
     var scale = 1f
@@ -185,7 +184,6 @@ class APage {
         return "APage{" +
                 "index=" + index +
                 ", mPageSize=" + pageSize +
-                ", mZoom=" + zoom +
                 ", scale=" + scale +
                 ", cropScale=" + cropScale +
                 ", cropBounds=" + cropBounds +

@@ -70,10 +70,11 @@ class ACropViewController(
                 }
             })
         }
-        mRecyclerView.getViewTreeObserver()
+        mRecyclerView.viewTreeObserver
             .addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
                 override fun onGlobalLayout() {
-                    mRecyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    mRecyclerView.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                    val changed = defaultWidth != mRecyclerView.width
                     defaultWidth = mRecyclerView.width
                     defaultHeight = mRecyclerView.height
                     if (Logcat.loggable) {
@@ -83,6 +84,9 @@ class ACropViewController(
                                 defaultWidth, defaultHeight
                             )
                         )
+                    }
+                    if (changed) {
+                        mRecyclerView.adapter?.notifyDataSetChanged()
                     }
                 }
             })
@@ -200,21 +204,19 @@ class ACropViewController(
         mRecyclerView.stopScroll()
         BitmapCache.getInstance().clear()
 
-        if (mRecyclerView.width > 0) {
-            defaultWidth = Utils.dipToPixel(newConfig.screenWidthDp.toFloat())
-            defaultHeight = Utils.dipToPixel(newConfig.screenHeightDp.toFloat())
-            if (Logcat.loggable) {
-                Logcat.d(
-                    "TAG", String.format(
-                        "newConfig:w-h:%s-%s, config:%s-%s, %s",
-                        defaultWidth,
-                        defaultHeight,
-                        newConfig.screenWidthDp,
-                        newConfig.screenHeightDp,
-                        newConfig.orientation
-                    )
+        defaultWidth = Utils.dipToPixel(newConfig.screenWidthDp.toFloat())
+        defaultHeight = Utils.dipToPixel(newConfig.screenHeightDp.toFloat())
+        if (Logcat.loggable) {
+            Logcat.d(
+                "TAG", String.format(
+                    "newConfig:w-h:%s-%s, config:%s-%s, %s",
+                    defaultWidth,
+                    defaultHeight,
+                    newConfig.screenWidthDp,
+                    newConfig.screenHeightDp,
+                    newConfig.orientation
                 )
-            }
+            )
         }
 
         val lm = (mRecyclerView.layoutManager as LinearLayoutManager)

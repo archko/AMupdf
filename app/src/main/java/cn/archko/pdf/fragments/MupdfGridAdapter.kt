@@ -100,7 +100,7 @@ class MupdfGridAdapter(
             if (null != bitmap) {
                 Log.d("TAG", String.format("bind.hit cache:%s", aPage?.index))
                 view.setImageBitmap(bitmap)
-                setLayoutSize()
+                setLayoutSize(bitmap)
                 return
             }
             val task =
@@ -116,10 +116,8 @@ class MupdfGridAdapter(
             AppExecutors.instance.diskIO().execute { task.run() }
         }
 
-        private fun setLayoutSize() {
-            val ratio = if (aPage != null) {
-                aPage!!.ratio
-            } else 1f
+        private fun setLayoutSize(bitmap: Bitmap) {
+            val ratio = bitmap.width * 1f / bitmap.height
 
             val viewWidth = resultWidth
             val viewHeight: Int = (resultWidth / ratio).toInt()
@@ -153,11 +151,11 @@ class MupdfGridAdapter(
                         )
                     )
                 }
-            }
-            if (position == pageIndex) {
-                AppExecutors.instance.mainThread().execute {
-                    view.setImageBitmap(bitmap)
-                    setLayoutSize()
+                if (position == pageIndex) {
+                    AppExecutors.instance.mainThread().execute {
+                        view.setImageBitmap(bitmap)
+                        setLayoutSize(bitmap!!)
+                    }
                 }
             }
         }

@@ -58,7 +58,7 @@ public class APDFView(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (aPage != null && null == drawable) {
+        if (aPage != null /*&& null == drawable*/) {
             canvas.drawText(
                 String.format("Page %s", aPage!!.index + 1), (measuredWidth / 2).toFloat(),
                 (measuredHeight / 2).toFloat(), textPaint
@@ -98,7 +98,7 @@ public class APDFView(
 
         if (null != bmp) {
             setImageBitmap(bmp)
-            setLayoutSize()
+            setLayoutSize(bmp)
             return
         }
         val task =
@@ -114,21 +114,19 @@ public class APDFView(
         AppExecutors.instance.diskIO().execute { task.run() }
     }
 
-    private fun setLayoutSize() {
-        val ratio = if (aPage != null) {
-            aPage!!.ratio
-        } else 1f
+    private fun setLayoutSize(bitmap: Bitmap) {
+        val ratio = bitmap.width * 1f / bitmap.height
 
         val viewWidth = resultWidth
         val viewHeight: Int = (resultWidth / ratio).toInt()
-        /*if (Logcat.loggable) {
+        if (Logcat.loggable) {
             Logcat.d(
                 TAG, String.format(
-                    "decode layout:index:%s, w-h:%s-%s, %s, %s",
+                    "decode layout:index:%s, w-h:%s-%s, oldHeight:%s, ratio:%s",
                     pageIndex, viewWidth, viewHeight, resultHeight, ratio
                 )
             )
-        }*/
+        }
 
         var lp = layoutParams
         if (null == lp) {
@@ -142,37 +140,37 @@ public class APDFView(
 
     private fun caculateWidth(orientation: Int, crop: Boolean) {
         if (orientation == LinearLayoutManager.VERTICAL) {//垂直方向,以宽为准
-            resultHeight = if (crop && aPage!!.cropBounds != null) {
+            resultHeight = /*if (crop && aPage!!.cropBounds != null) {
                 (resultWidth * aPage!!.cropBounds!!.height() / aPage!!.width).toInt()
-            } else {
+            } else {*/
                 (resultWidth * aPage!!.height / aPage!!.width).toInt()
-            }
+            //}
         } else {    //水平滚动,以高为准
             resultHeight = resultWidth
-            resultWidth = if (crop && aPage!!.cropBounds != null) {
+            resultWidth = /*if (crop && aPage!!.cropBounds != null) {
                 (resultHeight * aPage!!.cropBounds!!.width() / aPage!!.height).toInt()
-            } else {
+            } else {*/
                 (resultHeight * aPage!!.width / aPage!!.height).toInt()
-            }
+            //}
         }
     }
 
     override fun decodeComplete(bitmap: Bitmap?, position: Int, key: String) {
         if (null != bitmap) {
             BitmapCache.getInstance().addBitmap(key, bitmap)
-            if (Logcat.loggable) {
+            /*if (Logcat.loggable) {
                 Logcat.d(
                     TAG, String.format(
-                        "decode complete:index:%s,pageIndex:%s, %s, %s-%s, %s",
-                        position, pageIndex, key, bitmap.width, bitmap.height, aPage?.ratio
+                        "decode complete:index:%s, pageIndex:%s, %s, bitmap:%s-%s",
+                        position, pageIndex, key, bitmap.width, bitmap.height
                     )
                 )
-            }
-        }
-        if (position == pageIndex) {
-            AppExecutors.instance.mainThread().execute {
-                setImageBitmap(bitmap)
-                setLayoutSize()
+            }*/
+            if (position == pageIndex) {
+                AppExecutors.instance.mainThread().execute {
+                    setImageBitmap(bitmap)
+                    setLayoutSize(bitmap)
+                }
             }
         }
     }

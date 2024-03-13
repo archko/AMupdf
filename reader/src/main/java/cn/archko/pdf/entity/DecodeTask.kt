@@ -38,7 +38,6 @@ class DecodeTask(
             //如果没有对它赋值,外部的view的高宽与当前是不匹配的,会变形
             aPage.width = bounds.x1 - bounds.x0
             aPage.height = bounds.y1 - bounds.y0
-            aPage.ratio = aPage.width * 1f / aPage.height
 
             var leftBound = 0
             var topBound = 0
@@ -52,13 +51,6 @@ class DecodeTask(
             ctm.scale(xscale, yscale)
 
             if (crop) {
-                Logcat.d(
-                    "DecodeTask", String.format(
-                        "decode crop:%s, %s-%s, task:%s-%s, bound(left-top):%s-%s, page:%s",
-                        index, pageW, pageH, width, height,
-                        leftBound, topBound, aPage
-                    )
-                )
                 if (pageW >= 40 && pageH >= 40) {
                     if (aPage.cropBounds != null) {
                         leftBound = aPage.cropBounds?.left?.toInt()!!
@@ -79,7 +71,13 @@ class DecodeTask(
                         );
                         aPage.setCropBounds(cropRectf, cropScale)
                     }
-                    aPage.ratio = aPage.width * 1f / aPage.height
+                    Logcat.d(
+                        "DecodeTask", String.format(
+                            "decode crop:%s, %s-%s, task:%s-%s, bound(left-top):%s-%s, page:%s",
+                            index, pageW, pageH, width, height,
+                            leftBound, topBound, aPage
+                        )
+                    )
                 }
             }
 
