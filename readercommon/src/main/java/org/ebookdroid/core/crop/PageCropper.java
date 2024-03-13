@@ -73,7 +73,7 @@ public class PageCropper {
      * @param bitmap
      * @return
      */
-    public static Rect getJavaCropRect(Bitmap bitmap) {
+    public static RectF getJavaCropRect(Bitmap bitmap) {
         int[] pixels = getPixels(bitmap, new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight()));
 
         // 灰度化 bitmap
@@ -159,7 +159,7 @@ public class PageCropper {
             bottom -= THRESHOLD;
         }
 
-        return new Rect(left, top, bitmap.getWidth() - right, bitmap.getHeight() - bottom);
+        return new RectF((float)left, (float)top, bitmap.getWidth() - right, bitmap.getHeight() - bottom);
     }
 
     //=======================
