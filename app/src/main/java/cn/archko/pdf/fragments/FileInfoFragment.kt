@@ -5,13 +5,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import cn.archko.mupdf.R
-import cn.archko.pdf.App
 import cn.archko.pdf.common.Graph
-import cn.archko.pdf.common.ImageLoader
 import cn.archko.pdf.entity.BookProgress
 import cn.archko.pdf.entity.FileBean
 import cn.archko.pdf.listeners.DataListener
@@ -139,7 +141,7 @@ class FileInfoFragment : DialogFragment() {
     }
 
     private fun showIcon(path: String) {
-        ImageLoader.getInstance().loadImage(path, 0, 1.0f, App.instance!!.screenWidth, mIcon);
+        //TODO ImageLoader.getInstance().loadImage(path, 0, 1.0f, App.instance!!.screenWidth, mIcon);
     }
 
     private fun updatePageCount() {

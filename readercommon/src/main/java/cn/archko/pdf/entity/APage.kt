@@ -35,8 +35,7 @@ class APage {
     /**
      * width/height
      */
-    var pageSize // pagesize of real page
-            : PointF? = null
+    var pageSize: PointF? = null
         private set
 
     var width: Float = 0f
@@ -46,11 +45,8 @@ class APage {
      * view zoom
      */
     var zoom = 0f
-    private var targetWidth = 0
+    //private var targetWidth = 0
 
-    /**
-     * viewwidth/pagewidth
-     */
     var scale = 1f
         private set
 
@@ -83,50 +79,49 @@ class APage {
     // MupdfDocument.render(page, ctm, bitmap, xOrigin, leftBound, topBound)
     var cropScale = 1.0f
         private set
-    var sourceBounds: RectF? = null
-        private set
+    //var sourceBounds: RectF? = null
+    //    private set
     var cropBounds: RectF? = null
         private set
     private var cropWidth = 0
     private var cropHeight = 0
 
     constructor()
-    constructor(pageNumber: Int, pageSize: PointF, zoom: Float, targetWidth: Int) {
+    constructor(pageNumber: Int, pageSize: PointF, zoom: Float) {
         index = pageNumber
         this.pageSize = pageSize
         this.width = pageSize.x
         this.height = pageSize.y
 
         this.zoom = zoom
-        setTargetWidth(targetWidth)
-        initSourceBounds(1.0f)
+        //setTargetWidth(targetWidth)
     }
 
-    private fun initSourceBounds(cropScale: Float) {
+    /*private fun initSourceBounds(cropScale: Float) {
         sourceBounds = RectF()
         sourceBounds!!.right = effectivePagesWidth * cropScale * zoom
         sourceBounds!!.bottom = effectivePagesHeight * cropScale * zoom
-    }
+    }*/
 
-    fun getTargetWidth(): Int {
+    /*fun getTargetWidth(): Int {
         return targetWidth
-    }
+    }*/
 
-    fun setTargetWidth(targetWidth: Int) {
+    /*fun setTargetWidth(targetWidth: Int) {
         if (targetWidth > 0 && this.targetWidth != targetWidth) {
             scale = calculateScale(targetWidth)
         }
         this.targetWidth = targetWidth
-    }
+    }*/
 
-    private fun calculateScale(tw: Int): Float {
+    /*private fun calculateScale(tw: Int): Float {
         return 1.0f * tw / pageSize!!.x
-    }
+    }*/
 
-    val effectivePagesWidth: Int
+    /*val effectivePagesWidth: Int
         get() = getScaledWidth(pageSize, scale)
     val effectivePagesHeight: Int
-        get() = getScaledHeight(pageSize, scale)
+        get() = getScaledHeight(pageSize, scale)*/
     val scaleZoom: Float
         get() = scale * zoom
     val zoomPoint: Point
@@ -139,12 +134,12 @@ class APage {
     fun setCropBounds(cropBounds: RectF, cropScale: Float) {
         this.cropBounds = cropBounds
         this.cropScale = cropScale
-        initSourceBounds(cropScale)
+        //initSourceBounds(cropScale)
         setCropWidth(cropBounds.width().toInt())
         setCropHeight(cropBounds.height().toInt())
     }
 
-    fun getCropWidth(): Int {
+    /*fun getCropWidth(): Int {
         if (cropWidth == 0) {
             cropWidth = effectivePagesWidth
         }
@@ -159,7 +154,7 @@ class APage {
             cropHeight = effectivePagesHeight
         }
         return cropHeight
-    }
+    }*/
 
     fun setCropWidth(cropWidth: Int) {
         this.cropWidth = cropWidth
@@ -174,9 +169,6 @@ class APage {
             if (cropBounds != null) {
                 return cropBounds!!.width().toInt()
             }
-            if (cropWidth == 0) {
-                cropWidth = effectivePagesWidth
-            }
             return cropWidth
         }
     val cropScaleHeight: Int
@@ -184,48 +176,16 @@ class APage {
             if (cropBounds != null) {
                 return cropBounds!!.height().toInt()
             }
-            if (cropHeight == 0) {
-                cropHeight = effectivePagesHeight
-            }
             return cropHeight
         }
-
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null || javaClass != o.javaClass) return false
-        val aPage = o as APage
-        if (index != aPage.index) return false
-        if (java.lang.Float.compare(aPage.zoom, zoom) != 0) return false
-        if (targetWidth != aPage.targetWidth) return false
-        if (java.lang.Float.compare(aPage.scale, scale) != 0) return false
-        if (java.lang.Float.compare(aPage.cropScale, cropScale) != 0) return false
-        if (if (pageSize != null) pageSize != aPage.pageSize else aPage.pageSize != null) return false
-        if (if (sourceBounds != null) sourceBounds != aPage.sourceBounds else aPage.sourceBounds != null) return false
-        return if (cropBounds != null) cropBounds == aPage.cropBounds else aPage.cropBounds == null
-    }
-
-    override fun hashCode(): Int {
-        var result = index
-        result = 31 * result + if (pageSize != null) pageSize.hashCode() else 0
-        result = 31 * result + if (zoom != +0.0f) java.lang.Float.floatToIntBits(zoom) else 0
-        result = 31 * result + targetWidth
-        result = 31 * result + if (scale != +0.0f) java.lang.Float.floatToIntBits(scale) else 0
-        result =
-            31 * result + if (cropScale != +0.0f) java.lang.Float.floatToIntBits(cropScale) else 0
-        result = 31 * result + if (sourceBounds != null) sourceBounds.hashCode() else 0
-        result = 31 * result + if (cropBounds != null) cropBounds.hashCode() else 0
-        return result
-    }
 
     override fun toString(): String {
         return "APage{" +
                 "index=" + index +
                 ", mPageSize=" + pageSize +
                 ", mZoom=" + zoom +
-                ", targetWidth=" + targetWidth +
                 ", scale=" + scale +
                 ", cropScale=" + cropScale +
-                ", sourceBounds=" + sourceBounds +
                 ", cropBounds=" + cropBounds +
                 ", cropWidth=" + cropWidth +
                 ", cropHeight=" + cropHeight +
@@ -241,12 +201,6 @@ class APage {
             jo.put("zoom", zoom.toDouble())
             jo.put("scale", scale.toDouble())
             jo.put("cropScale", cropScale.toDouble())
-            if (sourceBounds != null) {
-                jo.put("sbleft", sourceBounds!!.left.toDouble())
-                jo.put("sbtop", sourceBounds!!.top.toDouble())
-                jo.put("sbright", sourceBounds!!.right.toDouble())
-                jo.put("sbbottom", sourceBounds!!.bottom.toDouble())
-            }
             if (cropBounds != null) {
                 jo.put("cbleft", cropBounds!!.left.toDouble())
                 jo.put("cbtop", cropBounds!!.top.toDouble())
@@ -265,6 +219,36 @@ class APage {
         return jo
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as APage
+
+        if (index != other.index) return false
+        if (pageSize != other.pageSize) return false
+        if (width != other.width) return false
+        if (height != other.height) return false
+        if (zoom != other.zoom) return false
+        if (scale != other.scale) return false
+        if (cropWidth != other.cropWidth) return false
+        if (cropHeight != other.cropHeight) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = index
+        result = 31 * result + (pageSize?.hashCode() ?: 0)
+        result = 31 * result + width.hashCode()
+        result = 31 * result + height.hashCode()
+        result = 31 * result + zoom.hashCode()
+        result = 31 * result + scale.hashCode()
+        result = 31 * result + cropWidth
+        result = 31 * result + cropHeight
+        return result
+    }
+
     companion object {
         private fun getScaledHeight(page: PointF?, scale: Float): Int {
             return (scale * page!!.y).toInt()
@@ -277,7 +261,6 @@ class APage {
         @JvmStatic
         fun fromJson(targetWidth: Int, jo: JSONObject): APage {
             val aPage = APage()
-            aPage.targetWidth = targetWidth
             aPage.index = jo.optInt("index")
             val x = jo.optInt("x")
             val y = jo.optInt("y")
@@ -290,7 +273,7 @@ class APage {
             val sbright = jo.optDouble("sbright").toFloat()
             val sbbottom = jo.optDouble("sbbottom").toFloat()
             if (sbright > 0 && sbbottom > 0) {
-                aPage.sourceBounds = RectF(sbleft, sbtop, sbright, sbbottom)
+                //aPage.sourceBounds = RectF(sbleft, sbtop, sbright, sbbottom)
             }
             val cbleft = jo.optDouble("cbleft").toFloat()
             val cbtop = jo.optDouble("cbtop").toFloat()

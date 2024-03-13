@@ -9,6 +9,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.RelativeLayout
 import androidx.recyclerview.awidget.ARecyclerView
 import androidx.recyclerview.awidget.LinearLayoutManager
@@ -20,7 +21,6 @@ import cn.archko.pdf.listeners.OutlineListener
 import cn.archko.pdf.viewmodel.PDFViewModel
 import cn.archko.pdf.widgets.APDFView
 import cn.archko.pdf.widgets.APageSeekBarControls
-import cn.archko.pdf.widgets.ViewerDividerItemDecoration
 
 /**
  * @author: archko 2020/5/15 :12:43
@@ -51,7 +51,7 @@ class ACropViewController(
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
             setItemViewCacheSize(0)
 
-            addItemDecoration(ViewerDividerItemDecoration(context, LinearLayoutManager.VERTICAL))
+            //addItemDecoration(ViewerDividerItemDecoration(context, LinearLayoutManager.VERTICAL))
             addOnScrollListener(object : ARecyclerView.OnScrollListener() {
                 override fun onScrollStateChanged(recyclerView: ARecyclerView, newState: Int) {
                     if (newState == ARecyclerView.SCROLL_STATE_IDLE) {
@@ -132,6 +132,10 @@ class ACropViewController(
     override fun setOrientation(ori: Int) {
         (mRecyclerView.layoutManager as LinearLayoutManager).orientation = (ori)
         mRecyclerView.adapter?.notifyDataSetChanged()
+    }
+
+    fun getOrientation(): Int {
+        return (mRecyclerView.layoutManager as LinearLayoutManager).orientation
     }
 
     override fun setCrop(crop: Boolean) {
@@ -230,42 +234,19 @@ class ACropViewController(
 
     private inner class PDFRecyclerAdapter : ARecyclerView.Adapter<ARecyclerView.ViewHolder>() {
 
-        var pos: Int = 0
         override fun onCreateViewHolder(
             parent: ViewGroup,
             viewType: Int
         ): ARecyclerView.ViewHolder {
-            var pageSize: APage? = null
-            if (mPageSizes.size() > pos) {
-                pageSize = mPageSizes.get(pos)
-                if (pageSize.getTargetWidth() <= 0) {
-                    pageSize.setTargetWidth(defaultWidth)
+            val view = APDFView(context)
+                .apply {
+                    layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
                 }
-            }
-            val view = APDFView(context, pdfViewModel.mupdfDocument, pageSize!!, true)
-            var lp: ARecyclerView.LayoutParams? = view.layoutParams as ARecyclerView.LayoutParams?
-            var width: Int
-            var height: Int
-            pageSize.let {
-                width = it.effectivePagesWidth
-                height = it.effectivePagesHeight
-            }
-            //Logcat.d("create width:" + width + "==>" + mRecyclerView.measuredWidth + "==>" + pageSize!!.targetWidth)
-            if (null == lp) {
-                lp = ARecyclerView.LayoutParams(width, height)
-                view.layoutParams = lp
-            } else {
-                lp.width = width
-                lp.height = height
-            }
-            val holder = PdfHolder(view)
-            return holder
+            return PdfHolder(view)
         }
 
         override fun onBindViewHolder(viewHolder: ARecyclerView.ViewHolder, position: Int) {
-            pos = viewHolder.bindingAdapterPosition
             val pdfHolder = viewHolder as PdfHolder
-
             pdfHolder.onBind(position)
         }
 
@@ -284,13 +265,15 @@ class ACropViewController(
             fun onBind(position: Int) {
                 val pageSize = mPageSizes.get(position)
                 //Logcat.d(String.format("bind:position:%s,width:%s,%s", position, pageSize.targetWidth, mRecyclerView.measuredWidth))
-                if (pageSize.getTargetWidth() != mRecyclerView.measuredWidth) {
-                    pageSize.setTargetWidth(mRecyclerView.measuredWidth)
-                }
-                if (pageSize.getTargetWidth() <= 0) {
-                    return
-                }
-                view.updatePage(pageSize, 1.0f/*zoomModel!!.zoom*/, true)
+                view.updatePage(
+                    pageSize,
+                    position,
+                    getOrientation(),
+                    defaultWidth,
+                    defaultHeight,
+                    true,
+                    pdfViewModel
+                )
             }
         }
 

@@ -54,7 +54,7 @@ class PDFEditViewModel : MupdfListener {
         if (aPage != null) {
             for (i in 0 until cp) {
                 val pointf = PointF(aPage.width, aPage.height)
-                val page = APage(i, pointf, 1f, 0)
+                val page = APage(i, pointf, 1f)
                 aPageList.add(page)
             }
         }
@@ -69,7 +69,7 @@ class PDFEditViewModel : MupdfListener {
         val w = b.x1 - b.x0
         val h = b.y1 - b.y0
         p.destroy()
-        return APage(page, PointF(w, h), 1.0f, 0)
+        return APage(page, PointF(w, h), 1.0f)
     }
 
     fun destroy() {

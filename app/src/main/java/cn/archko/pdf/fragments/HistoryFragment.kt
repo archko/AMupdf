@@ -21,7 +21,6 @@ import cn.archko.pdf.common.Event
 import cn.archko.pdf.common.Event.Companion.ACTION_FAVORITED
 import cn.archko.pdf.common.Event.Companion.ACTION_STOPPED
 import cn.archko.pdf.common.Event.Companion.ACTION_UNFAVORITED
-import cn.archko.pdf.common.ImageLoader
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.entity.FileBean
 import cn.archko.pdf.listeners.DataListener
@@ -93,7 +92,6 @@ class HistoryFragment : BrowserFragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        ImageLoader.getInstance().recycle()
     }
 
     override fun onBackPressed(): Boolean {
@@ -106,7 +104,7 @@ class HistoryFragment : BrowserFragment() {
             R.id.action_restore -> restore()
             R.id.action_extract -> extractImage()
             R.id.action_create -> createPdf()
-            R.id.action_style -> {
+            /*R.id.action_style -> {
                 if (mStyle == STYLE_LIST) {
                     mStyle = STYLE_GRID
                 } else {
@@ -117,7 +115,7 @@ class HistoryFragment : BrowserFragment() {
                     .putString(PdfOptionsActivity.PREF_LIST_STYLE, mStyle.toString())
                     .apply()
                 applyStyle()
-            }
+            }*/
         }
 
         return super.onOptionsItemSelected(menuItem)
