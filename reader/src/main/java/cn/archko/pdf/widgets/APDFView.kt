@@ -23,7 +23,7 @@ import cn.archko.pdf.viewmodel.PDFViewModel
  * @author: archko 2018/7/25 :12:43
  */
 @SuppressLint("AppCompatCustomView")
-public class APDFView(
+class APDFView(
     mContext: Context,
 ) : ImageView(mContext), DecodeCallback {
 
@@ -39,7 +39,7 @@ public class APDFView(
     }
 
     private fun updateView() {
-        scaleType = ImageView.ScaleType.MATRIX
+        //scaleType = ScaleType.MATRIX
         setLayerType(View.LAYER_TYPE_HARDWARE, null)
     }
 
@@ -58,16 +58,12 @@ public class APDFView(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (aPage != null && null == drawable) {
+        if (aPage != null /*&& null == drawable*/) {
             canvas.drawText(
                 String.format("Page %s", aPage!!.index + 1), (measuredWidth / 2).toFloat(),
                 (measuredHeight / 2).toFloat(), textPaint
             )
         }
-    }
-
-    private fun getCacheKey(index: Int, w: Int, h: Int, crop: Boolean): String {
-        return String.format("%s-%s-%s-%s", index, w, h, crop)
     }
 
     fun updatePage(
@@ -84,19 +80,38 @@ public class APDFView(
 
         resultWidth = vwidth
         caculateWidth(orientation, crop)
+
+        val cacheKey = getCacheKey(
+            aPage!!.index,
+            resultWidth,
+            resultHeight,
+            aPage!!.cropWidth,
+            aPage!!.cropHeight,
+            crop
+        )
         Logcat.d(
             String.format(
-                "updatePage.page:%s, size.w-h:%s-%s",
+                "updatePage.page:%s, size.w-h:%s-%s, key:%s",
                 pageSize.index,
                 resultWidth,
-                resultHeight
+                resultHeight,
+                cacheKey
             )
         )
-
-        val cacheKey = getCacheKey(aPage!!.index, resultWidth, resultHeight, crop)
         val bmp = BitmapCache.getInstance().getBitmap(cacheKey)
 
         if (null != bmp) {
+            Logcat.d(
+                String.format(
+                    "updatePage.cache.page:%s, size.w-h:%s-%s, bmp.w-h:%s-%s, key:%s",
+                    pageSize.index,
+                    resultWidth,
+                    resultHeight,
+                    bmp.width,
+                    bmp.height,
+                    cacheKey
+                )
+            )
             setImageBitmap(bmp)
             setLayoutSize(bmp)
             return
@@ -105,7 +120,7 @@ public class APDFView(
             DecodeTask(
                 resultWidth, resultHeight, orientation,
                 position, aPage!!,
-                crop, cacheKey,
+                crop,
                 this,
                 pdfViewModel.mupdfDocument
             )
@@ -122,8 +137,8 @@ public class APDFView(
         if (Logcat.loggable) {
             Logcat.d(
                 TAG, String.format(
-                    "decode layout:index:%s, w-h:%s-%s, oldHeight:%s, ratio:%s",
-                    pageIndex, viewWidth, viewHeight, resultHeight, ratio
+                    "decode layout:index:%s, view.w-h:%s-%s, oldHeight:%s, bmp.w-h:%s-:%s ratio:%s",
+                    pageIndex, viewWidth, viewHeight, resultHeight, bitmap.width, bitmap.height, ratio
                 )
             )
         }
@@ -140,11 +155,11 @@ public class APDFView(
 
     private fun caculateWidth(orientation: Int, crop: Boolean) {
         if (orientation == LinearLayoutManager.VERTICAL) {//垂直方向,以宽为准
-            resultHeight = /*if (crop && aPage!!.cropBounds != null) {
+            resultHeight = if (crop && aPage!!.cropBounds != null) {
                 (resultWidth * aPage!!.cropBounds!!.height() / aPage!!.width).toInt()
-            } else {*/
+            } else {
                 (resultWidth * aPage!!.height / aPage!!.width).toInt()
-            //}
+            }
         } else {    //水平滚动,以高为准
             resultHeight = resultWidth
             resultWidth = /*if (crop && aPage!!.cropBounds != null) {
@@ -181,5 +196,16 @@ public class APDFView(
 
     companion object {
         private val TAG: String = "APDFView"
+        
+        fun getCacheKey(
+            index: Int,
+            w: Int,
+            h: Int,
+            cropW: Int,
+            cropH: Int,
+            crop: Boolean
+        ): String {
+            return String.format("%s-%s-%s-%s-%s-%s", index, w, h, cropW, cropH, crop)
+        }
     }
 }

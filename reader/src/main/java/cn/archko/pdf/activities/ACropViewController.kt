@@ -39,7 +39,7 @@ class ACropViewController(
     OutlineListener, AViewController {
 
     private lateinit var mRecyclerView: ARecyclerView
-    private lateinit var mPageSizes: SparseArray<APage>
+    private lateinit var mPageSizes: List<APage>
 
     /**
      * 有时需要强制不切边,又不切换到normal的渲染模式,设置这个值
@@ -92,7 +92,7 @@ class ACropViewController(
             })
     }
 
-    override fun init(pageSizes: SparseArray<APage>, pos: Int) {
+    override fun init(pageSizes: List<APage>, pos: Int) {
         try {
             Logcat.d("init:$this,pos:$pos")
             if (null != pdfViewModel.mupdfDocument) {
@@ -107,7 +107,7 @@ class ACropViewController(
         }
     }
 
-    override fun doLoadDoc(pageSizes: SparseArray<APage>, pos: Int) {
+    override fun doLoadDoc(pageSizes: List<APage>, pos: Int) {
         try {
             Logcat.d("doLoadDoc:$this")
             this.mPageSizes = pageSizes
@@ -152,7 +152,7 @@ class ACropViewController(
     }
 
     override fun getCount(): Int {
-        return mPageSizes.size()
+        return mPageSizes.size
     }
 
     override fun setOrientation(ori: Int) {
@@ -313,7 +313,7 @@ class ACropViewController(
         }
 
         override fun getItemCount(): Int {
-            return mPageSizes.size()
+            return mPageSizes.size
         }
 
         inner class PdfHolder(internal var view: APDFView) : ARecyclerView.ViewHolder(view) {

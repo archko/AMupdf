@@ -36,7 +36,7 @@ object APageSizeLoader {
     fun savePageSizeToFile(
         crop: Boolean,
         fileSize: Long,
-        sparseArray: SparseArray<APage>,
+        sparseArray: List<APage>,
         file: File?
     ) {
         val content = toJson(crop, fileSize, sparseArray)
@@ -60,15 +60,15 @@ object APageSizeLoader {
         return pageSizeBean
     }
 
-    fun fromJson(targetWidth: Int, ja: JSONArray): SparseArray<APage> {
-        val sparseArray = SparseArray<APage>()
+    fun fromJson(targetWidth: Int, ja: JSONArray): List<APage> {
+        val sparseArray = mutableListOf<APage>()
         for (i in 0 until ja.length()) {
-            sparseArray.put(i, fromJson(targetWidth, ja.optJSONObject(i)))
+            sparseArray.add(fromJson(targetWidth, ja.optJSONObject(i)))
         }
         return sparseArray
     }
 
-    fun toJson(crop: Boolean, fileSize: Long, sparseArray: SparseArray<APage>): String {
+    fun toJson(crop: Boolean, fileSize: Long, sparseArray: List<APage>): String {
         val jo = JSONObject()
         try {
             jo.put("crop", crop)
@@ -80,18 +80,18 @@ object APageSizeLoader {
         return jo.toString()
     }
 
-    fun toJson(sparseArray: SparseArray<APage>): JSONArray {
+    fun toJson(sparseArray: List<APage>): JSONArray {
         val jsonArray = JSONArray()
         var aPage: APage
-        for (i in 0 until sparseArray.size()) {
-            aPage = sparseArray.valueAt(i)
+        for (i in 0 until sparseArray.size) {
+            aPage = sparseArray[i]
             jsonArray.put(aPage.toJson())
         }
         return jsonArray
     }
 
     class PageSizeBean {
-        var sparseArray: SparseArray<APage>? = null
+        var sparseArray: List<APage>? = null
         var crop = false
         var fileSize = 0
     }

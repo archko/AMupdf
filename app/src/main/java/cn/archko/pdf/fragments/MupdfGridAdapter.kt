@@ -107,7 +107,7 @@ class MupdfGridAdapter(
                 DecodeTask(
                     width, height, 1,
                     position, aPage!!,
-                    false, key,
+                    false,
                     this,
                     mupdfListener.getDocument()
                 )

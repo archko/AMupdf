@@ -84,8 +84,8 @@ class APage {
     //    private set
     var cropBounds: RectF? = null
         private set
-    private var cropWidth = 0
-    private var cropHeight = 0
+    var cropWidth = 0
+    var cropHeight = 0
 
     constructor()
     constructor(pageNumber: Int, pageSize: PointF, zoom: Float) {
@@ -136,8 +136,8 @@ class APage {
         this.cropBounds = cropBounds
         this.cropScale = cropScale
         //initSourceBounds(cropScale)
-        setCropWidth(cropBounds.width().toInt())
-        setCropHeight(cropBounds.height().toInt())
+        cropWidth = (cropBounds.width().toInt())
+        cropHeight = (cropBounds.height().toInt())
     }
 
     /*fun getCropWidth(): Int {
@@ -157,13 +157,13 @@ class APage {
         return cropHeight
     }*/
 
-    fun setCropWidth(cropWidth: Int) {
+    /*fun setCropWidth(cropWidth: Int) {
         this.cropWidth = cropWidth
     }
 
     fun setCropHeight(cropHeight: Int) {
         this.cropHeight = cropHeight
-    }
+    }*/
 
     val cropScaleWidth: Int
         get() {

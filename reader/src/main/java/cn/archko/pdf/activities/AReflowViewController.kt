@@ -63,7 +63,7 @@ class AReflowViewController(
     private var mStyleHelper: StyleHelper? = null
     private var mMupdfDocument: MupdfDocument? = null
     private val START_PROGRESS = 15
-    private lateinit var mPageSizes: SparseArray<APage>
+    private lateinit var mPageSizes: List<APage>
 
     init {
         initView()
@@ -91,7 +91,7 @@ class AReflowViewController(
         }
     }
 
-    override fun init(pageSizes: SparseArray<APage>, pos: Int) {
+    override fun init(pageSizes: List<APage>, pos: Int) {
         try {
             Logcat.d("init:$this")
             if (null != pdfViewModel.mupdfDocument) {
@@ -106,7 +106,7 @@ class AReflowViewController(
         }
     }
 
-    override fun doLoadDoc(pageSizes: SparseArray<APage>, pos: Int) {
+    override fun doLoadDoc(pageSizes: List<APage>, pos: Int) {
         try {
             Logcat.d("doLoadDoc:$this")
             this.mPageSizes = pageSizes
@@ -156,7 +156,7 @@ class AReflowViewController(
     }
 
     override fun getCount(): Int {
-        return mPageSizes.size()
+        return mPageSizes.size
     }
 
     override fun setOrientation(ori: Int) {

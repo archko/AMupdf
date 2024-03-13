@@ -49,7 +49,7 @@ class ANormalViewController(
     private lateinit var currentPageModel: CurrentPageModel
     private var mPageControls: PageViewZoomControls? = null
 
-    private lateinit var mPageSizes: SparseArray<APage>
+    private lateinit var mPageSizes: List<APage>
 
     init {
         initView()
@@ -92,7 +92,7 @@ class ANormalViewController(
         mControllerLayout.addView(mPageControls, lp)
     }
 
-    override fun init(pageSizes: SparseArray<APage>, pos: Int) {
+    override fun init(pageSizes: List<APage>, pos: Int) {
         try {
             Logcat.d("init:$this")
             if (null != pdfViewModel.mupdfDocument) {
@@ -107,7 +107,7 @@ class ANormalViewController(
         }
     }
 
-    override fun doLoadDoc(pageSizes: SparseArray<APage>, pos: Int) {
+    override fun doLoadDoc(pageSizes: List<APage>, pos: Int) {
         try {
             Logcat.d("doLoadDoc:$this")
             this.mPageSizes = pageSizes
@@ -177,7 +177,7 @@ class ANormalViewController(
     }
 
     override fun getCount(): Int {
-        return mPageSizes.size()
+        return mPageSizes.size
     }
 
     override fun setOrientation(ori: Int) {

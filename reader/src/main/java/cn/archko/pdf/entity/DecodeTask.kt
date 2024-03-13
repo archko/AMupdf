@@ -6,6 +6,7 @@ import cn.archko.pdf.common.BitmapPool
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.listeners.DecodeCallback
 import cn.archko.pdf.mupdf.MupdfDocument
+import cn.archko.pdf.widgets.APDFView
 import com.artifex.mupdf.fitz.Matrix
 import com.artifex.mupdf.fitz.Page
 import com.artifex.mupdf.fitz.RectI
@@ -20,20 +21,45 @@ class DecodeTask(
     var index: Int,
     val aPage: APage,
     val crop: Boolean = false,
-    var key: String,
+    //var key: String,
     var callback: DecodeCallback,
     var mupdfDocument: MupdfDocument?,
 ) {
     fun run() {
         val bitmap = decode()
         if (null != bitmap) {
-            callback.decodeComplete(bitmap, index, key)
+            callback.decodeComplete(
+                bitmap,
+                index,
+                APDFView.getCacheKey(
+                    index,
+                    bitmap.width,
+                    bitmap.height,
+                    aPage.cropWidth,
+                    aPage.cropHeight,
+                    crop
+                )
+            )
         }
     }
 
-    fun decode(): Bitmap? {
+    private fun decode(): Bitmap? {
         //long start = SystemClock.uptimeMillis();
         val page: Page? = mupdfDocument?.loadPage(aPage.index)
+
+        var recycle = callback.shouldRender(index, null)
+        if (recycle) {
+            if (Logcat.loggable) {
+                Logcat.d(
+                    "DecodeTask", String.format(
+                        "decode task:isRecycled1:%s, bound(left-top):%s-%s",
+                        index, page?.bounds?.x1, page?.bounds?.y1
+                    )
+                )
+                return null
+            }
+        }
+        
         page?.run {
             //如果没有对它赋值,外部的view的高宽与当前是不匹配的,会变形
             aPage.width = bounds.x1 - bounds.x0
@@ -63,8 +89,8 @@ class DecodeTask(
                         topBound = arr[1].toInt()
                         pageH = arr[2].toInt()
                         val cropScale = arr[3]
-                        aPage.setCropHeight(pageH)
-                        aPage.setCropWidth(pageW)
+                        aPage.cropWidth = (pageH)
+                        aPage.cropHeight = (pageW)
                         val cropRectf = RectF(
                             leftBound.toFloat(), topBound.toFloat(),
                             (leftBound + pageW).toFloat(), (topBound + pageH).toFloat()
@@ -81,12 +107,12 @@ class DecodeTask(
                 }
             }
 
-            val recycle = callback.shouldRender(index, null)
+            var recycle = callback.shouldRender(index, null)
             if (recycle) {
                 if (Logcat.loggable) {
                     Logcat.d(
                         "DecodeTask", String.format(
-                            "decode task:isRecycled:%s, %s-%s, task:%s-%s, bound(left-top):%s-%s, page:%s",
+                            "decode task:isRecycled2:%s, %s-%s, task:%s-%s, bound(left-top):%s-%s, page:%s",
                             index, pageW, pageH, width, height,
                             leftBound, topBound, aPage
                         )
