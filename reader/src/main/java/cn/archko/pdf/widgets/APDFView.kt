@@ -58,7 +58,7 @@ public class APDFView(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (aPage != null /*&& null == drawable*/) {
+        if (aPage != null && null == drawable) {
             canvas.drawText(
                 String.format("Page %s", aPage!!.index + 1), (measuredWidth / 2).toFloat(),
                 (measuredHeight / 2).toFloat(), textPaint
