@@ -4,11 +4,14 @@ import android.annotation.SuppressLint
 import android.app.Activity.RESULT_FIRST_USER
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Rect
 import android.util.SparseArray
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewTreeObserver
 import android.widget.RelativeLayout
 import androidx.recyclerview.awidget.ARecyclerView
 import androidx.recyclerview.awidget.LinearLayoutManager
@@ -17,10 +20,10 @@ import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.entity.APage
 import cn.archko.pdf.listeners.AViewController
 import cn.archko.pdf.listeners.OutlineListener
+import cn.archko.pdf.utils.Utils
 import cn.archko.pdf.viewmodel.PDFViewModel
 import cn.archko.pdf.widgets.APDFView
 import cn.archko.pdf.widgets.APageSeekBarControls
-import cn.archko.pdf.widgets.ViewerDividerItemDecoration
 
 /**
  * @author: archko 2020/5/15 :12:43
@@ -37,7 +40,11 @@ class ACropViewController(
 
     private lateinit var mRecyclerView: ARecyclerView
     private lateinit var mPageSizes: SparseArray<APage>
-    private var init: Boolean = false
+
+    /**
+     * 有时需要强制不切边,又不切换到normal的渲染模式,设置这个值
+     */
+    private var crop: Boolean = true
 
     init {
         initView()
@@ -51,7 +58,7 @@ class ACropViewController(
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
             setItemViewCacheSize(0)
 
-            addItemDecoration(ViewerDividerItemDecoration(context, LinearLayoutManager.VERTICAL))
+            //addItemDecoration(ViewerDividerItemDecoration(context, LinearLayoutManager.VERTICAL))
             addOnScrollListener(object : ARecyclerView.OnScrollListener() {
                 override fun onScrollStateChanged(recyclerView: ARecyclerView, newState: Int) {
                     if (newState == ARecyclerView.SCROLL_STATE_IDLE) {
@@ -63,7 +70,22 @@ class ACropViewController(
                 }
             })
         }
-
+        mRecyclerView.getViewTreeObserver()
+            .addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+                override fun onGlobalLayout() {
+                    mRecyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    defaultWidth = mRecyclerView.width
+                    defaultHeight = mRecyclerView.height
+                    if (Logcat.loggable) {
+                        Logcat.d(
+                            "TAG", String.format(
+                                "onGlobalLayout : w-h:%s-%s",
+                                defaultWidth, defaultHeight
+                            )
+                        )
+                    }
+                }
+            })
     }
 
     override fun init(pageSizes: SparseArray<APage>, pos: Int) {
@@ -134,7 +156,12 @@ class ACropViewController(
         mRecyclerView.adapter?.notifyDataSetChanged()
     }
 
+    fun getOrientation(): Int {
+        return (mRecyclerView.layoutManager as LinearLayoutManager).orientation
+    }
+
     override fun setCrop(crop: Boolean) {
+        this.crop = crop
     }
 
     override fun scrollToPosition(page: Int) {
@@ -170,8 +197,38 @@ class ACropViewController(
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
-        BitmapCache.getInstance().clear()
         mRecyclerView.stopScroll()
+        BitmapCache.getInstance().clear()
+
+        if (mRecyclerView.width > 0) {
+            defaultWidth = Utils.dipToPixel(newConfig.screenWidthDp.toFloat())
+            defaultHeight = Utils.dipToPixel(newConfig.screenHeightDp.toFloat())
+            if (Logcat.loggable) {
+                Logcat.d(
+                    "TAG", String.format(
+                        "newConfig:w-h:%s-%s, config:%s-%s, %s",
+                        defaultWidth,
+                        defaultHeight,
+                        newConfig.screenWidthDp,
+                        newConfig.screenHeightDp,
+                        newConfig.orientation
+                    )
+                )
+            }
+        }
+
+        val lm = (mRecyclerView.layoutManager as LinearLayoutManager)
+        var offset = 0
+        val first = lm.findFirstVisibleItemPosition()
+        if (first > 0) {
+            val child = lm.findViewByPosition(first)
+            child?.run {
+                val r = Rect()
+                child.getLocalVisibleRect(r)
+                offset = r.top
+            }
+        }
+        lm.scrollToPositionWithOffset(first, -offset)
         mRecyclerView.adapter?.notifyDataSetChanged()
     }
 
@@ -230,42 +287,19 @@ class ACropViewController(
 
     private inner class PDFRecyclerAdapter : ARecyclerView.Adapter<ARecyclerView.ViewHolder>() {
 
-        var pos: Int = 0
         override fun onCreateViewHolder(
             parent: ViewGroup,
             viewType: Int
         ): ARecyclerView.ViewHolder {
-            var pageSize: APage? = null
-            if (mPageSizes.size() > pos) {
-                pageSize = mPageSizes.get(pos)
-                if (pageSize.getTargetWidth() <= 0) {
-                    pageSize.setTargetWidth(defaultWidth)
+            val view = APDFView(context)
+                .apply {
+                    layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
                 }
-            }
-            val view = APDFView(context, pdfViewModel.mupdfDocument, pageSize!!, true)
-            var lp: ARecyclerView.LayoutParams? = view.layoutParams as ARecyclerView.LayoutParams?
-            var width: Int
-            var height: Int
-            pageSize.let {
-                width = it.effectivePagesWidth
-                height = it.effectivePagesHeight
-            }
-            //Logcat.d("create width:" + width + "==>" + mRecyclerView.measuredWidth + "==>" + pageSize!!.targetWidth)
-            if (null == lp) {
-                lp = ARecyclerView.LayoutParams(width, height)
-                view.layoutParams = lp
-            } else {
-                lp.width = width
-                lp.height = height
-            }
-            val holder = PdfHolder(view)
-            return holder
+            return PdfHolder(view)
         }
 
         override fun onBindViewHolder(viewHolder: ARecyclerView.ViewHolder, position: Int) {
-            pos = viewHolder.bindingAdapterPosition
             val pdfHolder = viewHolder as PdfHolder
-
             pdfHolder.onBind(position)
         }
 
@@ -284,13 +318,15 @@ class ACropViewController(
             fun onBind(position: Int) {
                 val pageSize = mPageSizes.get(position)
                 //Logcat.d(String.format("bind:position:%s,width:%s,%s", position, pageSize.targetWidth, mRecyclerView.measuredWidth))
-                if (pageSize.getTargetWidth() != mRecyclerView.measuredWidth) {
-                    pageSize.setTargetWidth(mRecyclerView.measuredWidth)
-                }
-                if (pageSize.getTargetWidth() <= 0) {
-                    return
-                }
-                view.updatePage(pageSize, 1.0f/*zoomModel!!.zoom*/, true)
+                view.updatePage(
+                    pageSize,
+                    position,
+                    getOrientation(),
+                    defaultWidth,
+                    defaultHeight,
+                    crop,
+                    pdfViewModel
+                )
             }
         }
 

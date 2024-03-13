@@ -6,5 +6,8 @@ import android.graphics.Bitmap;
  * @author: archko 2019/12/25 :10:18 下午
  */
 public interface DecodeCallback {
-    void decodeComplete(Bitmap bitmap);
+
+    void decodeComplete(Bitmap bitmap, int position, String key);
+
+    boolean shouldRender(int index, String key);
 }

@@ -363,7 +363,7 @@ class PDFViewModel : ViewModel() {
         val h = b.y1 - b.y0
         val pointf = PointF(w, h)
         p.destroy()
-        return APage(pageNum, pointf, 1.0f/*zoomModel!!.zoom*/, 0)
+        return APage(pageNum, pointf, 1.0f)
     }
 
     fun destroy() {

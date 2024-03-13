@@ -299,7 +299,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
         val h = b.y1 - b.y0
         val pointf = PointF(w, h)
         p.destroy()
-        return APage(pageNum, pointf, 1.0f/*zoomModel!!.zoom*/, 0)
+        return APage(pageNum, pointf, 1.0f)
     }
 
     open fun preparePageSize(cp: Int) {
@@ -307,7 +307,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
         if (null != page) {
             for (i in 0 until cp) {
                 val pointF = PointF(page.width, page.height)
-                mPageSizes.put(i, APage(i, pointF, 1.0f, 0))
+                mPageSizes.put(i, APage(i, pointF, 1.0f))
             }
         }
     }

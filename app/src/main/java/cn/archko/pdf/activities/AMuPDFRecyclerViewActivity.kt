@@ -17,17 +17,14 @@ import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import cn.archko.pdf.R
 import cn.archko.pdf.common.APageSizeLoader
 import cn.archko.pdf.common.BitmapCache
 import cn.archko.pdf.common.Logcat
-import cn.archko.pdf.common.MenuHelper
 import cn.archko.pdf.common.OutlineHelper
 import cn.archko.pdf.entity.APage
-import cn.archko.pdf.entity.MenuBean
+import cn.archko.pdf.fragments.OutlineFragment
 import cn.archko.pdf.listeners.AViewController
-import cn.archko.pdf.listeners.MenuListener
 import cn.archko.pdf.listeners.OutlineListener
 import cn.archko.pdf.presenter.PageViewPresenter
 import cn.archko.pdf.utils.Utils
@@ -43,28 +40,30 @@ import kotlinx.coroutines.withContext
  */
 class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener {
 
-    private lateinit var mLeftDrawer: RecyclerView
+    //private lateinit var mLeftDrawer: RecyclerView
     private lateinit var mDrawerLayout: DrawerLayout
     private lateinit var mControllerLayout: RelativeLayout
 
     private var mPageSeekBarControls: APageSeekBarControls? = null
     private var outlineHelper: OutlineHelper? = null
 
-    private var mMenuHelper: MenuHelper? = null
+    //private var mMenuHelper: MenuHelper? = null
+    private var outlineFragment: OutlineFragment? = null
     private lateinit var mContentView: View
     private val viewControllerCache: SparseArray<AViewController> = SparseArray<AViewController>()
     private var viewMode: ViewMode = ViewMode.CROP
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        BitmapCache.getInstance().resize(BitmapCache.CAPACITY_FOR_AMUPDF)
-        super.onCreate(savedInstanceState)
-    }
+    /**
+     * 用AMupdf打开,传入强制切边参数,如果是-1,是没有设置,如果设置1表示强制切边,如果是0不切边,让切边按钮失效
+     */
+    private var forceCropParam = -1
 
     override fun initView() {
         super.initView()
+        forceCropParam = intent.getIntExtra("forceCropParam", -1)
 
         mPageSeekBarControls?.updateTitle(mPath)
-        mLeftDrawer = findViewById(cn.archko.pdf.R.id.left_drawer)
+        //mLeftDrawer = findViewById(cn.archko.pdf.R.id.left_drawer)
         mDrawerLayout = findViewById(cn.archko.pdf.R.id.drawerLayout)
 
         mControllerLayout = findViewById(cn.archko.pdf.R.id.layout)
@@ -80,7 +79,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
         mPageSeekBarControls?.autoCropButton!!.visibility = View.VISIBLE
 
-        with(mLeftDrawer) {
+        /*with(mLeftDrawer) {
             layoutManager = LinearLayoutManager(
                 this@AMuPDFRecyclerViewActivity,
                 LinearLayoutManager.VERTICAL,
@@ -92,7 +91,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             //        LinearLayoutManager.VERTICAL
             //    )
             //)
-        }
+        }*/
 
         mContentView = findViewById(cn.archko.pdf.R.id.content)
         mDocumentView = findViewById(cn.archko.pdf.R.id.document_view)
@@ -213,7 +212,11 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             mPageSeekBarControls!!, gestureDetector
         )
         viewController = aViewController
-        Logcat.d("changeViewMode:$viewMode, pos:$pos, controller:$viewController")
+        Logcat.d("changeViewMode:$viewMode, pos:$pos,forceCropParam: $forceCropParam, controller:$viewController")
+        if (forceCropParam > -1) {
+            viewController?.setCrop(forceCropParam == 1)
+        }
+
         addDocumentView()
         viewController?.init(mPageSizes, pos)
         viewController?.notifyDataSetChanged()
@@ -251,16 +254,17 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
             outlineHelper = OutlineHelper(pdfViewModel.mupdfDocument, this)
 
-            mMenuHelper = MenuHelper(mLeftDrawer, outlineHelper, supportFragmentManager)
-            mMenuHelper?.setupMenu(mPath, this@AMuPDFRecyclerViewActivity, menuListener)
-            mMenuHelper?.setupOutline(pos)
+            //mMenuHelper = MenuHelper(mLeftDrawer, outlineHelper, supportFragmentManager)
+            //mMenuHelper?.setupMenu(mPath, this@AMuPDFRecyclerViewActivity, menuListener)
+            //mMenuHelper?.setupOutline(pos)
+            setupOutline(pos)
 
             isDocLoaded = true
 
             val sp = getSharedPreferences(PREF_READER, Context.MODE_PRIVATE)
             val isFirst = sp.getBoolean(PREF_READER_KEY_FIRST, true)
             if (isFirst) {
-                mDrawerLayout.openDrawer(mLeftDrawer)
+                //mDrawerLayout.openDrawer(mLeftDrawer)
                 showOutline()
 
                 sp.edit()
@@ -286,6 +290,23 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         } finally {
             //progressDialog.dismiss()
         }
+    }
+
+    fun setupOutline(currentPos: Int?) {
+        if (null == outlineFragment) {
+            outlineFragment = OutlineFragment()
+            val bundle = Bundle()
+            if (outlineHelper!!.hasOutline()) {
+                //bundle.putSerializable("OUTLINE", outlineHelper?.getOutline())
+                bundle.putSerializable("out", outlineHelper?.getOutlineItems())
+            }
+            bundle.putSerializable("POSITION", currentPos)
+            outlineFragment?.arguments = bundle
+        }
+
+        supportFragmentManager.beginTransaction()
+            .add(R.id.layout_outline, outlineFragment!!)
+            .commit()
     }
 
     override fun onDestroy() {
@@ -398,12 +419,13 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
         if (!isDocLoaded) {
             return
         }
-        mPageSeekBarControls?.hide()
-        if (!mDrawerLayout.isDrawerOpen(mLeftDrawer)) {
-            mDrawerLayout.openDrawer(mLeftDrawer)
-        } else {
-            mDrawerLayout.closeDrawer(mLeftDrawer)
-        }
+        //if (!mDrawerLayout.isDrawerOpen(mLeftDrawer)) {
+        //    mDrawerLayout.openDrawer(mLeftDrawer)
+        //} else {
+        //    mDrawerLayout.closeDrawer(mLeftDrawer)
+        //}
+
+        mPageSeekBarControls?.show()
         showOutline()
         viewController?.onDoubleTap()
     }
@@ -431,8 +453,8 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             }
 
             override fun back() {
-                //this@MuPDFRecyclerViewActivity.finish()
-                mPageSeekBarControls?.hide()
+                this@AMuPDFRecyclerViewActivity.finish()
+                //mPageSeekBarControls?.hide()
             }
 
             override fun getTitle(): String {
@@ -457,7 +479,8 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
                 if (frameLayout?.visibility == View.GONE) {
                     frameLayout.visibility = View.VISIBLE
-                    mMenuHelper?.updateSelection(getCurrentPos())
+                    //mMenuHelper?.updateSelection(getCurrentPos())
+                    outlineFragment?.updateSelection(getCurrentPos())
                 } else {
                     frameLayout?.visibility = View.GONE
                 }
@@ -559,7 +582,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
     //===========================================
 
-    private var menuListener = object : MenuListener {
+    /*private var menuListener = object : MenuListener {
 
         override fun onMenuSelected(data: MenuBean?, position: Int) {
             when (data?.type) {
@@ -585,8 +608,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
                 }
             }
         }
-
-    }
+    }*/
 
     internal object ViewControllerFactory {
         fun getOrCreateViewController(

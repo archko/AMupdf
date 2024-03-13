@@ -184,6 +184,9 @@ public class PageCropper {
     }
 
     public static RectF getJavaCropBounds(final Bitmap bitmap, final Rect bitmapBounds) {
+        if (bitmap.getHeight() < (20) || bitmap.getWidth() < 20) {
+            return new RectF(0, 0, bitmap.getWidth(), bitmap.getHeight());
+        }
         //计算平均灰度不如直接设置225,效果要好的多,平均值会把红色的识别成白边
         final float avgLum = 225; //calculateAvgLum(bitmap, bitmapBounds);
         float left = getLeftBound(bitmap, bitmapBounds, avgLum);

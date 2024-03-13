@@ -56,7 +56,6 @@ class ANormalViewController(
     }
 
     private fun initView() {
-        BitmapCache.getInstance().resize(BitmapCache.CAPACITY_FOR_VUDROID)
         initDecodeService()
         val zoomModel = ZoomModel()
 

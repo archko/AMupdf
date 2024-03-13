@@ -8,7 +8,6 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import cn.archko.mupdf.R
 import cn.archko.pdf.App
-import cn.archko.pdf.common.ImageLoader
 import cn.archko.pdf.entity.FileBean
 import cn.archko.pdf.listeners.OnItemClickListener
 import cn.archko.pdf.utils.FileUtils
@@ -233,8 +232,8 @@ class BookAdapter(context: Context, itemClickListener: OnItemClickListener<FileB
 
                 AdapterUtils.setIcon(ext, mIcon)
 
-                ImageLoader.getInstance()
-                    .loadImage(entry.file?.absolutePath, 0, 1.0f, screenWidth, mIcon!!)
+                //ImageLoader.getInstance()
+                //    .loadImage(entry.file?.absolutePath, 0, 1.0f, screenWidth, mIcon!!)
             }
         }
     }
