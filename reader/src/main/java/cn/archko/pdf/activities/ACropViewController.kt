@@ -200,21 +200,19 @@ class ACropViewController(
         mRecyclerView.stopScroll()
         BitmapCache.getInstance().clear()
 
-        if (mRecyclerView.width > 0) {
-            defaultWidth = Utils.dipToPixel(newConfig.screenWidthDp.toFloat())
-            defaultHeight = Utils.dipToPixel(newConfig.screenHeightDp.toFloat())
-            if (Logcat.loggable) {
-                Logcat.d(
-                    "TAG", String.format(
-                        "newConfig:w-h:%s-%s, config:%s-%s, %s",
-                        defaultWidth,
-                        defaultHeight,
-                        newConfig.screenWidthDp,
-                        newConfig.screenHeightDp,
-                        newConfig.orientation
-                    )
+        defaultWidth = Utils.dipToPixel(newConfig.screenWidthDp.toFloat())
+        defaultHeight = Utils.dipToPixel(newConfig.screenHeightDp.toFloat())
+        if (Logcat.loggable) {
+            Logcat.d(
+                "TAG", String.format(
+                    "newConfig:w-h:%s-%s, config:%s-%s, %s",
+                    defaultWidth,
+                    defaultHeight,
+                    newConfig.screenWidthDp,
+                    newConfig.screenHeightDp,
+                    newConfig.orientation
                 )
-            }
+            )
         }
 
         val lm = (mRecyclerView.layoutManager as LinearLayoutManager)
