@@ -92,9 +92,9 @@ public abstract class ImageWorker {
      * @return True if the user is scrolling, false otherwise
      */
     public boolean isScrolling() {
-        if (getImageCache() != null) {
+        //if (getImageCache() != null) {
             //return mImageCache.isScrolling();
-        }
+        //}
         return false;
     }
 
@@ -108,9 +108,9 @@ public abstract class ImageWorker {
 
     public abstract Bitmap getBitmapFromCache(final String key);
 
-    public abstract LruCache<Object, Bitmap> getImageCache();
+    //public abstract LruCache<Object, Bitmap> getImageCache();
 
-    public abstract LruCache<String, APage> getPageLruCache();
+    //public abstract LruCache<String, APage> getPageLruCache();
 
     /**
      * @return The deafult artwork
@@ -164,7 +164,7 @@ public abstract class ImageWorker {
             }
 
             // First, check the disk cache for the image
-            if (decodeParam.key != null && getImageCache() != null && !isCancelled()
+            if (decodeParam.key != null /*&& getImageCache() != null*/ && !isCancelled()
                     && getAttachedImageView() != null) {
                 bitmap = getBitmapFromCache(decodeParam.key);
             }
@@ -183,7 +183,7 @@ public abstract class ImageWorker {
             }
 
             // Fourth, add the new image to the cache
-            if (bitmap != null && decodeParam.key != null && getImageCache() != null) {
+            if (bitmap != null && decodeParam.key != null /*&& getImageCache() != null*/) {
                 addBitmapToCache(decodeParam.key, bitmap);
             }
 
@@ -317,7 +317,7 @@ public abstract class ImageWorker {
     }
 
     public void loadImage(DecodeParam decodeParam, boolean forceSerial) {
-        if (decodeParam.key == null || getImageCache() == null || decodeParam.imageView == null) {
+        if (decodeParam.key == null /*|| getImageCache() == null*/ || decodeParam.imageView == null) {
             return;
         }
         // First, check the memory for the image

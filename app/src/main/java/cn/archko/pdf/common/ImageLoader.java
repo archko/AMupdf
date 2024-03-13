@@ -66,12 +66,12 @@ public class ImageLoader extends ImageWorker {
         return null;
     }
 
-    @Override
+    //@Override
     public LruCache<Object, Bitmap> getImageCache() {
         return mImageCache;
     }
 
-    @Override
+    //@Override
     public LruCache<String, APage> getPageLruCache() {
         return pageLruCache;
     }

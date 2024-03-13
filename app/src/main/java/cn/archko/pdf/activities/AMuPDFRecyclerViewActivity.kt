@@ -53,11 +53,6 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     private val viewControllerCache: SparseArray<AViewController> = SparseArray<AViewController>()
     private var viewMode: ViewMode = ViewMode.CROP
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        BitmapCache.getInstance().resize(BitmapCache.CAPACITY_FOR_AMUPDF)
-        super.onCreate(savedInstanceState)
-    }
-
     override fun initView() {
         super.initView()
 
