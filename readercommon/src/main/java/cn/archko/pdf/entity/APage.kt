@@ -40,6 +40,7 @@ class APage {
 
     var width: Float = 0f
     var height: Float = 0f
+    var ratio: Float = 1f
 
     /**
      * view zoom
@@ -79,6 +80,7 @@ class APage {
     // MupdfDocument.render(page, ctm, bitmap, xOrigin, leftBound, topBound)
     var cropScale = 1.0f
         private set
+
     //var sourceBounds: RectF? = null
     //    private set
     var cropBounds: RectF? = null

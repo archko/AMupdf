@@ -368,7 +368,7 @@ open class BrowserFragment : RefreshableFragment(), SwipeRefreshLayout.OnRefresh
             return
         }
 
-        //menuBuilder.menu.add(0, mupdfContextMenuItem, 0, getString(R.string.menu_mupdf))
+        menuBuilder.menu.add(0, mupdfContextMenuItem, 0, getString(R.string.menu_mupdf))
         //menuBuilder.menu.add(0, bartekscViewContextMenuItem, 0, "barteksc Viewer")
         //menuBuilder.menu.add(0, vudroidContextMenuItem, 0, getString(R.string.menu_vudroid))
         //menuBuilder.menu.add(0, documentContextMenuItem, 0, "Mupdf new Viewer")

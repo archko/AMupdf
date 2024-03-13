@@ -103,7 +103,7 @@ public class APDFView(
         }
         val task =
             DecodeTask(
-                resultWidth, resultHeight,
+                resultWidth, resultHeight, orientation,
                 position, aPage!!,
                 crop, cacheKey,
                 this,
@@ -115,13 +115,28 @@ public class APDFView(
     }
 
     private fun setLayoutSize() {
-        var lp = layoutParams as ViewGroup.LayoutParams?
+        val ratio = if (aPage != null) {
+            aPage!!.ratio
+        } else 1f
+
+        val viewWidth = resultWidth
+        val viewHeight: Int = (resultWidth / ratio).toInt()
+        /*if (Logcat.loggable) {
+            Logcat.d(
+                TAG, String.format(
+                    "decode layout:index:%s, w-h:%s-%s, %s, %s",
+                    pageIndex, viewWidth, viewHeight, resultHeight, ratio
+                )
+            )
+        }*/
+
+        var lp = layoutParams
         if (null == lp) {
-            lp = ViewGroup.LayoutParams(width, height)
+            lp = ViewGroup.LayoutParams(viewWidth, viewHeight)
             layoutParams = lp
         } else {
-            lp.width = resultWidth
-            lp.height = resultHeight
+            lp.width = viewWidth
+            lp.height = viewHeight
         }
     }
 
@@ -148,8 +163,8 @@ public class APDFView(
             if (Logcat.loggable) {
                 Logcat.d(
                     TAG, String.format(
-                        "decode complete:index:%s,pageIndex:%s, %s, %s-%s",
-                        position, pageIndex, key, bitmap.width, bitmap.height,
+                        "decode complete:index:%s,pageIndex:%s, %s, %s-%s, %s",
+                        position, pageIndex, key, bitmap.width, bitmap.height, aPage?.ratio
                     )
                 )
             }

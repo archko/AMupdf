@@ -4,12 +4,14 @@ import android.annotation.SuppressLint
 import android.app.Activity.RESULT_FIRST_USER
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Rect
 import android.util.SparseArray
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewTreeObserver
 import android.widget.RelativeLayout
 import androidx.recyclerview.awidget.ARecyclerView
 import androidx.recyclerview.awidget.LinearLayoutManager
@@ -18,6 +20,7 @@ import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.entity.APage
 import cn.archko.pdf.listeners.AViewController
 import cn.archko.pdf.listeners.OutlineListener
+import cn.archko.pdf.utils.Utils
 import cn.archko.pdf.viewmodel.PDFViewModel
 import cn.archko.pdf.widgets.APDFView
 import cn.archko.pdf.widgets.APageSeekBarControls
@@ -37,7 +40,11 @@ class ACropViewController(
 
     private lateinit var mRecyclerView: ARecyclerView
     private lateinit var mPageSizes: SparseArray<APage>
-    private var init: Boolean = false
+
+    /**
+     * 有时需要强制不切边,又不切换到normal的渲染模式,设置这个值
+     */
+    private var crop: Boolean = true
 
     init {
         initView()
@@ -63,7 +70,22 @@ class ACropViewController(
                 }
             })
         }
-
+        mRecyclerView.getViewTreeObserver()
+            .addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+                override fun onGlobalLayout() {
+                    mRecyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    defaultWidth = mRecyclerView.width
+                    defaultHeight = mRecyclerView.height
+                    if (Logcat.loggable) {
+                        Logcat.d(
+                            "TAG", String.format(
+                                "onGlobalLayout : w-h:%s-%s",
+                                defaultWidth, defaultHeight
+                            )
+                        )
+                    }
+                }
+            })
     }
 
     override fun init(pageSizes: SparseArray<APage>, pos: Int) {
@@ -139,6 +161,7 @@ class ACropViewController(
     }
 
     override fun setCrop(crop: Boolean) {
+        this.crop = crop
     }
 
     override fun scrollToPosition(page: Int) {
@@ -174,8 +197,38 @@ class ACropViewController(
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
-        BitmapCache.getInstance().clear()
         mRecyclerView.stopScroll()
+        BitmapCache.getInstance().clear()
+
+        if (mRecyclerView.width > 0) {
+            defaultWidth = Utils.dipToPixel(newConfig.screenWidthDp.toFloat())
+            defaultHeight = Utils.dipToPixel(newConfig.screenHeightDp.toFloat())
+            if (Logcat.loggable) {
+                Logcat.d(
+                    "TAG", String.format(
+                        "newConfig:w-h:%s-%s, config:%s-%s, %s",
+                        defaultWidth,
+                        defaultHeight,
+                        newConfig.screenWidthDp,
+                        newConfig.screenHeightDp,
+                        newConfig.orientation
+                    )
+                )
+            }
+        }
+
+        val lm = (mRecyclerView.layoutManager as LinearLayoutManager)
+        var offset = 0
+        val first = lm.findFirstVisibleItemPosition()
+        if (first > 0) {
+            val child = lm.findViewByPosition(first)
+            child?.run {
+                val r = Rect()
+                child.getLocalVisibleRect(r)
+                offset = r.top
+            }
+        }
+        lm.scrollToPositionWithOffset(first, -offset)
         mRecyclerView.adapter?.notifyDataSetChanged()
     }
 
@@ -271,7 +324,7 @@ class ACropViewController(
                     getOrientation(),
                     defaultWidth,
                     defaultHeight,
-                    true,
+                    crop,
                     pdfViewModel
                 )
             }

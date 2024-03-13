@@ -11,6 +11,7 @@ import androidx.recyclerview.awidget.GridLayoutManager
 import cn.archko.pdf.AppExecutors
 import cn.archko.pdf.common.BitmapCache
 import cn.archko.pdf.common.Logcat
+import cn.archko.pdf.entity.APage
 import cn.archko.pdf.entity.DecodeTask
 import cn.archko.pdf.listeners.ClickListener
 import cn.archko.pdf.listeners.DecodeCallback
@@ -69,12 +70,13 @@ class MupdfGridAdapter(
     inner class PdfHolder(internal var view: ImageView) : ARecyclerView.ViewHolder(view),
         DecodeCallback {
 
-        var pageIndex = -1
+        private var aPage: APage? = null
+        private var pageIndex = -1
         private var resultWidth: Int = 1080
         private var resultHeight: Int = 1080
         fun onBind(position: Int) {
             pageIndex = position
-            val aPage = mupdfListener.getPageList()[position]
+            aPage = mupdfListener.getPageList()[position]
 
             val key =
                 "${mupdfListener.getDocument()!!}_page_$position-${aPage}"
@@ -96,15 +98,15 @@ class MupdfGridAdapter(
 
             val bitmap = BitmapCache.getInstance().getBitmap(key)
             if (null != bitmap) {
-                Log.d("TAG", String.format("bind.hit cache:%s", aPage.index))
+                Log.d("TAG", String.format("bind.hit cache:%s", aPage?.index))
                 view.setImageBitmap(bitmap)
                 setLayoutSize()
                 return
             }
             val task =
                 DecodeTask(
-                    width, height,
-                    position, aPage,
+                    width, height, 1,
+                    position, aPage!!,
                     false, key,
                     this,
                     mupdfListener.getDocument()
@@ -115,13 +117,28 @@ class MupdfGridAdapter(
         }
 
         private fun setLayoutSize() {
+            val ratio = if (aPage != null) {
+                aPage!!.ratio
+            } else 1f
+
+            val viewWidth = resultWidth
+            val viewHeight: Int = (resultWidth / ratio).toInt()
+            /*if (Logcat.loggable) {
+                Logcat.d(
+                    TAG, String.format(
+                        "decode layout:index:%s, w-h:%s-%s, %s, %s",
+                        pageIndex, viewWidth, viewHeight, resultHeight, ratio
+                    )
+                )
+            }*/
+
             var lp = view.layoutParams
             if (null == lp) {
-                lp = ViewGroup.LayoutParams(resultWidth, resultHeight)
+                lp = ViewGroup.LayoutParams(viewWidth, viewHeight)
                 view.layoutParams = lp
             } else {
-                lp.width = resultWidth
-                lp.height = resultHeight
+                lp.width = viewWidth
+                lp.height = viewHeight
             }
         }
 

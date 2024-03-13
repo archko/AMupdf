@@ -59,6 +59,7 @@ public class PDFViewerHelper {
                     val map = mapOf("type" to "AMuPDF", "name" to clickedFile.name)
                     MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
 
+                    intent.putExtra("forceCropParam", 0)
                     intent.setClass(activity, AMuPDFRecyclerViewActivity::class.java)
                     activity.startActivity(intent)
                 }
