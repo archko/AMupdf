@@ -23,7 +23,7 @@ import cn.archko.pdf.viewmodel.PDFViewModel
  * @author: archko 2018/7/25 :12:43
  */
 @SuppressLint("AppCompatCustomView")
-public class APDFView(
+class APDFView(
     mContext: Context,
 ) : ImageView(mContext), DecodeCallback {
 
@@ -39,7 +39,7 @@ public class APDFView(
     }
 
     private fun updateView() {
-        scaleType = ImageView.ScaleType.MATRIX
+        //scaleType = ScaleType.MATRIX
         setLayerType(View.LAYER_TYPE_HARDWARE, null)
     }
 
@@ -58,16 +58,12 @@ public class APDFView(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (aPage != null && null == drawable) {
+        if (aPage != null /*&& null == drawable*/) {
             canvas.drawText(
                 String.format("Page %s", aPage!!.index + 1), (measuredWidth / 2).toFloat(),
                 (measuredHeight / 2).toFloat(), textPaint
             )
         }
-    }
-
-    private fun getCacheKey(index: Int, w: Int, h: Int, crop: Boolean): String {
-        return String.format("%s-%s-%s-%s", index, w, h, crop)
     }
 
     fun updatePage(
@@ -84,28 +80,47 @@ public class APDFView(
 
         resultWidth = vwidth
         caculateWidth(orientation, crop)
+
+        val cacheKey = getCacheKey(
+            aPage!!.index,
+            resultWidth,
+            resultHeight,
+            aPage!!.cropWidth,
+            aPage!!.cropHeight,
+            crop
+        )
         Logcat.d(
             String.format(
-                "updatePage.page:%s, size.w-h:%s-%s",
+                "updatePage.page:%s, size.w-h:%s-%s, key:%s",
                 pageSize.index,
                 resultWidth,
-                resultHeight
+                resultHeight,
+                cacheKey
             )
         )
-
-        val cacheKey = getCacheKey(aPage!!.index, resultWidth, resultHeight, crop)
         val bmp = BitmapCache.getInstance().getBitmap(cacheKey)
 
         if (null != bmp) {
+            Logcat.d(
+                String.format(
+                    "updatePage.cache.page:%s, size.w-h:%s-%s, bmp.w-h:%s-%s, key:%s",
+                    pageSize.index,
+                    resultWidth,
+                    resultHeight,
+                    bmp.width,
+                    bmp.height,
+                    cacheKey
+                )
+            )
             setImageBitmap(bmp)
-            setLayoutSize()
+            setLayoutSize(bmp)
             return
         }
         val task =
             DecodeTask(
                 resultWidth, resultHeight, orientation,
                 position, aPage!!,
-                crop, cacheKey,
+                crop,
                 this,
                 pdfViewModel.mupdfDocument
             )
@@ -114,21 +129,19 @@ public class APDFView(
         AppExecutors.instance.diskIO().execute { task.run() }
     }
 
-    private fun setLayoutSize() {
-        val ratio = if (aPage != null) {
-            aPage!!.ratio
-        } else 1f
+    private fun setLayoutSize(bitmap: Bitmap) {
+        val ratio = bitmap.width * 1f / bitmap.height
 
         val viewWidth = resultWidth
         val viewHeight: Int = (resultWidth / ratio).toInt()
-        /*if (Logcat.loggable) {
+        if (Logcat.loggable) {
             Logcat.d(
                 TAG, String.format(
-                    "decode layout:index:%s, w-h:%s-%s, %s, %s",
-                    pageIndex, viewWidth, viewHeight, resultHeight, ratio
+                    "decode layout:index:%s, view.w-h:%s-%s, oldHeight:%s, bmp.w-h:%s-:%s ratio:%s",
+                    pageIndex, viewWidth, viewHeight, resultHeight, bitmap.width, bitmap.height, ratio
                 )
             )
-        }*/
+        }
 
         var lp = layoutParams
         if (null == lp) {
@@ -149,30 +162,30 @@ public class APDFView(
             }
         } else {    //水平滚动,以高为准
             resultHeight = resultWidth
-            resultWidth = if (crop && aPage!!.cropBounds != null) {
+            resultWidth = /*if (crop && aPage!!.cropBounds != null) {
                 (resultHeight * aPage!!.cropBounds!!.width() / aPage!!.height).toInt()
-            } else {
+            } else {*/
                 (resultHeight * aPage!!.width / aPage!!.height).toInt()
-            }
+            //}
         }
     }
 
     override fun decodeComplete(bitmap: Bitmap?, position: Int, key: String) {
         if (null != bitmap) {
             BitmapCache.getInstance().addBitmap(key, bitmap)
-            if (Logcat.loggable) {
+            /*if (Logcat.loggable) {
                 Logcat.d(
                     TAG, String.format(
-                        "decode complete:index:%s,pageIndex:%s, %s, %s-%s, %s",
-                        position, pageIndex, key, bitmap.width, bitmap.height, aPage?.ratio
+                        "decode complete:index:%s, pageIndex:%s, %s, bitmap:%s-%s",
+                        position, pageIndex, key, bitmap.width, bitmap.height
                     )
                 )
-            }
-        }
-        if (position == pageIndex) {
-            AppExecutors.instance.mainThread().execute {
-                setImageBitmap(bitmap)
-                setLayoutSize()
+            }*/
+            if (position == pageIndex) {
+                AppExecutors.instance.mainThread().execute {
+                    setImageBitmap(bitmap)
+                    setLayoutSize(bitmap)
+                }
             }
         }
     }
@@ -183,5 +196,16 @@ public class APDFView(
 
     companion object {
         private val TAG: String = "APDFView"
+        
+        fun getCacheKey(
+            index: Int,
+            w: Int,
+            h: Int,
+            cropW: Int,
+            cropH: Int,
+            crop: Boolean
+        ): String {
+            return String.format("%s-%s-%s-%s-%s-%s", index, w, h, cropW, cropH, crop)
+        }
     }
 }

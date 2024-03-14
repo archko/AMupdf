@@ -191,7 +191,7 @@ class PDFViewModel : ViewModel() {
         }
     }
 
-    suspend fun savePageSize(crop: Boolean, pageSizes: SparseArray<APage>) = flow {
+    suspend fun savePageSize(crop: Boolean, pageSizes: List<APage>) = flow {
         APageSizeLoader.savePageSizeToFile(
             crop,
             bookProgress!!.size,

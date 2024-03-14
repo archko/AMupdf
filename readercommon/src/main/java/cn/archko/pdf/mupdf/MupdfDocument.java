@@ -285,7 +285,8 @@ public class MupdfDocument {
     //=================================================
 
     public static float[] getArrByCrop(final Page page, final Matrix ctm, final int pageW, final int pageH, int leftBound, int topBound) {
-        float ratio = 6f;
+        float bWith = 200f;
+        float ratio = pageW / bWith;
         Bitmap thumb = BitmapPool.getInstance().acquire((int) (pageW / ratio), (int) (pageH / ratio));
         Matrix matrix = new Matrix(ctm.a / ratio, ctm.d / ratio);
         render(page, matrix, thumb, 0, leftBound, topBound);
@@ -303,7 +304,7 @@ public class MupdfDocument {
             float th = (thumb.getHeight() * ratio);
             float sw = (xscale * pageW);
             float sh = (xscale * pageH);
-            Logcat.d(TAG, String.format("bitmap tw:%s, th:%s, sw:%s, sh:%s,xscale:%s, rect:%s-%s",
+            Logcat.d(TAG, String.format("decode crop.bitmap tw-th:%s-:%s, sw-sh:%s-%s,xscale:%s, rect:%s-%s",
                     tw, th, sw, sh, xscale, rectF.width() * ratio, rectF.height() * ratio));
 
             //Logcat.d(TAG, String.format("bitmap:%s-%s,height:%s,thumb:%s-%s, crop rect:%s, xscale:%s,yscale:%s",

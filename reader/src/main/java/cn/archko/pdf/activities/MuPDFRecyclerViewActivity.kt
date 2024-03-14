@@ -45,7 +45,7 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
     protected var pageNumberToast: Toast? = null
 
     protected var sensorHelper: SensorHelper? = null
-    protected var mPageSizes = SparseArray<APage>()
+    protected var mPageSizes = listOf<APage>()
 
     protected var mReflow = false
     protected var mCrop: Boolean = true
@@ -278,8 +278,9 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
     }
 
     open fun postLoadDoc(cp: Int) {
-        preparePageSize(cp)
-        Logcat.d(TAG, "open:end." + mPageSizes.size())
+        //preparePageSize(cp)
+        mPageSizes=pdfViewModel.mPageSizes
+        Logcat.d(TAG, "open:end." + mPageSizes.size)
         //val mill = SystemClock.uptimeMillis() - start
         //if (mill < 500L) {
         //    delay(500L - mill)
@@ -303,12 +304,12 @@ abstract class MuPDFRecyclerViewActivity : AnalysticActivity() {
     }
 
     open fun preparePageSize(cp: Int) {
-        val page = getPageSize(0)
+        /*val page = getPageSize(0)
         if (null != page) {
             for (i in 0 until cp) {
                 val pointF = PointF(page.width, page.height)
                 mPageSizes.put(i, APage(i, pointF, 1.0f))
             }
-        }
+        }*/
     }
 }

@@ -1,5 +1,6 @@
 package cn.archko.pdf.fragments
 
+import android.text.TextUtils
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -284,7 +285,32 @@ class BookViewModel : ViewModel() {
         }
     }
 
-    fun removeRecent(path: String) {
+    fun removeRecent(absolutePath: String) {
+        val path = FileUtils.getName(absolutePath)
         progressDao.deleteProgress(path)
+        viewModelScope.launch {
+            val path = FileUtils.getName(absolutePath)
+            withContext(Dispatchers.IO) {
+                progressDao.deleteProgress(path)
+            }
+
+            var fileList: List<FileBean>? = _uiFileModel.value
+            var fb: FileBean? = null
+            _uiFileModel.value?.forEach {
+                if (TextUtils.equals(it.label, path)) {
+                    fb = it
+                    return@forEach
+                }
+            }
+            if (null == fileList) {
+                fileList = ArrayList()
+            }
+            if (null != fb) {
+                (fileList as ArrayList<FileBean>).remove(fb)
+            }
+            withContext(Dispatchers.Main) {
+                _uiFileModel.value = fileList!!
+            }
+        }
     }
 }

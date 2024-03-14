@@ -40,12 +40,11 @@ class APage {
 
     var width: Float = 0f
     var height: Float = 0f
-    var ratio: Float = 1f
 
     /**
      * view zoom
      */
-    var zoom = 0f
+    var zoom = 1f
     //private var targetWidth = 0
 
     var scale = 1f
@@ -85,8 +84,8 @@ class APage {
     //    private set
     var cropBounds: RectF? = null
         private set
-    private var cropWidth = 0
-    private var cropHeight = 0
+    var cropWidth = 0
+    var cropHeight = 0
 
     constructor()
     constructor(pageNumber: Int, pageSize: PointF, zoom: Float) {
@@ -137,8 +136,8 @@ class APage {
         this.cropBounds = cropBounds
         this.cropScale = cropScale
         //initSourceBounds(cropScale)
-        setCropWidth(cropBounds.width().toInt())
-        setCropHeight(cropBounds.height().toInt())
+        cropWidth = (cropBounds.width().toInt())
+        cropHeight = (cropBounds.height().toInt())
     }
 
     /*fun getCropWidth(): Int {
@@ -158,13 +157,13 @@ class APage {
         return cropHeight
     }*/
 
-    fun setCropWidth(cropWidth: Int) {
+    /*fun setCropWidth(cropWidth: Int) {
         this.cropWidth = cropWidth
     }
 
     fun setCropHeight(cropHeight: Int) {
         this.cropHeight = cropHeight
-    }
+    }*/
 
     val cropScaleWidth: Int
         get() {
@@ -185,7 +184,6 @@ class APage {
         return "APage{" +
                 "index=" + index +
                 ", mPageSize=" + pageSize +
-                ", mZoom=" + zoom +
                 ", scale=" + scale +
                 ", cropScale=" + cropScale +
                 ", cropBounds=" + cropBounds +

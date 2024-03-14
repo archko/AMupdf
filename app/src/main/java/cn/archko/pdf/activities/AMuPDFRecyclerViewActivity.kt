@@ -252,7 +252,8 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
 
             mPageSeekBarControls?.showReflow(true)
 
-            outlineHelper = OutlineHelper(pdfViewModel.mupdfDocument, this)
+            //outlineHelper = OutlineHelper(pdfViewModel.mupdfDocument, this)
+            outlineHelper=pdfViewModel.outlineHelper
 
             //mMenuHelper = MenuHelper(mLeftDrawer, outlineHelper, supportFragmentManager)
             //mMenuHelper?.setupMenu(mPath, this@AMuPDFRecyclerViewActivity, menuListener)
@@ -312,8 +313,8 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
     override fun onDestroy() {
         super.onDestroy()
         viewController?.onDestroy()
-        mPageSizes.let {
-            if (it.size() < 0 || it.size() < APageSizeLoader.PAGE_COUNT) {
+        /*mPageSizes.let {
+            if (it.size < 0 || it.size < APageSizeLoader.PAGE_COUNT) {
                 return
             }
             lifecycleScope.launch {
@@ -321,10 +322,10 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
                     pdfViewModel.savePageSize(mCrop, mPageSizes).collectLatest { }
                 }
             }
-        }
+        }*/
     }
 
-    override fun postLoadDoc(cp: Int) {
+    /*override fun postLoadDoc(cp: Int) {
         val mRecyclerView = viewController?.getDocumentView()
         val width =
             mRecyclerView?.width ?: Utils.getScreenWidthPixelWithOrientation(this)
@@ -334,12 +335,12 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
             pdfViewModel.preparePageSize(width).collectLatest { pageSizeBean ->
                 Logcat.d("open3:" + (SystemClock.uptimeMillis() - start))
 
-                var pageSizes: SparseArray<APage>? = null
+                var pageSizes: List<APage>? = null
                 if (pageSizeBean != null) {
                     pageSizes = pageSizeBean.sparseArray
                 }
-                if (pageSizes != null && pageSizes.size() > 0) {
-                    Logcat.d("open3:pageSizes>0:" + pageSizes.size())
+                if (pageSizes != null && pageSizes.size > 0) {
+                    Logcat.d("open3:pageSizes>0:" + pageSizes.size)
                     mPageSizes = pageSizes
                     checkPageSize(cp)
                 } else {
@@ -350,13 +351,13 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
                 doLoadDoc()
             }
         }
-    }
+    }*/
 
     /**
      * if scale=1.0f,reload it from mupdf
      */
     private fun checkPageSize(cp: Int) {
-        for (i in 0 until mPageSizes.size()) {
+        /*for (i in 0 until mPageSizes.size()) {
             val point = mPageSizes.valueAt(i)
             if (point.scale == 1.0f) {
                 val pointF = getPageSize(i)
@@ -367,7 +368,7 @@ class AMuPDFRecyclerViewActivity : MuPDFRecyclerViewActivity(), OutlineListener 
                 }
                 mPageSizes.put(i, pointF)
             }
-        }
+        }*/
     }
 
     private fun toggleReflow() {
