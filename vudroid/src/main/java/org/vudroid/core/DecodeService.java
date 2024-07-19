@@ -2,42 +2,49 @@ package org.vudroid.core;
 
 import android.graphics.Bitmap;
 import android.graphics.RectF;
-import android.net.Uri;
 import android.view.View;
 
 import com.artifex.mupdf.fitz.Outline;
 
+import org.vudroid.core.codec.CodecDocument;
 import org.vudroid.core.codec.CodecPage;
+
+import cn.archko.pdf.entity.APage;
 
 public interface DecodeService {
 
     void setContainerView(View containerView);
 
-    void open(String fileUri);
+    CodecDocument open(String path, boolean crop, boolean cachePage);
 
-    void decodePage(Object decodeKey, PageTreeNode node, DecodeCallback decodeCallback, float zoom, RectF pageSliceBounds);
+    void decodePage(String decodeKey, PageTreeNode node, boolean crop, int pageNumber, DecodeCallback decodeCallback, float zoom, RectF pageSliceBounds);
 
-    void stopDecoding(Object decodeKey);
+    void stopDecoding(String decodeKey);
 
     void setOriention(int oriention);
 
-    int getEffectivePagesWidth();
+    int getEffectivePagesWidth(int page, boolean crop);
 
-    int getEffectivePagesHeight();
+    int getEffectivePagesHeight(int index, boolean crop);
 
     int getPageCount();
 
-    int getPageWidth(int pageIndex);
+    int getPageWidth(int pageIndex, boolean crop);
 
-    int getPageHeight(int pageIndex);
+    int getPageHeight(int pageIndex, boolean crop);
 
+    @Deprecated
     CodecPage getPage(int pageIndex);
+
+    APage getAPage(int pageIndex);
 
     Outline[] getOutlines();
 
     void recycle();
 
-    public interface DecodeCallback {
-        void decodeComplete(Bitmap bitmap);
+    interface DecodeCallback {
+        void decodeComplete(Bitmap bitmap, boolean isThumb);
+
+        boolean shouldRender(int pageNumber, boolean isFullPage);
     }
 }

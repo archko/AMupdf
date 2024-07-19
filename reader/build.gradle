@@ -23,6 +23,10 @@ android {
         jvmTarget = "1.8"
     }
 
+    buildFeatures {
+        viewBinding = true
+    }
+
     buildTypes {
         debug {
             minifyEnabled false
@@ -46,6 +50,7 @@ dependencies {
     api "androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.3"
 
     api "com.google.android.material:material:1.12.0"
+    api "me.jfenn.ColorPickerDialog:base:0.2.2"
 
     api project(":readercommon")
     api project(":pdf-recyclerview")

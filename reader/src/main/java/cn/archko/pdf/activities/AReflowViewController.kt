@@ -2,23 +2,23 @@ package cn.archko.pdf.activities
 
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_FIRST_USER
-import android.content.Context
 import android.content.res.Configuration
-import android.util.SparseArray
+import android.graphics.Bitmap
 import android.view.GestureDetector
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.widget.RelativeLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.awidget.ARecyclerView
+import androidx.recyclerview.awidget.LinearLayoutManager
+import cn.archko.pdf.AppExecutors
 import cn.archko.pdf.R
 import cn.archko.pdf.adapters.MuPDFReflowAdapter
-import cn.archko.pdf.colorpicker.ColorPickerDialog
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.common.StyleHelper
 import cn.archko.pdf.entity.APage
@@ -27,72 +27,69 @@ import cn.archko.pdf.fragments.FontsFragment
 import cn.archko.pdf.listeners.AViewController
 import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.listeners.OutlineListener
-import cn.archko.pdf.mupdf.MupdfDocument
 import cn.archko.pdf.viewmodel.PDFViewModel
 import cn.archko.pdf.widgets.APageSeekBarControls
+import cn.archko.pdf.widgets.ViewerDividerItemDecoration
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
+import me.jfenn.colorpickerdialog.dialogs.ColorPickerDialog
 
 /**
  * @author: archko 2020/5/15 :12:43
  */
 class AReflowViewController(
-    private var context: Context,
+    private var context: FragmentActivity,
     private val mControllerLayout: RelativeLayout,
     private var pdfViewModel: PDFViewModel,
     private var mPath: String,
     private var mPageSeekBarControls: APageSeekBarControls?,
-    private var gestureDetector: GestureDetector?
+    private var gestureDetector: GestureDetector?,
 ) :
     OutlineListener, AViewController {
 
-
     private var mStyleControls: View? = null
 
-    private var mFontSeekBar: SeekBar? = null
-    private var mFontSizeLabel: TextView? = null
-    private var mFontFaceSelected: TextView? = null
-    private var mFontFaceChange: TextView? = null
-    private var mLineSpaceLabel: TextView? = null
-    private var mLinespaceMinus: View? = null
-    private var mLinespacePlus: View? = null
-    private var mColorLabel: TextView? = null
-    private var mBgSetting: View? = null
-    private var mFgSetting: View? = null
-    private var colorPickerDialog: ColorPickerDialog? = null
-
-    private lateinit var mRecyclerView: RecyclerView
+    private lateinit var mRecyclerView: ARecyclerView
     private var mStyleHelper: StyleHelper? = null
-    private var mMupdfDocument: MupdfDocument? = null
     private val START_PROGRESS = 15
     private lateinit var mPageSizes: List<APage>
+    private var scope: CoroutineScope? = null
 
     init {
         initView()
     }
 
     private fun initView() {
-        mRecyclerView = RecyclerView(context)//contentView.findViewById(R.id.recycler_view)
+        mRecyclerView = ARecyclerView(context)//contentView.findViewById(R.id.recycler_view)
         with(mRecyclerView) {
             descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
             isNestedScrollingEnabled = false
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
             setItemViewCacheSize(0)
 
-            //addItemDecoration(ViewerDividerItemDecoration(context, LinearLayoutManager.VERTICAL))
-            addOnScrollListener(object : RecyclerView.OnScrollListener() {
-                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+            //addItemDecoration(ViewerDividerItemDecoration(LinearLayoutManager.VERTICAL))
+            addOnScrollListener(object : ARecyclerView.OnScrollListener() {
+                override fun onScrollStateChanged(recyclerView: ARecyclerView, newState: Int) {
+                    if (newState == ARecyclerView.SCROLL_STATE_IDLE) {
                         updateProgress(getCurrentPos())
                     }
                 }
 
-                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                override fun onScrolled(recyclerView: ARecyclerView, dx: Int, dy: Int) {
                 }
             })
         }
     }
 
-    override fun init(pageSizes: List<APage>, pos: Int) {
+    override fun init(pageSizes: List<APage>, pos: Int, scrollOrientation: Int) {
         try {
+            if (scope == null || !scope!!.isActive) {
+                scope =
+                    CoroutineScope(Job() + AppExecutors.instance.diskIO().asCoroutineDispatcher())
+            }
             Logcat.d("init:$this")
             if (null != pdfViewModel.mupdfDocument) {
                 this.mPageSizes = pageSizes
@@ -135,12 +132,33 @@ class AReflowViewController(
             mStyleHelper = StyleHelper()
         }
         if (null == mRecyclerView.adapter) {
-            mRecyclerView.adapter = MuPDFReflowAdapter(context, mMupdfDocument, mStyleHelper)
+            mRecyclerView.adapter =
+                MuPDFReflowAdapter(
+                    context,
+                    pdfViewModel.mupdfDocument,
+                    mStyleHelper,
+                    scope,
+                    pdfViewModel
+                )
+        } else {
+            (mRecyclerView.adapter as MuPDFReflowAdapter).setScope(scope)
         }
 
         if (pos > 0) {
-            mRecyclerView.scrollToPosition(pos)
+            val layoutManager = mRecyclerView.layoutManager
+            val vto: ViewTreeObserver = mRecyclerView.viewTreeObserver
+            vto.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+                override fun onGlobalLayout() {
+                    mRecyclerView.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                    Logcat.d("onGlobalLayout:$this,pos:$pos")
+                    layoutManager!!.scrollToPosition(pos)
+                }
+            })
         }
+    }
+
+    override fun getCurrentBitmap(): Bitmap? {
+        return null
     }
 
     override fun getCurrentPos(): Int {
@@ -191,12 +209,19 @@ class AReflowViewController(
         return false
     }
 
-    override fun onSingleTap() {
-        //if (mPageSeekBarControls?.visibility == View.VISIBLE) {
-        //    mPageSeekBarControls?.hide()
-        //    return
-        //}
+    override fun onSingleTap(e: MotionEvent, margin: Int): Boolean {
+        if (tryHyperlink(e)) {
+            return true
+        }
+        val documentView = getDocumentView()
+        val height = documentView.height
+        val top = height / 4
+        val bottom = height * 3 / 4
+        if (scrollPage(e.y.toInt(), top, bottom, margin)) {
+            return true
+        }
         showReflowConfigMenu()
+        return true
     }
 
     override fun onDoubleTap() {
@@ -266,6 +291,9 @@ class AReflowViewController(
     }
 
     override fun onDestroy() {
+        scope?.let {
+            scope!!.cancel()
+        }
     }
 
     //===========================================
@@ -285,10 +313,31 @@ class AReflowViewController(
         }
     }
 
+    private var fontSeekBar: SeekBar? = null
+    private var fontSizeLabel: TextView? = null
+    private var fontFaceSelected: TextView? = null
+    private var lineSpaceLabel: TextView? = null
+    private var colorLabel: TextView? = null
+    private var fontFaceChange: View? = null
+    private var linespaceMinus: View? = null
+    private var linespacePlus: View? = null
+    private var bgSetting: View? = null
+    private var fgSetting: View? = null
+
     private fun initStyleControls() {
         mPageSeekBarControls?.hide()
         if (null == mStyleControls) {
             mStyleControls = LayoutInflater.from(context).inflate(R.layout.text_style, null, false)
+            fontSeekBar = mStyleControls!!.findViewById(R.id.font_seek_bar)
+            fontSizeLabel = mStyleControls!!.findViewById(R.id.font_size_label)
+            fontFaceSelected = mStyleControls!!.findViewById(R.id.font_face_selected)
+            lineSpaceLabel = mStyleControls!!.findViewById(R.id.line_space_label)
+            colorLabel = mStyleControls!!.findViewById(R.id.color_label)
+            fontFaceChange = mStyleControls!!.findViewById(R.id.font_face_change)
+            linespaceMinus = mStyleControls!!.findViewById(R.id.linespace_minus)
+            linespacePlus = mStyleControls!!.findViewById(R.id.linespace_plus)
+            bgSetting = mStyleControls!!.findViewById(R.id.bg_setting)
+            fgSetting = mStyleControls!!.findViewById(R.id.fg_setting)
 
             val lp = RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -299,30 +348,20 @@ class AReflowViewController(
         }
         mStyleControls?.visibility = View.VISIBLE
 
-        mFontSeekBar = mStyleControls?.findViewById(R.id.font_seek_bar)
-        mFontSizeLabel = mStyleControls?.findViewById(R.id.font_size_label)
-        mFontFaceSelected = mStyleControls?.findViewById(R.id.font_face_selected)
-        mFontFaceChange = mStyleControls?.findViewById(R.id.font_face_change)
-        mLineSpaceLabel = mStyleControls?.findViewById(R.id.line_space_label)
-        mLinespaceMinus = mStyleControls?.findViewById(R.id.linespace_minus)
-        mLinespacePlus = mStyleControls?.findViewById(R.id.linespace_plus)
-        mColorLabel = mStyleControls?.findViewById(R.id.color_label)
-        mBgSetting = mStyleControls?.findViewById(R.id.bg_setting)
-        mFgSetting = mStyleControls?.findViewById(R.id.fg_setting)
-
         mStyleHelper?.let {
             val progress = (it.styleBean?.textSize!! - START_PROGRESS).toInt()
-            mFontSeekBar?.progress = progress
-            mFontSizeLabel?.text = String.format("%s", progress + START_PROGRESS)
-            mFontSeekBar?.max = 10
-            mFontSeekBar?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            fontSeekBar?.progress = progress
+            fontSizeLabel?.text = String.format("%s", progress + START_PROGRESS)
+            fontSeekBar?.max = 10
+            fontSeekBar?.setOnSeekBarChangeListener(object :
+                SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(
                     seekBar: SeekBar?,
                     progress: Int,
                     fromUser: Boolean
                 ) {
                     val index = (progress + START_PROGRESS)
-                    mFontSizeLabel?.text = String.format("%s", index)
+                    fontSizeLabel?.text = String.format("%s", index)
                 }
 
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -334,20 +373,21 @@ class AReflowViewController(
                     updateReflowAdapter()
                 }
             })
-            mFontFaceSelected?.text = it.fontHelper?.fontBean?.fontName
+            fontFaceSelected?.text = it.fontHelper?.fontBean?.fontName
 
-            mLineSpaceLabel?.text = String.format("%s倍", it.styleBean?.lineSpacingMult)
-            mColorLabel?.setBackgroundColor(it.styleBean?.bgColor!!)
-            mColorLabel?.setTextColor(it.styleBean?.fgColor!!)
+            lineSpaceLabel?.text = String.format("%s倍", it.styleBean?.lineSpacingMult)
+            colorLabel?.setBackgroundColor(it.styleBean?.bgColor!!)
+            colorLabel?.setTextColor(it.styleBean?.fgColor!!)
         }
 
-        mFontFaceChange?.setOnClickListener {
-            FontsFragment.showFontsDialog(context as FragmentActivity, mStyleHelper,
+        fontFaceChange?.setOnClickListener {
+            FontsFragment.showFontsDialog(
+                context, mStyleHelper,
                 object : DataListener {
                     override fun onSuccess(vararg args: Any?) {
                         updateReflowAdapter()
                         val fBean = args[0] as FontBean
-                        mFontFaceSelected?.text = fBean.fontName
+                        fontFaceSelected?.text = fBean.fontName
                     }
 
                     override fun onFailed(vararg args: Any?) {
@@ -355,7 +395,7 @@ class AReflowViewController(
                 })
         }
 
-        mLinespaceMinus?.setOnClickListener {
+        linespaceMinus?.setOnClickListener {
             var old = mStyleHelper?.styleBean?.lineSpacingMult
             if (old!! < 0.8f) {
                 return@setOnClickListener
@@ -363,7 +403,7 @@ class AReflowViewController(
             old = old.minus(0.1f)
             applyLineSpace(old)
         }
-        mLinespacePlus?.setOnClickListener {
+        linespacePlus?.setOnClickListener {
             var old = mStyleHelper?.styleBean?.lineSpacingMult
             if (old!! > 2.2f) {
                 return@setOnClickListener
@@ -371,25 +411,27 @@ class AReflowViewController(
             old = old?.plus(0.1f)
             applyLineSpace(old)
         }
-        mBgSetting?.setOnClickListener {
-            pickerColor(
-                mStyleHelper?.styleBean?.bgColor!!,
-                ColorPickerDialog.OnColorSelectedListener { color ->
-                    mColorLabel?.setBackgroundColor(color)
+        bgSetting?.setOnClickListener {
+            ColorPickerDialog()
+                .withColor(mStyleHelper?.styleBean?.bgColor!!)
+                .withListener { _, color ->
+                    colorLabel?.setBackgroundColor(color)
                     mStyleHelper?.styleBean?.bgColor = color
                     mStyleHelper?.saveStyleToSP(mStyleHelper?.styleBean)
                     updateReflowAdapter()
-                })
+                }
+                .show(context.supportFragmentManager, "colorPicker")
         }
-        mFgSetting?.setOnClickListener {
-            pickerColor(
-                mStyleHelper?.styleBean?.fgColor!!,
-                ColorPickerDialog.OnColorSelectedListener { color ->
-                    mColorLabel?.setTextColor(color)
+        fgSetting?.setOnClickListener {
+            ColorPickerDialog()
+                .withColor(mStyleHelper?.styleBean?.fgColor!!)
+                .withListener { _, color ->
+                    colorLabel?.setTextColor(color)
                     mStyleHelper?.styleBean?.fgColor = color
                     mStyleHelper?.saveStyleToSP(mStyleHelper?.styleBean)
                     updateReflowAdapter()
-                })
+                }
+                .show(context.supportFragmentManager, "colorPicker")
         }
     }
 
@@ -400,23 +442,10 @@ class AReflowViewController(
     }
 
     private fun applyLineSpace(old: Float?) {
-        mLineSpaceLabel?.text = String.format("%s倍", old)
+        lineSpaceLabel?.text = String.format("%s倍", old)
         mStyleHelper?.styleBean?.lineSpacingMult = old!!
         mStyleHelper?.saveStyleToSP(mStyleHelper?.styleBean)
         updateReflowAdapter()
-    }
-
-    private fun pickerColor(
-        initialColor: Int,
-        selectedListener: ColorPickerDialog.OnColorSelectedListener
-    ) {
-        if (null == colorPickerDialog) {
-            colorPickerDialog = ColorPickerDialog(context, initialColor, selectedListener)
-        } else {
-            colorPickerDialog?.updateColor(initialColor)
-            colorPickerDialog?.setOnColorSelectedListener(selectedListener)
-        }
-        colorPickerDialog?.show()
     }
 
     private fun showStyleFragment() {

@@ -56,10 +56,50 @@
             android:name="org.vudroid.pdfdroid.PdfViewerActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="Vudroid"
+            android:exported="true"
             android:screenOrientation="landscape"
-            android:theme="@style/AppFullscreen"></activity>
+            android:theme="@style/AppFullscreen">
 
-        <activity
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:mimeType="application/pdf" />
+                <data android:mimeType="application/vnd.ms-xpsdocument" />
+                <data android:mimeType="application/oxps" />
+                <data android:mimeType="application/x-cbz" />
+                <data android:mimeType="application/epub+zip" />
+                <data android:mimeType="text/xml" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:pathPattern=".*\\.pdf" />
+                <data android:pathPattern=".*\\.xps" />
+                <data android:pathPattern=".*\\.oxps" />
+                <data android:pathPattern=".*\\.cbz" />
+                <data android:pathPattern=".*\\.epub" />
+                <data android:pathPattern=".*\\.fb2" />
+                <data android:pathPattern=".*\\.mobi" />
+                <data android:pathPattern=".*\\.txt" />
+                <data android:pathPattern=".*\\.json" />
+                <data android:pathPattern=".*\\.html" />
+                <data android:pathPattern=".*\\.js" />
+                <data android:pathPattern=".*\\.doc" />
+                <data android:pathPattern=".*\\.docx" />
+                <data android:pathPattern=".*\\.ppt" />
+                <data android:pathPattern=".*\\.pptx" />
+                <data android:pathPattern=".*\\.xls" />
+                <data android:pathPattern=".*\\.xlsx" />
+            </intent-filter>
+        </activity>
+
+        <!--<activity
             android:name="cn.archko.pdf.activities.AMuPDFRecyclerViewActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:exported="true"
@@ -103,7 +143,7 @@
                 <data android:pathPattern=".*\\.xls" />
                 <data android:pathPattern=".*\\.xlsx" />
             </intent-filter>
-        </activity>
+        </activity>-->
 
         <activity
             android:name="cn.archko.pdf.activities.AboutActivity"

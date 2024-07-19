@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cn.archko.pdf.adapters.AdapterUtils
+import cn.archko.pdf.utils.AdapterUtils
 import cn.archko.pdf.common.Event
 import cn.archko.pdf.common.Graph
 import cn.archko.pdf.common.Logcat

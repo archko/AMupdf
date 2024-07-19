@@ -23,61 +23,73 @@ public class BitmapCache {
     }
 
     private BitmapCache() {
+        pageCache = new InnerCache(MAX_PAGE_SIZE_IN_BYTES);
+        nodeCache = new InnerCache(MAX_NODE_SIZE_IN_BYTES);
     }
 
-    private static final int mMaxPoolSizeInBytes = 100 * 1024 * 1024;
+    public static void setMaxMemory(float maxMemory) {
+        MAX_PAGE_SIZE_IN_BYTES = (int) (maxMemory * 0.8);
+        MAX_NODE_SIZE_IN_BYTES = (int) (maxMemory - MAX_PAGE_SIZE_IN_BYTES);
+    }
 
+    private InnerCache pageCache;
+    private InnerCache nodeCache;
+
+    public final Bitmap getBitmap(@NonNull String key) {
+        return pageCache.getBitmap(key);
+    }
+
+    @Nullable
+    public final Bitmap addBitmap(@NonNull String key, @NonNull Bitmap value) {
+        return pageCache.addBitmap(key, value);
+    }
+
+    public final Bitmap remove(@NonNull String key) {
+        return pageCache.remove(key);
+    }
+
+    public final Bitmap getNodeBitmap(@NonNull String key) {
+        return nodeCache.getBitmap(key);
+    }
+
+    @Nullable
+    public final Bitmap addNodeBitmap(@NonNull String key, @NonNull Bitmap value) {
+        return nodeCache.addBitmap(key, value);
+    }
+
+    public final Bitmap removeNode(@NonNull String key) {
+        return nodeCache.remove(key);
+    }
+
+    public final void clear() {
+        pageCache.clear();
+        nodeCache.clear();
+    }
+
+    /**
+     * 页面缩略图的缓存大小,通常按页面高宽的1/4,如果页面非常大,比如4000,那么缓存能存10多屏
+     */
+    private static int MAX_PAGE_SIZE_IN_BYTES = 160 * 1024 * 1024;
+    /**
+     * 节点的缓存,平均一个1080*2240的屏幕上的node需要2419200*4,大约8mb多点,32m可以缓存几个屏幕
+     */
+    private static int MAX_NODE_SIZE_IN_BYTES = 36 * 1024 * 1024;
+
+    private static class InnerCache {
+        private int maxByte = MAX_PAGE_SIZE_IN_BYTES;
     private int mPoolSizeInBytes = 0;
-    /*
-    private int capacity = 8;
-    private LruCache<Object, Bitmap> cacheKt = new RecycleLruCache(capacity);
 
-    public LruCache<Object, Bitmap> getCache() {
-        return cacheKt;
-    }
-
-    public void resize(int maxSize) {
-        capacity = maxSize;
-        cacheKt.resize(maxSize);
-    }
-
-    public void clear() {
-        cacheKt.evictAll();
-    }
-
-    public void addBitmap(Object key, Bitmap val) {
-        cacheKt.put(key, val);
-    }
-
-    public Bitmap getBitmap(Object key) {
-        return cacheKt.get(key);
-    }
-
-    public Bitmap removeBitmap(Object key) {
-        Bitmap bitmap = cacheKt.get(key);
-        cacheKt.remove(key);
-        return bitmap;
-    }
-
-    private static class RecycleLruCache extends LruCache<Object, Bitmap> {
-
-        public RecycleLruCache(int maxSize) {
-            super(maxSize);
-        }
-
-        @Override
-        protected void entryRemoved(boolean evicted, @NonNull Object key, @NonNull Bitmap oldValue, @Nullable Bitmap newValue) {
-            //BitmapPool.getInstance().release(oldValue);
-        }
-    }*/
-
-    private final LinkedHashMap<String, Bitmap> map = new LinkedHashMap<>(16, 0.75f, true);
+        private final LinkedHashMap<String, Bitmap> bitmapLinkedMap = new LinkedHashMap<>(16, 0.75f, true);
 
     private int putCount;
     private int createCount;
     private int evictionCount;
     private int hitCount;
     private int missCount;
+
+        public InnerCache(int maxByte) {
+            this.maxByte = maxByte;
+        }
 
     @Nullable
     public final Bitmap getBitmap(@NonNull String key) {
@@ -87,9 +99,13 @@ public class BitmapCache {
 
         Bitmap mapValue;
         synchronized (this) {
-            mapValue = map.get(key);
+                mapValue = bitmapLinkedMap.get(key);
             if (mapValue != null) {
                 hitCount++;
+                    if (mapValue.isRecycled()) {
+                        bitmapLinkedMap.remove(key);
+                        return null;
+                    }
                 return mapValue;
             }
             missCount++;
@@ -127,7 +143,10 @@ public class BitmapCache {
         if (key == null || value == null) {
             throw new NullPointerException("key == null || value == null");
         }
-        while (mPoolSizeInBytes > mMaxPoolSizeInBytes) {
+            if (value.isRecycled()) {
+                return null;
+            }
+            while (mPoolSizeInBytes > MAX_PAGE_SIZE_IN_BYTES) {
             removeLast();
         }
 
@@ -136,7 +155,7 @@ public class BitmapCache {
         Bitmap previous;
         synchronized (this) {
             putCount++;
-            previous = map.put(key, value);
+                previous = bitmapLinkedMap.put(key, value);
             if (previous != null) {
                 mPoolSizeInBytes -= previous.getByteCount();
             }
@@ -154,21 +173,38 @@ public class BitmapCache {
         String key;
         Bitmap value;
         synchronized (this) {
-            if (map.isEmpty()) {
+                if (bitmapLinkedMap.isEmpty()) {
                 return;
             }
 
-            Map.Entry<String, Bitmap> toEvict = map.entrySet().iterator().next();
+                Map.Entry<String, Bitmap> toEvict = bitmapLinkedMap.entrySet().iterator().next();
             key = toEvict.getKey();
             value = toEvict.getValue();
-            map.remove(key);
+                bitmapLinkedMap.remove(key);
+                if (!value.isRecycled()) {
             mPoolSizeInBytes -= value.getByteCount();
+                } else {
+                    caculateSize();
+                }
+
             evictionCount++;
         }
         //System.out.println(String.format("removeLast.size:%s, key:%s,val:%s, size:%s", map.size(), key, value, mPoolSizeInBytes));
 
         entryRemoved(true, key, value, null);
     }
+
+        private void caculateSize() {
+            int size = 0;
+            int oldSize = mPoolSizeInBytes;
+            for (Map.Entry<String, Bitmap> entry : bitmapLinkedMap.entrySet()) {
+                if (!entry.getValue().isRecycled()) {
+                    size += entry.getValue().getByteCount();
+                }
+            }
+            mPoolSizeInBytes = size;
+            //System.out.println("caculateSize:" + size + " old:" + oldSize);
+        }
 
     @Nullable
     public final Bitmap remove(@NonNull String key) {
@@ -178,9 +214,13 @@ public class BitmapCache {
 
         Bitmap previous;
         synchronized (this) {
-            previous = map.remove(key);
+                previous = bitmapLinkedMap.remove(key);
             if (previous != null) {
+                    if (!previous.isRecycled()) {
                 mPoolSizeInBytes -= previous.getByteCount();
+                    } else {
+                        caculateSize();
+                    }
             }
         }
 
@@ -201,7 +241,7 @@ public class BitmapCache {
     }
 
     public final void clear() {
-        int size = map.size();
+            int size = bitmapLinkedMap.size();
         for (int i = 0; i < size; i++) {
             removeLast();
         }
@@ -228,7 +268,7 @@ public class BitmapCache {
     }
 
     public synchronized final Map<String, Bitmap> snapshot() {
-        return new LinkedHashMap<String, Bitmap>(map);
+            return new LinkedHashMap<String, Bitmap>(bitmapLinkedMap);
     }
-
+    }
 }

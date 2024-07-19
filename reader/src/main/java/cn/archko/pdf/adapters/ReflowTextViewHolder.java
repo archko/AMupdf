@@ -1,32 +1,30 @@
 package cn.archko.pdf.adapters;
 
 import android.content.Context;
-import android.content.res.Configuration;
-import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Typeface;
-import android.text.Html;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.List;
 
-import cn.archko.pdf.common.Logcat;
-import cn.archko.pdf.common.ParseTextMain;
+import androidx.recyclerview.awidget.ARecyclerView;
+import cn.archko.pdf.R;
 import cn.archko.pdf.common.ReflowViewCache;
 import cn.archko.pdf.common.StyleHelper;
-import cn.archko.pdf.entity.BitmapBean;
+import cn.archko.pdf.core.common.ParseTextMain;
+import cn.archko.pdf.core.entity.BitmapBean;
 import cn.archko.pdf.entity.ReflowBean;
-import cn.archko.pdf.utils.BitmapUtils;
+import cn.archko.pdf.utils.Utils;
 
 /**
  * @author: archko 2019-02-21 :09:18
  */
-public class ReflowTextViewHolder extends BaseViewHolder {
+public class ReflowTextViewHolder extends ARecyclerView.ViewHolder {
 
     public PDFTextView pageView;
 
@@ -35,55 +33,27 @@ public class ReflowTextViewHolder extends BaseViewHolder {
         pageView = itemView;
     }
 
-    public void bindAsText(byte[] result, int screenHeight, int screenWidth, float systemScale) {
-        /*String text = ParseTextMain.Companion.getInstance().parseAsText(result);
-        //Logcat.d("text", text = UnicodeDecoder.unescape2(text));
-        Html.ImageGetter imageGetter = new Html.ImageGetter() {
-            @Override
-            public Drawable getDrawable(String source) {
-                //Log.d("text", source);
-                Bitmap bitmap = BitmapUtils.base64ToBitmap(source.replaceAll("data:image/(png|jpeg);base64,", "")*//*.replaceAll("\\s", "")*//*);
-
-                if (null == bitmap ||
-                        (bitmap.getWidth() < PDFTextView.minImgHeight
-                                && bitmap.getHeight() < PDFTextView.minImgHeight)) {
-                    Logcat.d("text", "bitmap decode failed.");
-                    return null;
-                }
-                float width = bitmap.getWidth() * systemScale;
-                float height = bitmap.getHeight() * systemScale;
-                int sw = screenHeight;
-                if (isScreenPortrait(pageView.getContext())) {
-                    sw = screenWidth;
-                }
-                if (width > sw) {
-                    float ratio = sw / width;
-                    height = ratio * height;
-                    width = sw;
-                }
-                Drawable drawable = new BitmapDrawable(null, bitmap);
-                drawable.setBounds(0, 0, (int) width, (int) height);
-                return drawable;
-            }
-        };
-        Spanned spanned = AHtml.fromHtml(text, imageGetter, null);
-        pageView.textView.setText(spanned);*/
-    }
-
-    public void bindAsList(byte[] result, int screenHeight, int screenWidth, float systemScale) {
-        List<ReflowBean> text = ParseTextMain.Companion.getInstance().parseAsList(result, 0);
-        bindAsList(text, screenHeight, screenWidth, systemScale, null);
-    }
-
-    public void bindAsList(List<ReflowBean> text, int screenHeight, int screenWidth, float systemScale, ReflowViewCache reflowViewCache) {
+    public void bindAsList(List<ReflowBean> text, int screenHeight, int screenWidth,
+                           float systemScale, ReflowViewCache reflowViewCache, boolean showBookmark) {
         recycleViews(reflowViewCache);
         pageView.applyStyle();
         for (ReflowBean reflowBean : text) {
             if (reflowBean.getType() == ReflowBean.TYPE_STRING) {
-                pageView.addTextView(reflowBean.getData(), reflowViewCache);
+                pageView.addTextView(reflowBean.getData(), reflowViewCache, showBookmark);
             } else {
-                pageView.addImageView(reflowBean.getData(), systemScale, screenHeight, screenWidth, reflowViewCache);
+                pageView.addImageView(reflowBean.getData(), systemScale, screenHeight, screenWidth, reflowViewCache, showBookmark);
             }
+        }
+    }
+
+    public void bindAsReflowBean(ReflowBean reflowBean, int screenHeight, int screenWidth,
+                                 float systemScale, ReflowViewCache reflowViewCache, boolean showBookmark) {
+        recycleViews(reflowViewCache);
+        pageView.applyStyle();
+        if (reflowBean.getType() == ReflowBean.TYPE_STRING) {
+            pageView.addTextView(reflowBean.getData(), reflowViewCache, showBookmark);
+        } else {
+            pageView.addImageView(reflowBean.getData(), systemScale, screenHeight, screenWidth, reflowViewCache, showBookmark);
         }
     }
 
@@ -101,60 +71,8 @@ public class ReflowTextViewHolder extends BaseViewHolder {
         }
     }
 
-    private static String IMAGE_HEADER = "base64,";
-
-    private static BitmapBean decodeBitmap(String base64Source, float systemScale, int screenHeight, int screenWidth, Context context) {
-        if (TextUtils.isEmpty(base64Source)) {
-            return null;
-        }
-        //Logcat.longLog("text", base64Source);
-        if (!base64Source.contains(IMAGE_HEADER)) {
-            return null;
-        }
-        int index = base64Source.indexOf(IMAGE_HEADER);
-        base64Source = base64Source.substring(index + IMAGE_HEADER.length());
-        //Logcat.d("base:" + base64Source);
-        Bitmap bitmap = BitmapUtils.base64ToBitmap(base64Source.replaceAll("\"/></p>", "")/*.replaceAll("\\s", "")*/);
-
-        if (null == bitmap
-                || (bitmap.getWidth() < PDFTextView.minImgHeight
-                && bitmap.getHeight() < PDFTextView.minImgHeight)) {
-            Logcat.i("text", "bitmap decode failed.");
-            return null;
-        }
-        float width = bitmap.getWidth() * systemScale;
-        float height = bitmap.getHeight() * systemScale;
-        if (Logcat.loggable) {
-            Logcat.d(String.format("width:%s, height:%s systemScale:%s", bitmap.getWidth(), bitmap.getHeight(), systemScale));
-        }
-        int sw = screenHeight;
-        if (isScreenPortrait(context)) {
-            sw = screenWidth;
-        }
-        if (width > sw) {
-            float ratio = sw / width;
-            height = ratio * height;
-            width = sw;
-        }
-
-        return new BitmapBean(bitmap, width, height);
-    }
-
-    static boolean isScreenPortrait(Context context) {
-        Configuration mConfiguration = context.getResources().getConfiguration(); //获取设置的配置信息
-        int ori = mConfiguration.orientation; //获取屏幕方向
-        if (ori == Configuration.ORIENTATION_LANDSCAPE) {
-            //横屏
-            return false;
-        } else if (ori == Configuration.ORIENTATION_PORTRAIT) {
-            //竖屏
-        }
-        return true;
-    }
-
     public static class PDFTextView extends LinearLayout {
 
-        static float minImgHeight = 32;
         private StyleHelper styleHelper;
 
         public PDFTextView(Context context, StyleHelper styleHelper) {
@@ -185,7 +103,7 @@ public class ReflowTextViewHolder extends BaseViewHolder {
             setBackgroundColor(styleHelper.getStyleBean().getBgColor());
         }
 
-        void addTextView(String text, ReflowViewCache cacheViews) {
+        void addTextView(String text, ReflowViewCache cacheViews, boolean showBookmark) {
             if (TextUtils.isEmpty(text)) {
                 return;
             }
@@ -195,17 +113,36 @@ public class ReflowTextViewHolder extends BaseViewHolder {
             } else {
                 textView = new TextView(getContext());
                 textView.setTextIsSelectable(false);
-                if (minImgHeight == 32) {
-                    minImgHeight = textView.getPaint().measureText("我") + 5;
+                if (ParseTextMain.INSTANCE.getMinImgHeight() == 32f) {
+                    ParseTextMain.INSTANCE.setMinImgHeight(textView.getPaint().measureText("我") + 5);
                 }
             }
-            LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
             lp.gravity = Gravity.CENTER_HORIZONTAL;
             addView(textView, lp);
 
             applyStyleForText(getContext(), textView);
 
-            textView.setText(Html.fromHtml(text));
+            textView.setText(text);
+
+            addBookmark(showBookmark);
+        }
+
+        private void addBookmark(boolean showBookmark) {
+            LayoutParams lp;
+            if (showBookmark) {
+                lp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+                lp.leftMargin = Utils.dipToPixel(2);
+                lp.topMargin = Utils.dipToPixel(2);
+                TextView bm = new TextView(getContext());
+                bm.setText("B");
+                bm.setGravity(Gravity.CENTER);
+                //bm.setBackgroundResource(R.drawable.bg_bookmark_cicle);
+                bm.setTextColor(Color.MAGENTA);
+                bm.setPadding(Utils.dipToPixel(4), 0, Utils.dipToPixel(4), 0);
+                bm.setTextSize(18);
+                addView(bm, lp);
+            }
         }
 
         /**
@@ -227,8 +164,8 @@ public class ReflowTextViewHolder extends BaseViewHolder {
             textView.setTypeface(typeface);
         }
 
-        void addImageView(String text, float systemScale, int screenHeight, int screenWidth, ReflowViewCache reflowViewCache) {
-            BitmapBean bean = decodeBitmap(text, systemScale, screenHeight, screenWidth, getContext());
+        void addImageView(String text, float systemScale, int screenHeight, int screenWidth, ReflowViewCache reflowViewCache, boolean showBookmark) {
+            BitmapBean bean = ParseTextMain.INSTANCE.decodeBitmap(text, systemScale, screenHeight, screenWidth, getContext());
             if (null != bean && bean.getBitmap() != null) {
                 ImageView imageView = null;
                 if (null != reflowViewCache && reflowViewCache.imageViewCount() > 0) {
@@ -246,6 +183,7 @@ public class ReflowTextViewHolder extends BaseViewHolder {
                 addView(imageView, lp);
                 imageView.setImageBitmap(bean.getBitmap());
             }
+            addBookmark(showBookmark);
         }
     }
 }

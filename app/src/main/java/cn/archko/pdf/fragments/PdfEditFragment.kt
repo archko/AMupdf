@@ -17,6 +17,8 @@ import cn.archko.mupdf.databinding.FragmentPdfEditBinding
 import cn.archko.pdf.common.BitmapCache
 import cn.archko.pdf.common.BitmapPool
 import cn.archko.pdf.common.PDFCreaterHelper
+import cn.archko.pdf.core.ui.MupdfGridAdapter
+import cn.archko.pdf.core.ui.PDFEditViewModel
 import cn.archko.pdf.listeners.ClickListener
 import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.utils.FileUtils

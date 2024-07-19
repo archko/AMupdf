@@ -1,4 +1,4 @@
-package cn.archko.pdf.entity
+package cn.archko.pdf.core.entity
 
 import android.graphics.Bitmap
 

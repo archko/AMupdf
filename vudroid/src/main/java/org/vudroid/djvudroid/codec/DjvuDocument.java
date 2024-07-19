@@ -1,18 +1,22 @@
 package org.vudroid.djvudroid.codec;
 
+import com.artifex.mupdf.fitz.Outline;
+
 import org.vudroid.core.codec.CodecDocument;
 
 public class DjvuDocument implements CodecDocument {
+    private long contextHandle;
     private long documentHandle;
     private final Object waitObject;
 
-    private DjvuDocument(long documentHandle, Object waitObject) {
+    private DjvuDocument(long contextHandle, long documentHandle, Object waitObject) {
+        this.contextHandle = contextHandle;
         this.documentHandle = documentHandle;
         this.waitObject = waitObject;
     }
 
     static DjvuDocument openDocument(String fileName, DjvuContext djvuContext, Object waitObject) {
-        return new DjvuDocument(open(djvuContext.getContextHandle(), fileName), waitObject);
+        return new DjvuDocument(djvuContext.getContextHandle(), open(djvuContext.getContextHandle(), fileName), waitObject);
     }
 
     private native static long open(long contextHandle, String fileName);
@@ -24,7 +28,7 @@ public class DjvuDocument implements CodecDocument {
     private native static void free(long pageHandle);
 
     public DjvuPage getPage(int pageNumber) {
-        return new DjvuPage(getPage(documentHandle, pageNumber), waitObject);
+        return new DjvuPage(contextHandle,documentHandle,getPage(documentHandle, pageNumber), pageNumber);
     }
 
     public int getPageCount() {
@@ -43,5 +47,10 @@ public class DjvuDocument implements CodecDocument {
         }
         free(documentHandle);
         documentHandle = 0;
+    }
+
+    @Override
+    public Outline[] loadOutline() {
+        return new Outline[0];
     }
 }

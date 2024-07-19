@@ -22,7 +22,7 @@ import cn.archko.mupdf.databinding.FragmentCreatePdfBinding
 import cn.archko.pdf.adapters.BaseRecyclerAdapter
 import cn.archko.pdf.adapters.BaseViewHolder
 import cn.archko.pdf.common.PDFCreaterHelper
-import cn.archko.pdf.common.PathFromUri
+import cn.archko.pdf.core.common.IntentFile
 import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.utils.FileUtils
 import coil.load
@@ -72,10 +72,12 @@ class PdfCreationFragment : DialogFragment(R.layout.fragment_create_pdf) {
     private val pickPdf =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult? ->
             if (result?.resultCode == Activity.RESULT_OK) {
-                val path = PathFromUri.getFilePathByUri(
-                    activity,
-                    result.data?.data
-                )
+                val path = result.data?.data?.let {
+                    IntentFile.getFilePathByUri(
+                        requireContext(),
+                        it
+                    )
+                }
                 oldPdfPath = path
                 binding.oldPdfPath.text = "Old pdf:$path"
             }
@@ -223,7 +225,7 @@ class PdfCreationFragment : DialogFragment(R.layout.fragment_create_pdf) {
                     val oneUri = result.data?.data
                     if (oneUri != null) {
                         val parseParams =
-                            PathFromUri.getFilePathByUri(context, oneUri)
+                            IntentFile.getFilePathByUri(requireContext(), oneUri)
                         if (parseParams != null) {
                             paths.add(parseParams)
                         }
@@ -231,7 +233,7 @@ class PdfCreationFragment : DialogFragment(R.layout.fragment_create_pdf) {
                         for (index in 0 until (result.data?.clipData?.itemCount ?: 0)) {
                             val uri = result.data?.clipData?.getItemAt(index)?.uri
                             if (uri != null) {
-                                val parseParams = PathFromUri.getFilePathByUri(context, uri)
+                                val parseParams = IntentFile.getFilePathByUri(requireContext(), uri)
                                 if (parseParams != null) {
                                     paths.add(parseParams)
                                 }
@@ -257,7 +259,7 @@ class PdfCreationFragment : DialogFragment(R.layout.fragment_create_pdf) {
     private val pickTxt =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult? ->
             if (result?.resultCode == Activity.RESULT_OK) {
-                val path = result.data?.data?.let { PathFromUri.getFilePathByUri(context, it) }
+                val path = result.data?.data?.let { IntentFile.getFilePathByUri(requireContext(), it) }
                 txtPath = path
                 binding.txtPath.text = txtPath
             }

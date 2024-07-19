@@ -24,7 +24,7 @@ import cn.archko.pdf.AppExecutors
 import cn.archko.pdf.adapters.BaseRecyclerAdapter
 import cn.archko.pdf.adapters.BaseViewHolder
 import cn.archko.pdf.common.PDFCreaterHelper
-import cn.archko.pdf.common.PathFromUri
+import cn.archko.pdf.core.common.IntentFile
 import cn.archko.pdf.listeners.DataListener
 import cn.archko.pdf.utils.FileUtils
 import cn.archko.pdf.utils.Utils
@@ -82,17 +82,21 @@ class PdfOperationFragment : DialogFragment(R.layout.fragment_pdf_opt) {
     private val pickPdf =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult? ->
             if (result?.resultCode == Activity.RESULT_OK) {
-                val path = PathFromUri.getFilePathByUri(
-                    activity,
-                    result.data?.data
-                )
-                if (type == TYPE_EXTRACT_IMAGES) {
-                    txtPath = path
-                    binding.pdfPath.text = path
-                    loadPdf(path)
-                } else {
-                    adapter.data.add(adapter.itemCount, path)
-                    adapter.notifyDataSetChanged()
+                val path = result.data?.data?.let {
+                    IntentFile.getFilePathByUri(
+                        requireContext(),
+                        it
+                    )
+                }
+                if (!TextUtils.isEmpty(path)) {
+                    if (type == TYPE_EXTRACT_IMAGES) {
+                        txtPath = path
+                        binding.pdfPath.text = path
+                        loadPdf(path!!)
+                    } else {
+                        adapter.data.add(adapter.itemCount, path)
+                        adapter.notifyDataSetChanged()
+                    }
                 }
             }
         }

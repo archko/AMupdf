@@ -25,7 +25,7 @@ import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 import cn.archko.mupdf.R
-import cn.archko.pdf.mupdf.MupdfDocument
+import cn.archko.pdf.decode.MupdfDocument
 import cn.archko.pdf.utils.BitmapUtils
 import cn.archko.pdf.utils.FileUtils
 import cn.archko.pdf.utils.StreamUtils
@@ -146,7 +146,7 @@ object PDFCreaterHelper {
         val options = BitmapFactory.Options()
         //默认值为false，如果设置成true，那么在解码的时候就不会返回bitmap，即bitmap = null。
         options.inJustDecodeBounds = true
-        val maxHeight = PAPER_HEIGHT
+        val maxHeight = 6000
 
         val result = arrayListOf<String>()
         for (path in imagePaths) {
@@ -274,7 +274,7 @@ object PDFCreaterHelper {
                     return i
                 }
                 val loadPage = mMupdfDocument.loadPage(i)
-                val pageWidth = loadPage.bounds.x1 - loadPage.bounds.x0
+                val pageWidth = loadPage!!.bounds.x1 - loadPage.bounds.x0
                 val pageHeight = loadPage.bounds.y1 - loadPage.bounds.y0
 
                 var exportWidth = screenWidth
@@ -308,7 +308,7 @@ object PDFCreaterHelper {
             for (i in 0 until cp) {
                 val loadPage = mMupdfDocument.loadPage(i)
                 val content =
-                    String(loadPage.textAsHtml2("preserve-whitespace,inhibit-spaces,preserve-images"))
+                    String(loadPage!!.textAsHtml2("preserve-whitespace,inhibit-spaces,preserve-images"))
                 stringBuilder.append(content)
                 loadPage.destroy()
                 StreamUtils.appendStringToFile(stringBuilder.toString(), path)

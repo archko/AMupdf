@@ -9,6 +9,9 @@ buildscript {
             allowInsecureProtocol = true
             url "https://maven.aliyun.com/repository/google"
         }
+        maven {
+            url = uri("https://jitpack.io")
+        }
         mavenLocal()
         google()
         jcenter()
@@ -29,6 +32,9 @@ allprojects {
         maven {
             allowInsecureProtocol = true
             url "https://maven.aliyun.com/repository/google"
+        }
+        maven {
+            url = uri("https://jitpack.io")
         }
         mavenLocal()
         google()

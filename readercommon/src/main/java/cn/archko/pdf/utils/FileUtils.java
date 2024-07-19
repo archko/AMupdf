@@ -3,6 +3,7 @@ package cn.archko.pdf.utils;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Environment;
+import android.text.TextUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,6 +22,7 @@ import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 import cn.archko.pdf.App;
 
@@ -70,12 +72,25 @@ public final class FileUtils {
     }
 
     public static final File getStorageDir(String dir) {
-        String path = Environment.getExternalStorageDirectory().getPath() + "/" + dir;
-        File file = new File(path);
+        //String path = Environment.getExternalStorageDirectory().getPath() + "/" + dir;
+        String sdcardRoot = getStorageDirPath();
+        File file = new File(sdcardRoot + "/" + dir);
         if (!file.exists()) {
             file.mkdirs();
         }
         return file;
+    }
+
+    public static final String getStorageDirPath() {
+        File externalFileRootDir = App.Companion.getInstance().getExternalFilesDir(null);
+        do {
+            externalFileRootDir = Objects.requireNonNull(externalFileRootDir).getParentFile();
+        } while (Objects.requireNonNull(externalFileRootDir).getAbsolutePath().contains("/Android"));
+        String sdcardRoot = null;
+        if (null != externalFileRootDir) {
+            sdcardRoot = externalFileRootDir.getPath();
+        }
+        return sdcardRoot;
     }
 
     public static final String getDir(File file) {
@@ -161,11 +176,37 @@ public final class FileUtils {
         return absPath.substring(index + 1);
     }
 
+    public static final String getNameWithoutExt(final String absPath) {
+        if (absPath == null) {
+            return "";
+        }
+        final int index = absPath.lastIndexOf("/");
+        if (index == -1) {
+            return "";
+        }
+        final int end = absPath.lastIndexOf(".");
+        if (end == -1) {
+            return "";
+        }
+        return absPath.substring(index + 1, end);
+    }
+
     public static final String getExtension(final File file) {
         if (file == null) {
             return "";
         }
         final String name = file.getName();
+        final int index = name.lastIndexOf(".");
+        if (index == -1) {
+            return "";
+        }
+        return name.substring(index + 1);
+    }
+
+    public static final String getExtension(String name) {
+        if (TextUtils.isEmpty(name)) {
+            return name;
+        }
         final int index = name.lastIndexOf(".");
         if (index == -1) {
             return "";
@@ -443,5 +484,26 @@ public final class FileUtils {
             stringBuilder.append(hv);
         }
         return stringBuilder.toString();
+    }
+
+    public static String getFileCharsetName(String fileName) throws IOException {
+        InputStream inputStream = new FileInputStream(fileName);
+        byte[] head = new byte[3];
+        inputStream.read(head);
+
+        String charsetName = "GBK";//或GB2312，即ANSI
+        if (head[0] == -1 && head[1] == -2) //0xFFFE
+            charsetName = "UTF-16";
+        else if (head[0] == -2 && head[1] == -1) //0xFEFF
+            charsetName = "Unicode";//包含两种编码格式：UCS2-Big-Endian和UCS2-Little-Endian
+        else if (head[0] == -27 && head[1] == -101 && head[2] == -98)
+            charsetName = "UTF-8"; //UTF-8(不含BOM)
+        else if (head[0] == -17 && head[1] == -69 && head[2] == -65)
+            charsetName = "UTF-8"; //UTF-8-BOM
+
+        inputStream.close();
+
+        //System.out.println(code);
+        return charsetName;
     }
 }

@@ -1,19 +1,19 @@
 package cn.archko.pdf.viewmodel
 
 import android.content.Context
-import android.graphics.PointF
 import android.preference.PreferenceManager
 import android.text.TextUtils
-import android.util.SparseArray
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.archko.pdf.App
 import cn.archko.pdf.activities.PdfOptionsActivity
-import cn.archko.pdf.common.APageSizeLoader
 import cn.archko.pdf.common.Graph
 import cn.archko.pdf.common.Logcat
 import cn.archko.pdf.common.OutlineHelper
 import cn.archko.pdf.common.TextHelper
+import cn.archko.pdf.core.common.APageSizeLoader
+import cn.archko.pdf.core.common.IntentFile
+import cn.archko.pdf.decode.MupdfDocument
 import cn.archko.pdf.entity.APage
 import cn.archko.pdf.entity.BookProgress
 import cn.archko.pdf.entity.Bookmark
@@ -21,7 +21,6 @@ import cn.archko.pdf.entity.LoadResult
 import cn.archko.pdf.entity.OutlineItem
 import cn.archko.pdf.entity.ReflowBean
 import cn.archko.pdf.entity.State
-import cn.archko.pdf.mupdf.MupdfDocument
 import cn.archko.pdf.utils.FileUtils
 import com.artifex.mupdf.fitz.Page
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +45,7 @@ class PDFViewModel : ViewModel() {
     var txtPageCount: Int = 1
     var outlineHelper: OutlineHelper? = null
     var zoom = 1.0f
+    var isDestroy = false
 
     private fun loadBookmarks(): List<Bookmark>? {
         try {
@@ -62,6 +62,9 @@ class PDFViewModel : ViewModel() {
 
     private fun loadProgressAndBookmark(absolutePath: String?, autoCrop: Int) {
         val file = File(absolutePath)
+        if (file.isDirectory) {
+            return
+        }
         val progress = Graph.database.progressDao().getProgress(file.name)
         bookProgress = progress
         if (null == bookProgress) {
@@ -129,6 +132,7 @@ class PDFViewModel : ViewModel() {
                 old.lastTimestampe = System.currentTimeMillis()
                 progressDao.addProgress(old)
             } else {
+                progress._id = old._id
                 progress.lastTimestampe = System.currentTimeMillis()
                 progress.isFavorited = old.isFavorited
                 progressDao.updateProgress(progress)
@@ -139,7 +143,7 @@ class PDFViewModel : ViewModel() {
         }
     }
 
-    suspend fun loadBookProgressByPath(path: String, ): BookProgress? {
+    suspend fun loadBookProgressByPath(path: String): BookProgress? {
         val bookProgress = withContext(Dispatchers.IO) {
             val crop = PreferenceManager.getDefaultSharedPreferences(App.instance)
                 .getBoolean(PdfOptionsActivity.PREF_AUTOCROP, true)
@@ -194,12 +198,11 @@ class PDFViewModel : ViewModel() {
     suspend fun savePageSize(crop: Boolean, pageSizes: List<APage>) = flow {
         APageSizeLoader.savePageSizeToFile(
             crop,
-            bookProgress!!.size,
-            pageSizes,
             FileUtils.getDiskCacheDir(
                 App.instance,
                 bookProgress?.name
-            )
+            ),
+            pageSizes
         )
         emit(null)
     }.flowOn(Dispatchers.IO)
@@ -208,9 +211,7 @@ class PDFViewModel : ViewModel() {
         var pageSizeBean: APageSizeLoader.PageSizeBean? = null
         if (bookProgress != null) {
             pageSizeBean = APageSizeLoader.loadPageSizeFromFile(
-                width,
                 bookProgress!!.pageCount,
-                bookProgress!!.size,
                 FileUtils.getDiskCacheDir(
                     App.instance,
                     bookProgress?.name
@@ -235,8 +236,12 @@ class PDFViewModel : ViewModel() {
                 } else {
                     bookProgress!!.path = FileUtils.getRealPath(absolutePath)
                 }
+                var pc = pageCount
+                if (pc < 1) {
+                    pc = 1
+                }
                 bookProgress!!.inRecent = 0
-                bookProgress!!.pageCount = pageCount
+                bookProgress!!.pageCount = pc
                 bookProgress!!.page = currentPage
                 //if (zoom != 1000f) {
                 bookProgress!!.zoomLevel = zoom
@@ -245,7 +250,7 @@ class PDFViewModel : ViewModel() {
                     bookProgress!!.offsetX = scrollX
                 }
                 bookProgress!!.offsetY = scrollY
-                bookProgress!!.progress = currentPage * 100 / pageCount
+                bookProgress!!.progress = currentPage * 100 / pc
                 Logcat.i(
                     Logcat.TAG,
                     String.format(
@@ -298,13 +303,13 @@ class PDFViewModel : ViewModel() {
             Logcat.d(Logcat.TAG, "loadPdfDoc.password:$password")
             mupdfDocument!!.newDocument(path, password)
             mupdfDocument!!.let {
-                if (it.document.needsPassword()) {
+                if (it.getDocument()!!.needsPassword()) {
                     Logcat.d(Logcat.TAG, "needsPassword")
                     if (TextUtils.isEmpty(password)) {
                         emit(null)
                         return@flow
                     }
-                    it.document.authenticatePassword(password)
+                    it.getDocument()!!.authenticatePassword(password)
                 }
             }
 
@@ -361,17 +366,19 @@ class PDFViewModel : ViewModel() {
         val b = p.bounds
         val w = b.x1 - b.x0
         val h = b.y1 - b.y0
-        val pointf = PointF(w, h)
         p.destroy()
-        return APage(pageNum, pointf, 1.0f)
+        return APage(pageNum, w, h, 1.0f/*zoomModel!!.zoom*/)
     }
 
     fun destroy() {
+        Logcat.d(Logcat.TAG, "destroy:$mupdfDocument")
+        isDestroy = true
         mupdfDocument?.destroy()
+        mupdfDocument = null
     }
 
     fun countPages(): Int {
-        if (!TextUtils.isEmpty(pdfPath) && TextHelper.isText(pdfPath!!)) {
+        if (!TextUtils.isEmpty(pdfPath) && IntentFile.isText(pdfPath!!)) {
             return txtPageCount
         }
         val pc = mupdfDocument?.countPages() ?: 0

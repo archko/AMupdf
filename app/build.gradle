@@ -36,7 +36,7 @@ android {
     defaultConfig {
         applicationId 'cn.archko.mupdf'
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode 370
         versionName "7.0.0"
         vectorDrawables {

@@ -1,6 +1,7 @@
 package cn.archko.pdf.listeners
 
 import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.view.MotionEvent
 import android.view.View
 import cn.archko.pdf.entity.APage
@@ -10,14 +11,15 @@ import cn.archko.pdf.entity.APage
  */
 interface AViewController {
 
-    fun init(pageSizes: List<APage>, pos: Int)
+    fun init(pageSizes: List<APage>, pos: Int, scrollOrientation: Int)
     fun doLoadDoc(pageSizes: List<APage>, pos: Int)
 
     fun getDocumentView(): View
-    fun onSingleTap()
+    fun onSingleTap(e: MotionEvent, margin: Int): Boolean
     fun onDoubleTap()
 
     fun getCurrentPos(): Int
+    fun getCurrentBitmap(): Bitmap?
     fun getCount(): Int
     fun setOrientation(ori: Int)
     fun setCrop(crop: Boolean)

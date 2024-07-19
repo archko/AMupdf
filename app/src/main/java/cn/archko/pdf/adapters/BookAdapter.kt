@@ -10,6 +10,7 @@ import cn.archko.mupdf.R
 import cn.archko.pdf.App
 import cn.archko.pdf.entity.FileBean
 import cn.archko.pdf.listeners.OnItemClickListener
+import cn.archko.pdf.utils.AdapterUtils
 import cn.archko.pdf.utils.FileUtils
 import cn.archko.pdf.utils.Utils
 import java.util.Locale
@@ -119,7 +120,7 @@ class BookAdapter(context: Context, itemClickListener: OnItemClickListener<FileB
                 if (bookProgress?.ext != null) {
                     val ext = bookProgress.ext!!.lowercase(Locale.ROOT)
 
-                    AdapterUtils.setIcon(ext, mIcon)
+                    mIcon?.let { AdapterUtils.setIcon(ext, it) }
                 }
             }
         }
@@ -170,7 +171,7 @@ class BookAdapter(context: Context, itemClickListener: OnItemClickListener<FileB
             if (null != entry.bookProgress && null != entry.bookProgress!!.ext) {
                 val ext = entry.bookProgress!!.ext!!.lowercase(Locale.ROOT)
 
-                AdapterUtils.setIcon(ext, mIcon)
+                mIcon?.let { AdapterUtils.setIcon(ext, it) }
             }
         }
     }
@@ -230,7 +231,7 @@ class BookAdapter(context: Context, itemClickListener: OnItemClickListener<FileB
             if (bookProgress?.ext != null) {
                 val ext = bookProgress.ext!!.lowercase(Locale.ROOT)
 
-                AdapterUtils.setIcon(ext, mIcon)
+                mIcon?.let { AdapterUtils.setIcon(ext, it) }
 
                 //ImageLoader.getInstance()
                 //    .loadImage(entry.file?.absolutePath, 0, 1.0f, screenWidth, mIcon!!)

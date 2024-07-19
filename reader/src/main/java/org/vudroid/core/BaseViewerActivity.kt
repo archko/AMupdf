@@ -1,5 +1,6 @@
 package org.vudroid.core
 
+import android.app.ProgressDialog
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
@@ -13,16 +14,14 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
+import cn.archko.pdf.AppExecutors.Companion.instance
 import cn.archko.pdf.activities.PdfOptionsActivity
 import cn.archko.pdf.common.SensorHelper
 import cn.archko.pdf.common.StatusBarHelper
 import cn.archko.pdf.listeners.SimpleGestureListener
-import cn.archko.pdf.presenter.PageViewPresenter
 import cn.archko.pdf.viewmodel.PDFViewModel
-import cn.archko.pdf.widgets.APageSeekBarControls
-import kotlinx.coroutines.Dispatchers
+import com.artifex.mupdf.fitz.Outline
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.vudroid.core.events.CurrentPageListener
 import org.vudroid.core.events.DecodingProgressListener
 import org.vudroid.core.models.CurrentPageModel
@@ -38,12 +37,14 @@ abstract class BaseViewerActivity : FragmentActivity(), DecodingProgressListener
         private set
     private var pageNumberToast: Toast? = null
     private var currentPageModel: CurrentPageModel? = null
-    var pageControls: PageViewZoomControls? = null
+    //var pageControls: PageViewZoomControls? = null
 
-    //private CurrentPageModel mPageModel;
-    var pageSeekBarControls: APageSeekBarControls? = null
-    var pdfViewModel: PDFViewModel? = null
+    var outlineDialog: OutlineDialog? = null
+    private var outlines: Array<Outline>? = null
     var sensorHelper: SensorHelper? = null
+    var pdfViewModel: PDFViewModel? = null
+    protected var progressDialog: ProgressDialog? = null
+    protected var isDocLoaded: Boolean = false
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,13 +56,30 @@ abstract class BaseViewerActivity : FragmentActivity(), DecodingProgressListener
         sensorHelper = SensorHelper(this)
         val uri = intent.data
         val absolutePath = Uri.decode(uri!!.encodedPath)
-
+        var scrollX = 0
+        var scrollY = 0
+        var crop = true
+        var currentPage = 0
+        lifecycleScope.launch {
+            val bookProgress = pdfViewModel!!.loadBookProgressByPath(absolutePath)
+            bookProgress?.run {
+                zoomModel.zoom = bookProgress.zoomLevel.div(1000) ?: 1f
+                scrollX = pdfViewModel!!.bookProgress!!.offsetX
+                scrollY = pdfViewModel!!.bookProgress!!.offsetY
+                crop = pdfViewModel!!.bookProgress!!.autoCrop == 0
+                currentPage = bookProgress.page
+            }
+        }
         val progressModel = DecodingProgressModel()
         progressModel.addEventListener(this)
         currentPageModel = CurrentPageModel()
         currentPageModel!!.addEventListener(this)
         documentView =
-            DocumentView(this, zoomModel, progressModel, currentPageModel, simpleGestureListener)
+            DocumentView(
+                this, zoomModel,
+                DocumentView.VERTICAL, scrollX, scrollY,
+                progressModel, currentPageModel, simpleGestureListener
+            )
         zoomModel.addEventListener(documentView)
         documentView!!.layoutParams = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -69,30 +87,18 @@ abstract class BaseViewerActivity : FragmentActivity(), DecodingProgressListener
         )
         decodeService!!.setContainerView(documentView)
         documentView!!.setDecodeService(decodeService)
-        decodeService!!.open(absolutePath)
+
         val frameLayout = createMainContainer()
         frameLayout.addView(documentView)
-        pageControls = createZoomControls(zoomModel)
-        frameLayout.addView(pageControls)
+        //pageControls = createZoomControls(zoomModel)
+        //frameLayout.addView(pageControls)
         setContentView(frameLayout)
 
-        documentView!!.showDocument()
-        lifecycleScope.launch {
-            val bookProgress = withContext(Dispatchers.IO) {
-                return@withContext pdfViewModel!!.loadBookProgressByPath(absolutePath)
-            }
-            if (null != bookProgress) {
-                val currentPage = bookProgress.page
-                zoomModel.setZoom(bookProgress.zoomLevel / 1000)
-                val scrollX = bookProgress.offsetX
-                val scrollY = bookProgress.offsetY
-                if (0 < currentPage) {
-                    documentView!!.goToPage(currentPage, scrollX, scrollY)
-                }
-            }
+        if (0 < currentPage) {
+            documentView!!.goToPage(currentPage, scrollX, scrollY)
         }
 
-        pageSeekBarControls = APageSeekBarControls(this, object : PageViewPresenter {
+        /*pageSeekBarControls = APageSeekBarControls(this, object : PageViewPresenter {
             override fun getPageCount(): Int {
                 return decodeService!!.getPageCount()
             }
@@ -127,7 +133,29 @@ abstract class BaseViewerActivity : FragmentActivity(), DecodingProgressListener
         frameLayout.addView(pageSeekBarControls)
         pageSeekBarControls!!.hide()
         pageSeekBarControls!!.showReflow(true)
-        pageSeekBarControls!!.updateTitle(absolutePath)
+        pageSeekBarControls!!.updateTitle(absolutePath)*/
+
+        loadDocument(absolutePath, crop)
+    }
+
+    open fun loadDocument(path: String, crop: Boolean) {
+        progressDialog = ProgressDialog(this)
+        progressDialog!!.setMessage("Loading")
+        progressDialog!!.show()
+
+        instance.diskIO().execute {
+            val document = decodeService!!.open(path, crop, true)
+            instance.mainThread().execute {
+                progressDialog!!.dismiss()
+                if (null == document) {
+                    Toast.makeText(this, "Open Failed", Toast.LENGTH_LONG).show()
+                    finish()
+                    return@execute
+                }
+                isDocLoaded = true
+                documentView!!.showDocument(crop)
+            }
+        }
     }
 
     override fun decodingProgressChanged(currentlyDecoding: Int) {
@@ -210,7 +238,7 @@ abstract class BaseViewerActivity : FragmentActivity(), DecodingProgressListener
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
         }
-        pageControls!!.hide()
+        //pageControls!!.hide()
         var height = documentView!!.height
         height = if (height <= 0) {
             ViewConfiguration().scaledTouchSlop * 2
@@ -218,7 +246,6 @@ abstract class BaseViewerActivity : FragmentActivity(), DecodingProgressListener
             (height * 0.03).toInt()
         }
         documentView!!.setScrollMargin(height)
-        documentView!!.setDecodePage(1 /*options.getBoolean(PdfOptionsActivity.PREF_RENDER_AHEAD, true) ? 1 : 0*/)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -256,9 +283,54 @@ abstract class BaseViewerActivity : FragmentActivity(), DecodingProgressListener
         }
 
         override fun onDoubleTapEvent(currentPage: Int) {
-            pageSeekBarControls!!.toggleSeekControls()
-            pageControls!!.toggleZoomControls()
+            //pageSeekBarControls!!.toggleSeekControls()
+            //pageControls!!.toggleZoomControls()
+            onDoubleTap(currentPage)
         }
+    }
+
+    fun onDoubleTap(currentPage: Int) {
+        showOutlineDialog()
+    }
+
+    protected fun showOutlineDialog() {
+        if (null == outlines) {
+            outlines = decodeService!!.outlines
+        }
+
+        if (null == outlineDialog) {
+            outlineDialog = OutlineDialog(this)
+        }
+        val currPage = documentView!!.currentPage
+
+        outlineDialog!!.initOutlinesIfNeed(
+            false,
+            outlines,
+            decodeService!!.pageCount,
+            object : OutlineDialog.OutlineListener {
+                override fun selected(page: Int, dismiss: Boolean) {
+                    documentView!!.goToPage(page)
+                    if (dismiss) {
+                        outlineDialog!!.dismiss()
+                    }
+                }
+
+                override fun orientation(ori: Int) {
+                    documentView!!.oriention = ori
+                    /*if (null != recent) {
+                        recent.scrollOri = ori
+                    }*/
+                }
+
+                override fun setCrop(crop: Boolean) {
+                    /*if (null != recent) {
+                        recent.crop = if (crop) 0 else 1
+                    }*/
+                }
+            })
+        outlineDialog!!.setCurrPage(currPage)
+        outlineDialog!!.setOrientation(documentView!!.oriention)
+        outlineDialog!!.show()
     }
 
     protected fun currentPage(): Int {

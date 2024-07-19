@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="progress_color">#CCC3737B</color>
+    <color name="toc_color_bg">#cc202020</color>
+    <color name="red">#FF0000</color>
+    <color name="bg_holder">#4A000000</color>
+
+    <color name="button_normal">#00000000</color>
+    <color name="button_pressed">#FF2572AC</color>
+    
     <color name="link_uri">#800088FF</color>
     <color name="link_page">#80FFFF00</color>
+
 </resources>

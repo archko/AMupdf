@@ -1,4 +1,4 @@
-package cn.archko.pdf.fragments
+package cn.archko.pdf.core.ui
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -10,11 +10,11 @@ import androidx.recyclerview.awidget.ARecyclerView
 import androidx.recyclerview.awidget.GridLayoutManager
 import cn.archko.pdf.AppExecutors
 import cn.archko.pdf.common.BitmapCache
-import cn.archko.pdf.common.Logcat
-import cn.archko.pdf.entity.APage
-import cn.archko.pdf.entity.DecodeTask
+import cn.archko.pdf.decode.DecodeCallback
+import cn.archko.pdf.decode.DecodeParam
+import cn.archko.pdf.decode.MupdfDocument
+import cn.archko.pdf.fragments.MupdfListener
 import cn.archko.pdf.listeners.ClickListener
-import cn.archko.pdf.listeners.DecodeCallback
 
 /**
  * @author: archko 2023/3/8 :14:34
@@ -26,6 +26,9 @@ class MupdfGridAdapter(
     var clickListener: ClickListener<View>
 ) :
     ARecyclerView.Adapter<ARecyclerView.ViewHolder>() {
+
+    private var resultWidth: Int = 1080
+    private var resultHeight: Int = 1080
 
     override fun getItemCount(): Int {
         return mupdfListener.getPageCount()
@@ -67,18 +70,15 @@ class MupdfGridAdapter(
         (holder as PdfHolder).view.setImageResource(android.R.color.transparent)
     }
 
-    inner class PdfHolder(internal var view: ImageView) : ARecyclerView.ViewHolder(view),
-        DecodeCallback {
+    inner class PdfHolder(internal var view: ImageView) : ARecyclerView.ViewHolder(view) {
 
-        private var aPage: APage? = null
-        private var pageIndex = -1
-        private var resultWidth: Int = 1080
-        private var resultHeight: Int = 1080
+        private var index = -1
+
         fun onBind(position: Int) {
-            pageIndex = position
-            aPage = mupdfListener.getPageList()[position]
+            index = position
+            val aPage = mupdfListener.getPageList()[position]
 
-            val key =
+            val cacheKey =
                 "${mupdfListener.getDocument()!!}_page_$position-${aPage}"
 
             var width: Int = viewWidth()
@@ -88,81 +88,104 @@ class MupdfGridAdapter(
             val height: Int = (width * 4 / 3f).toInt()
             resultWidth = width
             resultHeight = height
+            //if (aPage.getTargetWidth() != resultWidth) {
+            //    aPage.setTargetWidth(resultWidth)
+            //}
 
             view.setOnClickListener { clickListener.click(view, position) }
             view.setOnLongClickListener {
                 clickListener.longClick(it, position, it)
-                //showPopupMenu(it, position)
                 return@setOnLongClickListener true
             }
 
-            val bitmap = BitmapCache.getInstance().getBitmap(key)
-            if (null != bitmap) {
-                Log.d("TAG", String.format("bind.hit cache:%s", aPage?.index))
-                view.setImageBitmap(bitmap)
-                setLayoutSize(bitmap)
+            val bmp = BitmapCache.getInstance().getBitmap(cacheKey)
+            if (null != bmp) {
+                Log.d("TAG", String.format("bind.hit cache:%s", aPage.index))
+                view.setImageBitmap(bmp)
                 return
             }
-            val task =
-                DecodeTask(
-                    width, height, 1,
-                    position, aPage!!,
-                    false,
-                    this,
-                    mupdfListener.getDocument()
-                )
 
-            view.setImageDrawable(null)
-            AppExecutors.instance.diskIO().execute { task.run() }
-        }
-
-        private fun setLayoutSize(bitmap: Bitmap) {
-            val ratio = bitmap.width * 1f / bitmap.height
-
-            val viewWidth = resultWidth
-            val viewHeight: Int = (resultWidth / ratio).toInt()
-            /*if (Logcat.loggable) {
-                Logcat.d(
-                    TAG, String.format(
-                        "decode layout:index:%s, w-h:%s-%s, %s, %s",
-                        pageIndex, viewWidth, viewHeight, resultHeight, ratio
-                    )
-                )
-            }*/
-
-            var lp = view.layoutParams
-            if (null == lp) {
-                lp = ViewGroup.LayoutParams(viewWidth, viewHeight)
-                view.layoutParams = lp
-            } else {
-                lp.width = viewWidth
-                lp.height = viewHeight
-            }
-        }
-
-        override fun decodeComplete(bitmap: Bitmap?, position: Int, key: String) {
-            if (null != bitmap) {
-                BitmapCache.getInstance().addBitmap(key, bitmap)
-                if (Logcat.loggable) {
-                    Logcat.d(
-                        "TAG", String.format(
-                            "decode complete:index:%s,pageIndex:%s, %s, %s-%s",
-                            position, pageIndex, key, bitmap.width, bitmap.height,
+            val callback = object : DecodeCallback {
+                override fun decodeComplete(bitmap: Bitmap?, param: DecodeParam) {
+                    Log.d(
+                        "TAG",
+                        String.format(
+                            "decode callback:index:%s-%s, decode.page:%s, key:%s, param:%s",
+                            param.pageNum, index, param.pageNum, cacheKey, param.key
                         )
                     )
-                }
-                if (position == pageIndex) {
-                    AppExecutors.instance.mainThread().execute {
+                    if (param.pageNum == index) {
                         view.setImageBitmap(bitmap)
-                        setLayoutSize(bitmap!!)
                     }
                 }
-            }
-        }
 
-        override fun shouldRender(index: Int, key: String?): Boolean {
-            return pageIndex != index
+                override fun shouldRender(index: Int, param: DecodeParam): Boolean {
+                    return this@PdfHolder.index == index
+                }
+            }
+            //aPage 这个如果当参数传递,由于复用机制,后面的页面更新后会把它覆盖,导致解码并不是原来那个
+            //这里应该传递高宽值
+            val decodeParam = DecodeParam(
+                cacheKey,
+                view,
+                false,
+                0,
+                aPage,
+                mupdfListener.getDocument(),
+                callback,
+                resultWidth,
+                resultHeight
+            )
+            AppExecutors.instance.diskIO().execute {
+                MupdfDocument.decode(aPage, decodeParam)
+            }
         }
     }
 
+    /*fun decode(aPage: APage, decodeTask: DecodeParam) {
+        if (!decodeTask.decodeCallback!!.shouldRender(decodeTask.pageNum, decodeTask)) {
+            Log.d("TAG", String.format("decode.cancel:%s", aPage.index))
+            return
+        }
+
+        var rect = Rect(0, 0, decodeTask.width, decodeTask.height)
+        var scale = 1.0f
+        var leftBound = 0
+        var topBound = 0
+        val width = rect.width()
+        val height = rect.height()
+        leftBound = rect.left
+        topBound = rect.top
+        *//*Log.d(
+            "TAG",
+            String.format(
+                "decode:position:%s, view.w:%s-h:%s, page.w::%s-h:%s",
+                aPage.index,
+                decodeTask.width,
+                decodeTask.height,
+                aPage.width,
+                aPage.height
+            )
+        )*//*
+
+        val bitmap = BitmapPool.getInstance().acquire(width, height)
+        val page = mupdfListener.getDocument()!!.loadPage(aPage.index)
+        val ctm = com.artifex.mupdf.fitz.Matrix(scale)
+        if (!decodeTask.decodeCallback!!.shouldRender(decodeTask.pageNum, decodeTask)) {
+            Log.d("TAG", String.format("decode.cancel before run:%s", aPage.index))
+            return
+        }
+
+        MupdfDocument.render(page, ctm, bitmap, 0, leftBound, topBound)
+        page?.destroy()
+        BitmapCache.getInstance().addBitmap(decodeTask.key, bitmap)
+
+        AppExecutors.instance.mainThread().execute {
+            if (!decodeTask.decodeCallback!!.shouldRender(decodeTask.pageNum, decodeTask)) {
+                return@execute
+            }
+
+            decodeTask.decodeCallback?.decodeComplete(bitmap, decodeTask)
+        }
+    }*/
 }

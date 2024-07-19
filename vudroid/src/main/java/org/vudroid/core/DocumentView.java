@@ -2,33 +2,40 @@ package org.vudroid.core;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Rect;
 import android.graphics.RectF;
+import android.os.Build;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
-import org.vudroid.core.codec.CodecPage;
 import org.vudroid.core.events.ZoomListener;
-import org.vudroid.core.link.Hyperlink;
 import org.vudroid.core.models.CurrentPageModel;
 import org.vudroid.core.models.DecodingProgressModel;
 import org.vudroid.core.models.ZoomModel;
 import org.vudroid.core.multitouch.MultiTouchZoom;
 
+import cn.archko.pdf.entity.APage;
 import cn.archko.pdf.listeners.SimpleGestureListener;
-import cn.archko.pdf.widgets.Flinger;
+import cn.archko.pdf.utils.Utils;
 
 public class DocumentView extends View implements ZoomListener {
+
+    public static final String TAG = "DocumentView";
     final ZoomModel zoomModel;
     private final CurrentPageModel currentPageModel;
     DecodeService decodeService;
     private final SparseArray<Page> pages = new SparseArray<>();
     private boolean isInitialized = false;
-    private int pageToGoTo;
+    private int pageToGoTo = -1;
     private int xToScroll;
     private int yToScroll;
     private final Flinger scroller;
@@ -41,11 +48,17 @@ public class DocumentView extends View implements ZoomListener {
     public static final int HORIZONTAL = LinearLayout.HORIZONTAL;
     public static final int VERTICAL = LinearLayout.VERTICAL;
     private int oriention = VERTICAL;
+    private ColorMatrixColorFilter filter;
 
     private final GestureDetector mGestureDetector;
     int mMargin = 16;
-    int preDecodePage = 1;
+    boolean crop = false;
     private SimpleGestureListener simpleGestureListener;
+    //DefaultScrollHandle scrollHandle;
+
+    float widthAccum = 0;
+
+    float heightAccum = 0;
 
     public int getOriention() {
         return oriention;
@@ -55,19 +68,35 @@ public class DocumentView extends View implements ZoomListener {
         if (this.oriention != oriention) {
             this.oriention = oriention;
             pageToGoTo = getCurrentPage();
-            requestLayout();
             if (null != decodeService) {
                 decodeService.setOriention(oriention);
             }
+
+            //should invalidate current page and node
+
+            requestLayout();
         }
     }
-    /*public void setPageModel(CurrentPageModel mPageModel) {
-        this.mPageModel = mPageModel;
-    }*/
 
-    public DocumentView(Context context, final ZoomModel zoomModel, DecodingProgressModel progressModel, CurrentPageModel currentPageModel, SimpleGestureListener simpleGestureListener) {
+    public void setCrop(boolean crop) {
+        if (this.crop != crop) {
+            this.crop = crop;
+            isInitialized = false;
+            pageToGoTo = getCurrentPage();
+            init();
+        }
+    }
+
+    public DocumentView(Context context, final ZoomModel zoomModel,
+                        int oriention, int scrollX, int scrollY,
+                        DecodingProgressModel progressModel,
+                        CurrentPageModel currentPageModel,
+                        SimpleGestureListener simpleGestureListener) {
         super(context);
         this.zoomModel = zoomModel;
+        this.oriention = oriention;
+        this.xToScroll = scrollX;
+        this.yToScroll = scrollY;
         this.progressModel = progressModel;
         this.currentPageModel = currentPageModel;
         setKeepScreenOn(true);
@@ -77,13 +106,16 @@ public class DocumentView extends View implements ZoomListener {
         initMultiTouchZoomIfAvailable(zoomModel);
         mGestureDetector = new GestureDetector(context, new MySimpleOnGestureListener());
         this.simpleGestureListener = simpleGestureListener;
+
+        mMargin = Utils.dipToPixel(16);
+        //scrollHandle = new DefaultScrollHandle(context);
     }
 
     private void initMultiTouchZoomIfAvailable(ZoomModel zoomModel) {
         try {
             multiTouchZoom = (MultiTouchZoom) Class.forName("org.vudroid.core.multitouch.MultiTouchZoomImpl").getConstructor(ZoomModel.class).newInstance(zoomModel);
         } catch (Exception e) {
-            System.out.println("Multi touch zoom is not available: " + e);
+            Log.d(TAG, "Multi touch zoom is not available: " + e);
         }
     }
 
@@ -93,27 +125,57 @@ public class DocumentView extends View implements ZoomListener {
     }
 
     private void init() {
-        if (isInitialized) {
+        /*if (PdfOptionRepository.INSTANCE.getFastscroll()) {
+            setupHandle();
+        }*/
+
+        if (isInitialized || decodeService.getPageCount() < 1) {
             return;
         }
-        final int width = decodeService.getEffectivePagesWidth();
-        final int height = decodeService.getEffectivePagesHeight();
+
+        //setFilter(PdfOptionRepository.INSTANCE.getColorMode());
         for (int i = 0; i < decodeService.getPageCount(); i++) {
-            pages.put(i, new Page(this, i));
-            pages.get(i).setAspectRatio(width, height);
+            final int width = decodeService.getEffectivePagesWidth(i, crop);
+            final int height = decodeService.getEffectivePagesHeight(i, crop);
+            Page page = new Page(this, i, crop, filter);
+            pages.put(i, page);
+            page.setAspectRatio(width, height);
         }
-        System.out.println("DecodeService:" + pages.size() + " pageToGoTo:" + pageToGoTo);
+        Log.d(TAG, "DecodeService:" + pages.size() + " pageToGoTo:" + pageToGoTo);
         isInitialized = true;
         currentPageModel.setPageCount(decodeService.getPageCount());
         invalidatePageSizes();
         goToPageImpl(pageToGoTo);
     }
 
+    private void setupHandle() {
+        /*scrollHandle.setupLayout(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+                int page = getPage();
+                if (page >= 0) {
+                    scrollHandle.setScroll(page, scrollX, scrollY, widthAccum, heightAccum);
+                }
+            });
+        }*/
+    }
+
     private void goToPageImpl(final int toPage) {
         Page page = pages.get(toPage);  //TODO ,page is not really page on the first time.
         if (null == page) {
-            System.out.println(String.format("goToPageImpl.error:%s-%s", toPage, pages.size()));
+            Log.d(TAG, String.format("goToPageImpl.error:%s-%s", toPage, pages.size()));
             return;
+        }
+
+        //因为切边的操作,导致有些页面比较小.所以底部加两个页面,滚动就可以正常了
+        Page nextPage = null;
+        if (pages.size() > toPage + 1) {
+            nextPage = pages.get(toPage + 1);
+            if (nextPage.getBottom() - nextPage.getTop() < getHeight()) {
+                if (pages.size() > toPage + 2) {
+                    nextPage = pages.get(toPage + 2);
+                }
+            }
         }
         int scrollX = 0;
         int scrollY = 0;
@@ -122,29 +184,30 @@ public class DocumentView extends View implements ZoomListener {
             scrollY = page.getTop();
             if (xToScroll != 0) {
                 scrollX = xToScroll;
-                xToScroll = 0;
             }
             if (yToScroll != 0) {
-                if (page.getBottom() > yToScroll) {
+                Page bottomPage = nextPage == null ? page : nextPage;
+                if (bottomPage.getBottom() > yToScroll) {
                     scrollY = yToScroll;
                 }
-                yToScroll = 0;
             }
         } else {
             scrollX = page.getLeft();
             scrollY = getScrollY();
             if (yToScroll != 0) {
                 scrollY = yToScroll;
-                yToScroll = 0;
             }
             if (xToScroll != 0) {
-                if (page.getRight() > xToScroll) {
+                Page bottomPage = nextPage == null ? page : nextPage;
+                if (bottomPage.getRight() > xToScroll) {
                     scrollX = xToScroll;
                 }
-                xToScroll = 0;
             }
         }
-        Log.d(VIEW_LOG_TAG, "goToPageImpl:" + xToScroll + " scroll:" + scrollX + " yToScroll:" + yToScroll + " scrollY:" + scrollY + " page:" + page);
+        Log.d(VIEW_LOG_TAG, String.format("goToPageImpl.xToScroll:%s, scroll:%s, yToScroll:%s, scrollY:%s, bottom:%s, page:%s",
+                xToScroll, scrollX, yToScroll, scrollY, page.getBottom(), page));
+        yToScroll = 0;
+        xToScroll = 0;
 
         scrollTo(scrollX, scrollY);
         pageToGoTo = -1;
@@ -160,6 +223,7 @@ public class DocumentView extends View implements ZoomListener {
         }
         // on scrollChanged can be called from scrollTo just after new layout applied so we should wait for relayout
         post(() -> updatePageVisibility());
+
     }
 
     private void currentPageChanged() {
@@ -188,7 +252,8 @@ public class DocumentView extends View implements ZoomListener {
         inZoom = false;
     }
 
-    public void showDocument() {
+    public void showDocument(boolean crop) {
+        this.crop = crop;
         // use post to ensure that document view has width and height before decoding begin
         post(() -> {
             init();
@@ -226,6 +291,17 @@ public class DocumentView extends View implements ZoomListener {
         return 0;
     }
 
+    public int getLastVisiblePage() {
+        Page page;
+        for (int i = pages.size() - 1; i >= 0; i--) {
+            page = pages.valueAt(i);
+            if (page.isVisible()) {
+                return pages.keyAt(i);
+            }
+        }
+        return 0;
+    }
+
     public Page getEventPage(MotionEvent e) {
         Page page = null;
         for (int i = 0; i < pages.size(); i++) {
@@ -248,6 +324,9 @@ public class DocumentView extends View implements ZoomListener {
     public void zoomChanged(float newZoom, float oldZoom) {
         inZoom = true;
         stopScroller();
+        if (!isInitialized) {
+            return;
+        }
         final float ratio = newZoom / oldZoom;
         invalidatePageSizes();
         scrollTo((int) ((getScrollX() + getWidth() / 2) * ratio - getWidth() / 2), (int) ((getScrollY() + getHeight() / 2) * ratio - getHeight() / 2));
@@ -350,10 +429,33 @@ public class DocumentView extends View implements ZoomListener {
         return viewRect;
     }
 
+    /**
+     * 对于缩图,需要更多的预期高度,两个方向都要处理.
+     * 有了缩略图,getViewRect()就可以不用预加载空间了.
+     *
+     * @return
+     */
+    RectF getViewRectForPage() {
+        if (viewRect == null) {
+            float width = getWidth();
+            float height = getHeight();
+            float left = getScrollX();
+            float top = getScrollY();
+            if (oriention == HORIZONTAL) {
+                width = width * 1.8f;
+                left = left - width * 0.2f;
+            } else {
+                height = height * 1.8f;
+                top = top - height * 0.2f;
+            }
+            viewRect = new RectF(left, top, getScrollX() + width, getScrollY() + height);
+        }
+        return viewRect;
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        //for (Page page : pages.values()) {
         Page page;
         for (int i = 0; i < pages.size(); i++) {
             page = pages.valueAt(i);
@@ -375,7 +477,7 @@ public class DocumentView extends View implements ZoomListener {
             return;
         }
         if (oriention == HORIZONTAL) {
-            float widthAccum = 0;
+            widthAccum = 0;
             int height = getHeight();
             float zoom = zoomModel.getZoom();
             for (int i = 0; i < pages.size(); i++) {
@@ -385,7 +487,7 @@ public class DocumentView extends View implements ZoomListener {
                 widthAccum += pageWidth;
             }
         } else {
-            float heightAccum = 0;
+            heightAccum = 0;
             int width = getWidth();
             float zoom = zoomModel.getZoom();
             for (int i = 0; i < pages.size(); i++) {
@@ -406,7 +508,7 @@ public class DocumentView extends View implements ZoomListener {
         if (page == null || page.bounds == null) {
             return;
         }
-        if (pageToGoTo > 0) {
+        if (pageToGoTo >= 0) {
             goToPageImpl(pageToGoTo);
         } else {
             scrollTo((int) (getScrollX() * ratio), (int) (getScrollY() * ratio));
@@ -438,10 +540,6 @@ public class DocumentView extends View implements ZoomListener {
         mMargin = margin;
     }
 
-    public void setDecodePage(int decodePage) {
-        preDecodePage = decodePage;
-    }
-
     public void scrollPage(int height) {
         mCurrentFlingRunnable = new FlingRunnable(getContext());
         mCurrentFlingRunnable.startScroll(getScrollX(), getScrollY(), 0, height, 0);
@@ -461,8 +559,15 @@ public class DocumentView extends View implements ZoomListener {
             int scrollY = getScrollY();
             float x = Math.abs((e.getX() + scrollX - page.bounds.left) / scale);
             float y = Math.abs((e.getY() + scrollY - page.bounds.top) / scale);
-            //Log.d(VIEW_LOG_TAG, String.format("scrollX:%s, scrollY:%s, scale:%s, zoom:%s, index:%s, e.x:%s, e.y:%s, bound:%s",
-            //        scrollX, scrollY, scale, zoomModel.getZoom(), page.index, e.getX(), e.getY(), page.bounds.top));
+
+            if (crop) {
+                Rect rect = getBounds(page);
+                x += rect.left;
+                y += rect.top;
+            }
+
+            Log.d(VIEW_LOG_TAG, String.format("scrollX:%s, scrollY:%s, scale:%s, zoom:%s, index:%s, e.x:%s, e.y:%s, bound:%s",
+                    scrollX, scrollY, scale, zoomModel.getZoom(), page.index, e.getX(), e.getY(), page.bounds.top));
 
             Hyperlink link = Hyperlink.Companion.mapPointToPage(page, x, y);
             //Log.d(VIEW_LOG_TAG, String.format("x:%s, y:%s, bounds:%s, link:%s, links:%s", x, y, page.bounds, link, page.links));
@@ -479,13 +584,128 @@ public class DocumentView extends View implements ZoomListener {
         return false;
     }
 
+    public Rect getBounds(Page page) {
+        APage vuPage = decodeService.getAPage(page.index);
+        return vuPage.getCropBounds();
+    }
+
     public float calculateScale(Page page) {
-        CodecPage vuPage = decodeService.getPage(page.index);
+        APage vuPage = decodeService.getAPage(page.index);
         if (oriention == VERTICAL) {
-            return zoomModel.getZoom() * (1.0f * getWidth() / vuPage.getWidth());
+            return zoomModel.getZoom() * (1.0f * getWidth() / vuPage.getWidth(crop));
         } else {
-            return zoomModel.getZoom() * (1.0f * getHeight() / vuPage.getHeight());
+            return zoomModel.getZoom() * (1.0f * getHeight() / vuPage.getHeight(crop));
         }
+    }
+
+    public boolean isSwipeVertical() {
+        return oriention == LinearLayout.VERTICAL;
+    }
+
+    public void setPositionOffset(float v, boolean b) {
+        int x = getScrollX();
+        int y = getScrollY();
+        if (isSwipeVertical()) {
+            y = (int) (heightAccum * v);
+        } else {
+            x = (int) (widthAccum * v);
+        }
+
+        scrollTo(x, y);
+    }
+
+    public int getPage() {
+        if (oriention == HORIZONTAL) {
+            if (widthAccum == 0) {
+                return 0;
+            }
+            int offset = getScrollX();
+            int index = (int) (offset / widthAccum * pages.size());
+            if (index < 0) {
+                index = 0;
+            } else if (index >= pages.size()) {
+                index = pages.size() - 1;
+            }
+            Page page = pages.get(index);
+
+            if (page.getBottom() > offset) {
+                for (int i = index; i < pages.size(); i++) {
+                    page = pages.get(i);
+                    if (offset >= page.getLeft() && offset <= page.getRight()) {
+                        return i;
+                    }
+                }
+            } else {
+                for (int i = index; i >= 0; i--) {
+                    page = pages.get(i);
+                    if (offset >= page.getLeft() && offset <= page.getRight()) {
+                        return i;
+                    }
+                }
+            }
+        } else {
+            if (heightAccum == 0) {
+                return -1;
+            }
+            int offset = getScrollY();
+            int index = (int) (offset / heightAccum * pages.size());
+            if (index < 0) {
+                index = 0;
+            } else if (index >= pages.size()) {
+                index = pages.size() - 1;
+            }
+            Page page = pages.get(index);
+
+            if (page.getBottom() < offset) {
+                for (int i = index; i < pages.size(); i++) {
+                    page = pages.get(i);
+                    if (offset >= page.getTop() && offset <= page.getBottom()) {
+                        return i;
+                    }
+                }
+            } else {
+                for (int i = index; i >= 0; i--) {
+                    page = pages.get(i);
+                    if (offset >= page.getTop() && offset <= page.getBottom()) {
+                        return i;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    /*public void addView(DefaultScrollHandle scrollHandle, RelativeLayout.LayoutParams lp) {
+        removeView(scrollHandle);
+        RelativeLayout frameLayout = (RelativeLayout) getParent();
+        frameLayout.addView(scrollHandle, lp);
+    }
+
+    public void removeView(DefaultScrollHandle scrollHandle) {
+        ViewGroup parent = (ViewGroup) getParent();
+        parent.removeView(scrollHandle);
+    }*/
+
+    public int getPageCount() {
+        return decodeService.getPageCount();
+    }
+
+    public void applyFilter(int colorMode) {
+        setFilter(colorMode);
+        Page page;
+        for (int i = 0; i < pages.size(); i++) {
+            page = pages.valueAt(i);
+            page.applyFilter(filter);
+        }
+    }
+
+    protected void setFilter(int colorMode) {
+        /*float[] colorMatrix = ColorUtil.getColorMode(colorMode);
+        if (null == colorMatrix) {
+            filter = null;
+        } else {
+            filter = new ColorMatrixColorFilter(new ColorMatrix(colorMatrix));
+        }*/
     }
 
     private class MySimpleOnGestureListener extends GestureDetector.SimpleOnGestureListener {
@@ -525,12 +745,6 @@ public class DocumentView extends View implements ZoomListener {
         @Override
         public boolean onDoubleTapEvent(MotionEvent ev) {
             if (ev.getEventTime() - lastDownEventTime < DOUBLE_TAP_TIME) {
-                /*if (null != mPageModel) {
-                    mPageModel.setCurrentPage(currentPageModel.getCurrentPageIndex());
-                    mPageModel.setPageCount(decodeService.getPageCount());
-                    mPageModel.toggleSeekControls();
-                }*/
-                //zoomModel.toggleZoomControls();
                 if (null != simpleGestureListener) {
                     simpleGestureListener.onDoubleTapEvent(getCurrentPage());
                 }
@@ -572,7 +786,7 @@ public class DocumentView extends View implements ZoomListener {
 
     private FlingRunnable mCurrentFlingRunnable;
 
-    private void cancelFling() {
+    public void cancelFling() {
         if (null != mCurrentFlingRunnable) {
             mCurrentFlingRunnable.cancelFling();
             mCurrentFlingRunnable = null;

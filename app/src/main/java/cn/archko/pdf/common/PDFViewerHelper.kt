@@ -7,9 +7,8 @@ import android.os.Build
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.core.content.FileProvider
-import cn.archko.pdf.activities.AMuPDFRecyclerViewActivity
-import cn.archko.pdf.adapters.AdapterUtils
 import cn.archko.pdf.fragments.BrowserFragment
+import cn.archko.pdf.utils.AdapterUtils
 import com.umeng.analytics.MobclickAgent
 import org.vudroid.pdfdroid.PdfViewerActivity
 import java.io.File
@@ -17,10 +16,11 @@ import java.io.File
 /**
  * @author: archko 2020/1/4 :2:06 下午
  */
-public class PDFViewerHelper {
+class PDFViewerHelper {
 
     companion object {
 
+        private const val FILE_PROVIDER = "cn.archko.mupdf.fileProvider"
         fun openWithDefaultViewer(f: File, activity: Activity) {
             Logcat.i(Logcat.TAG, "post intent to open file $f")
             if (AdapterUtils.isPlainTxt(f.absolutePath)) {
@@ -35,7 +35,8 @@ public class PDFViewerHelper {
             Logcat.i(Logcat.TAG, "post intent to open file $uri")
             val intent = Intent()
             intent.setDataAndType(uri, "application/pdf")
-            intent.setClass(activity, AMuPDFRecyclerViewActivity::class.java)
+            intent.setClass(activity, PdfViewerActivity::class.java)
+            //intent.setClass(activity, AMuPDFRecyclerViewActivity::class.java)
             intent.action = Intent.ACTION_VIEW
             activity.startActivity(intent)
         }
@@ -60,7 +61,7 @@ public class PDFViewerHelper {
                     MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
 
                     intent.putExtra("forceCropParam", 0)
-                    intent.setClass(activity, AMuPDFRecyclerViewActivity::class.java)
+                    intent.setClass(activity, PdfViewerActivity::class.java)
                     activity.startActivity(intent)
                 }
                 //bartekscViewContextMenuItem -> {
@@ -79,19 +80,21 @@ public class PDFViewerHelper {
                 }
 
                 BrowserFragment.otherContextMenuItem -> {
-                    val map = mapOf("type" to "other", "name" to clickedFile.name)
-                    MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
+                    //val map = mapOf("type" to "other", "name" to clickedFile.name)
+                    //MobclickAgent.onEvent(activity, AnalysticsHelper.A_MENU, map)
                     var mimeType = "application/pdf"
                     val name = clickedFile.absolutePath;
                     if (name.endsWith("pdf", true)) {
                         mimeType = "application/pdf";
                     } else if (name.endsWith("epub", true)) {
                         mimeType = "application/epub+zip";
+                    } else if (name.endsWith("mobi", true)) {
+                        mimeType = "application/mobi+zip";
                     } else if (name.endsWith("cbz", true)) {
                         mimeType = "application/x-cbz";
                     } else if (name.endsWith("fb2", true)) {
                         mimeType = "application/fb2";
-                    } else if (AdapterUtils.isPlainTxt(name)) {
+                    } else if (name.endsWith("txt", true)) {
                         mimeType = "text/plain";
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -99,7 +102,7 @@ public class PDFViewerHelper {
                         intent.setDataAndType(
                             FileProvider.getUriForFile(
                                 activity,
-                                "cn.archko.mupdf.fileProvider",
+                                FILE_PROVIDER,
                                 clickedFile
                             ), mimeType
                         );

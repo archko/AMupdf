@@ -1,18 +1,20 @@
 package cn.archko.pdf.adapters
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.os.AsyncTask
 import android.view.ViewGroup
 import androidx.recyclerview.awidget.ARecyclerView
 import cn.archko.pdf.App
 import cn.archko.pdf.common.Logcat
-import cn.archko.pdf.common.ParseTextMain
 import cn.archko.pdf.common.ReflowViewCache
 import cn.archko.pdf.common.StyleHelper
+import cn.archko.pdf.decode.MupdfDocument
 import cn.archko.pdf.entity.ReflowBean
-import cn.archko.pdf.mupdf.MupdfDocument
 import cn.archko.pdf.utils.Utils
+import cn.archko.pdf.viewmodel.PDFViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * @author: archko 2016/5/13 :11:03
@@ -20,8 +22,10 @@ import cn.archko.pdf.utils.Utils
 class MuPDFReflowAdapter(
     private val mContext: Context,
     private val mupdfDocument: MupdfDocument?,
-    private var styleHelper: StyleHelper?
-) : BaseRecyclerAdapter<Any>(mContext) {
+    private var styleHelper: StyleHelper?,
+    private var scope: CoroutineScope?,
+    private var pdfViewModel: PDFViewModel
+) : ARecyclerView.Adapter<ReflowTextViewHolder>() {
 
     private var screenHeight = 720
     private var screenWidth = 1080
@@ -38,10 +42,10 @@ class MuPDFReflowAdapter(
     }
 
     override fun getItemCount(): Int {
-        return mupdfDocument?.countPages() ?: 0
+        return mupdfDocument?.countPages()!!
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<*> {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReflowTextViewHolder {
         val pdfView: ReflowTextViewHolder.PDFTextView =
             ReflowTextViewHolder.PDFTextView(mContext, styleHelper)
         val holder = ReflowTextViewHolder(pdfView)
@@ -54,41 +58,41 @@ class MuPDFReflowAdapter(
         return holder
     }
 
-    override fun onBindViewHolder(holder: BaseViewHolder<Any>, pos: Int) {
-        /*val result = mCore?.loadPage(pos)?.textAsText("preserve-whitespace,inhibit-spaces,preserve-images")
-
-        (holder as ReflowTextViewHolder).bindAsList(result, screenHeight, screenWidth, systemScale)*/
-
-        @SuppressLint("StaticFieldLeak")
-        val task = object : AsyncTask<Void, Void, List<ReflowBean>?>() {
-            override fun doInBackground(vararg arg0: Void): List<ReflowBean>? {
-                try {
-                    val result = mupdfDocument?.loadPage(pos)
-                        ?.textAsText("preserve-whitespace,inhibit-spaces,preserve-images")
-                    val list = result?.let { ParseTextMain.instance.parseAsList(it, pos) }
-                    return list
-                } catch (e: Exception) {
-                }
-                return null
-            }
-
-            override fun onPostExecute(result: List<ReflowBean>?) {
-                if (null != result) {
-                    (holder as ReflowTextViewHolder).bindAsList(
+    override fun onBindViewHolder(holder: ReflowTextViewHolder, position: Int) {
+        scope!!.launch {
+            val result = decode(position)
+            withContext(Dispatchers.Main) {
+                result?.run {
+                    holder.bindAsList(
                         result,
                         screenHeight,
                         screenWidth,
                         systemScale,
-                        reflowCache
+                        reflowCache,
+                        showBookmark(position)
                     )
                 }
             }
         }
-
-        Utils.execute(true, task)
     }
 
-    override fun onViewRecycled(holder: BaseViewHolder<*>) {
+    fun decode(pos: Int): List<ReflowBean>? {
+        return mupdfDocument?.decodeReflow(pos)
+    }
+
+    private fun showBookmark(position: Int): Boolean {
+        val bookmarks = pdfViewModel.bookmarks
+        if (null != bookmarks) {
+            for (bookmark in bookmarks) {
+                if (position == bookmark.page) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    override fun onViewRecycled(holder: ReflowTextViewHolder) {
         super.onViewRecycled(holder)
         val pdfHolder = holder as ReflowTextViewHolder?
 
@@ -99,6 +103,10 @@ class MuPDFReflowAdapter(
 
     fun clearCacheViews() {
         reflowCache.clear()
+    }
+
+    fun setScope(scope: CoroutineScope?) {
+        this.scope = scope
     }
 
     companion object {
