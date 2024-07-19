@@ -55,4 +55,6 @@ dependencies {
     api project(":readercommon")
     api project(":pdf-recyclerview")
     api project(":vudroid")
+    //api("com.davemorrissey.labs:subsampling-scale-image-view:3.10.0")
+    api project(':subsampling-scale-image-view')
 }

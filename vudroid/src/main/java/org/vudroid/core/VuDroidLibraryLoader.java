@@ -7,7 +7,7 @@ public class VuDroidLibraryLoader {
         if (alreadyLoaded) {
             return;
         }
-        //System.loadLibrary("djvu");
+        System.loadLibrary("djvu");
         //System.loadLibrary("ebook_bitmap");
         alreadyLoaded = true;
     }

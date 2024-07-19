@@ -10,6 +10,8 @@ import androidx.core.content.FileProvider
 import cn.archko.pdf.fragments.BrowserFragment
 import cn.archko.pdf.utils.AdapterUtils
 import com.umeng.analytics.MobclickAgent
+import org.vudroid.djvudroid.DjvuViewerActivity
+import org.vudroid.imagedroid.ImageViewerActivity
 import org.vudroid.pdfdroid.PdfViewerActivity
 import java.io.File
 
@@ -35,7 +37,15 @@ class PDFViewerHelper {
             Logcat.i(Logcat.TAG, "post intent to open file $uri")
             val intent = Intent()
             intent.setDataAndType(uri, "application/pdf")
-            intent.setClass(activity, PdfViewerActivity::class.java)
+            val name = uri.toString()
+
+            if (AdapterUtils.isDjvu(name)) {
+                intent.setClass(activity, DjvuViewerActivity::class.java)
+            } else if (AdapterUtils.isImage(name)) {
+                intent.setClass(activity, ImageViewerActivity::class.java)
+            } else {
+                intent.setClass(activity, PdfViewerActivity::class.java)
+            }
             //intent.setClass(activity, AMuPDFRecyclerViewActivity::class.java)
             intent.action = Intent.ACTION_VIEW
             activity.startActivity(intent)

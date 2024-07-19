@@ -55,8 +55,8 @@
         <activity
             android:name="org.vudroid.pdfdroid.PdfViewerActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="Vudroid"
             android:exported="true"
+            android:label="Vudroid"
             android:screenOrientation="landscape"
             android:theme="@style/AppFullscreen">
 
@@ -99,6 +99,21 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name="org.vudroid.imagedroid.ImageViewerActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="true"
+            android:label="Vudroid"
+            android:screenOrientation="sensor"
+            android:theme="@style/AppFullscreen" />
+
+        <activity
+            android:name="org.vudroid.djvudroid.DjvuViewerActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="true"
+            android:label="Vudroid"
+            android:screenOrientation="sensor"
+            android:theme="@style/AppFullscreen" />
         <!--<activity
             android:name="cn.archko.pdf.activities.AMuPDFRecyclerViewActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"

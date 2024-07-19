@@ -36,6 +36,8 @@ object AdapterUtils {
         exts.add("xlsx")
         //exts.add("json")
         //exts.add("js")
+        exts.add("djvu")
+        exts.add("djv")
     }
 
     fun getExtensionWithDot(name: String?): String {
@@ -138,11 +140,16 @@ object AdapterUtils {
                 || path.endsWith(".jfif-tbnl", true)
     }
 
+    fun isDjvu(path: String?): Boolean {
+        return path!!.endsWith(".djvu", true)
+                || path.endsWith(".djv", true)
+    }
+
     fun isPdf(path: String?): Boolean {
         return path!!.endsWith(".pdf", true)
                 || path.endsWith(".xps", true)
                 || path.endsWith(".cbz", true)
-                || path.endsWith(".djvu", true)
+                //|| path.endsWith(".djvu", true)
                 //|| path.endsWith(".png", true)
                 //|| path.endsWith(".jpg", true)
                 //|| path.endsWith(".jpeg", true)
