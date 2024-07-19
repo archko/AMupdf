@@ -48,7 +48,7 @@ class MenuHelper(
 
         val adapter = MenuAdapter(menuListener, context)
         mLeftDrawer?.adapter = adapter
-        (adapter as BaseRecyclerAdapter<*>).data = menus
+        (adapter as BaseRecyclerAdapter<MenuBean>).data = menus
         adapter.notifyDataSetChanged()
     }
 

@@ -37,8 +37,8 @@ android {
         applicationId 'cn.archko.mupdf'
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 350
-        versionName "6.0.0"
+        versionCode 370
+        versionName "7.0.0"
         vectorDrawables {
             useSupportLibrary true
         }
@@ -74,13 +74,13 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation('androidx.appcompat:appcompat:1.6.1')
+    implementation('androidx.appcompat:appcompat:1.7.0')
     api "androidx.multidex:multidex:2.0.1"
     //api 'androidx.recyclerview:recyclerview:1.3.2'
     api "androidx.constraintlayout:constraintlayout:2.1.4"
 
-    api "androidx.fragment:fragment:.1.6.2"
-    api "androidx.fragment:fragment-ktx:1.6.2"
+    api "androidx.fragment:fragment:.1.8.0"
+    api "androidx.fragment:fragment-ktx:1.8.0"
 
     api project(':reader')
     api project(':pdf-recyclerview')

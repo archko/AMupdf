@@ -40,16 +40,16 @@ android {
 }
 
 dependencies {
-    api "androidx.core:core:1.12.0"
-    api "androidx.appcompat:appcompat:1.6.1"
-    implementation "com.google.android.material:material:1.11.0"
-    api 'com.tencent:mmkv:1.3.1'
+    api "androidx.core:core:1.13.0"
+    api "androidx.appcompat:appcompat:1.7.0"
+    implementation "com.google.android.material:material:1.12.0"
+    api 'com.tencent:mmkv:1.3.4'
     api 'androidx.recyclerview:recyclerview:1.3.2'
     api "androidx.constraintlayout:constraintlayout:2.1.4"
 
     api "com.artifex.mupdf:mupdf-fitz:1.0-SNAPSHOT"
 
-    api "io.coil-kt:coil:2.5.0"
+    api "io.coil-kt:coil:2.6.0"
     api project(":pdf-recyclerview")
     api project(":readercommon")
 }
