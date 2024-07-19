@@ -1,0 +1,17 @@
+<resources>
+
+    <style name="Dialog.Bottom" parent="Theme.AppCompat.Light.Dialog">
+        <!--使 Dialog 全屏-->
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <!--去掉标题栏-->
+        <item name="android:windowNoTitle">true</item>
+        <!--背景透明-->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <!--状态栏透明-->
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowIsTranslucent">true</item><!-- 是否半透明 -->
+        <item name="android:backgroundDimEnabled">false</item><!-- dim:模糊的 阴影效果 -->
+    </style>
+
+</resources>
